@@ -12,6 +12,21 @@ defmodule WebApiWeb.ApiChannel do
   def join(_, _, socket), do: {:ok, %{message: "Welcome to ExTestchain !"}, socket}
 
   @doc """
+  Start existing chain
+  """
+  # def handle_in("start_existing", %{"id" => id}, socket) do
+    # case ExChain.start_existing(id, ChainMessageHandler) do
+      # {:ok, id} ->
+        # # Subscribing to notification :started and sending response to socket
+        # # ChainMessageHandler.notify_on(id, :started, self(), socket_ref(socket))
+        # {:reply, {:ok, %{id: id}}, socket}
+
+      # {:error, err} ->
+        # {:reply, {:error, %{message: err}}, socket}
+    # end
+  # end
+
+  @doc """
   Start new chain handler
   """
   # def handle_in("start", payload, socket) do
@@ -40,20 +55,6 @@ defmodule WebApiWeb.ApiChannel do
     # end
   # end
 
-  # @doc """
-  # Start existing chain
-  # """
-  # def handle_in("start_existing", %{"id" => id}, socket) do
-    # case Chain.start_existing(id, ChainMessageHandler) do
-      # {:ok, id} ->
-        # # Subscribing to notification :started and sending response to socket
-        # # ChainMessageHandler.notify_on(id, :started, self(), socket_ref(socket))
-        # {:reply, {:ok, %{id: id}}, socket}
-
-      # {:error, err} ->
-        # {:reply, {:error, %{message: err}}, socket}
-    # end
-  # end
 
   # @doc """
   # Get list of snapshots for given chain type

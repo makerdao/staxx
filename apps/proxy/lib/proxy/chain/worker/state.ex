@@ -3,5 +3,5 @@ defmodule Proxy.Chain.Worker.State do
   Default Worker state
   """
 
-  defstruct id: nil, status: :none
+  defstruct id: nil, status: :none, config: nil
 end

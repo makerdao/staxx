@@ -3,6 +3,23 @@ defmodule Proxy.ExChain do
   Chain caller
   """
 
+  # List of keys chain need as config
+  @chain_config_keys [
+    :type,
+    :notify_pid,
+    :accounts,
+    :block_mine_time,
+    :clean_on_stop,
+    :description,
+    :snapshot_id
+  ]
+
+  @doc """
+  New unique id for chain
+  """
+  def unique_id(), 
+    do: call(Chain, :unique_id)
+
   @doc """
   List of available chains
   """
@@ -17,13 +34,43 @@ defmodule Proxy.ExChain do
   @doc """
   Get snapshot details by id
   """
-  def get_snapshot(snapshot_id), 
+  def get_snapshot(snapshot_id),
     do: call(Chain.SnapshotManager, :by_id, [snapshot_id])
+
+  @doc """
+  Start existing chain
+  """
+  def start_existing(id, pid),
+    do: call(Chain, :start_existing, [id, pid])
+
+  @doc """
+  Start new chain
+  """
+  def start(config) when is_map(config),
+    do: call(Chain, :start, [to_config(config)])
+
+  @doc """
+  Set new notify_pid
+  """
+  def new_notify_pid(id, pid),
+    do: call(Chain, :new_notify_pid, [id, pid])
+
+  @doc """
+  Stoping chain
+  """
+  def stop(id),
+    do: call(Chain, :stop, [id])
 
   @doc """
   Versions for chains
   """
   def version(), do: call(Chain, :version)
+
+  @doc """
+  Convert to chain configuration
+  """
+  def to_config(config) when is_map(config),
+    do: Map.take(config, @chain_config_keys)
 
   @doc """
   Make an RPC call to ex_testchain application

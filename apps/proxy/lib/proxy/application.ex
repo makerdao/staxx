@@ -10,6 +10,8 @@ defmodule Proxy.Application do
     children = [
       # Starts a worker by calling: Proxy.Worker.start_link(arg)
       # {Proxy.Worker, arg},
+      Proxy.Chain.Supervisor,
+      {Registry, keys: :unique, name: Proxy.ChainRegistry},
       Proxy.NodeManager
     ]
 
