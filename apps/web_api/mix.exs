@@ -41,6 +41,7 @@ defmodule WebApi.MixProject do
       {:phoenix_pubsub, "~> 1.1"},
       {:gettext, "~> 0.11"},
       {:jason, "~> 1.0"},
+      {:poison, "~> 3.1"},
       {:plug_cowboy, "~> 2.0"},
       {:corsica, "~> 1.0"}
     ]

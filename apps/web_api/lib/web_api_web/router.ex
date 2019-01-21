@@ -14,8 +14,8 @@ defmodule WebApiWeb.Router do
   end
 
   # scope "/chain", WebApiWeb do
-    # pipe_through :api
-    # delete "/:id", ChainController, :remove_chain
-    # get "/:id", ChainController, :details
+  # pipe_through :api
+  # delete "/:id", ChainController, :remove_chain
+  # get "/:id", ChainController, :details
   # end
 end

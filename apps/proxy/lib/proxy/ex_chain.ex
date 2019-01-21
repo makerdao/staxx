@@ -5,19 +5,21 @@ defmodule Proxy.ExChain do
 
   # List of keys chain need as config
   @chain_config_keys [
+    :id,
     :type,
     :notify_pid,
     :accounts,
     :block_mine_time,
     :clean_on_stop,
     :description,
-    :snapshot_id
+    :snapshot_id,
+    :clean_on_stop
   ]
 
   @doc """
   New unique id for chain
   """
-  def unique_id(), 
+  def unique_id(),
     do: call(Chain, :unique_id)
 
   @doc """

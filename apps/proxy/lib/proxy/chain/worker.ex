@@ -13,17 +13,23 @@ defmodule Proxy.Chain.Worker do
   alias Proxy.Chain.Worker.State
 
   @doc false
-  def start_link(id) when is_binary(id),
-    do: GenServer.start_link(__MODULE__, %State{id: id})
+  def start_link({:existing, id, pid}) when is_binary(id),
+    do: GenServer.start_link(__MODULE__, %State{id: id, action: :existing, notify_pid: pid})
 
-  def start_link(config) when is_map(config),
-    do: GenServer.start_link(__MODULE__, %State{config: config})
+  def start_link({:new, %{id: id} = config, pid}) when is_map(config),
+    do:
+      GenServer.start_link(__MODULE__, %State{
+        id: id,
+        action: :new,
+        config: config,
+        notify_pid: pid
+      })
 
   @doc false
-  def init(%State{id: nil, config: config} = state) do
+  def init(%State{id: id, action: :new, config: config} = state) do
     Logger.debug("Starting new chain #{Map.get(config, :type)}")
 
-    {:ok, id} =
+    {:ok, ^id} =
       config
       |> Map.put(:notify_pid, self())
       |> ExChain.start()
@@ -34,7 +40,7 @@ defmodule Proxy.Chain.Worker do
   end
 
   @doc false
-  def init(%State{id: id} = state) when is_binary(id) do
+  def init(%State{id: id, action: :existing} = state) when is_binary(id) do
     Logger.debug("#{id}: Loading chain details")
     {:ok, ^id} = ExChain.start_existing(id, self())
     Logger.debug("#{id}: Starting existing chain")
@@ -49,28 +55,47 @@ defmodule Proxy.Chain.Worker do
 
   @doc false
   def handle_info(
-        %{__struct__: Chain.EVM.Notification, event: :status_changed, data: :terminated},
+        %{__struct__: Chain.EVM.Notification, event: :status_changed, data: :terminated} = event,
         %State{id: id} = state
       ) do
     Logger.debug("#{id}: Chain stopped going down")
+
+    if pid = Map.get(state, :notify_pid) do
+      send(pid, event)
+    end
+
     {:stop, :normal, %State{state | status: :terminated}}
   end
 
   @doc false
   def handle_info(
-        %{__struct__: Chain.EVM.Notification, event: :status_changed, data: status},
+        %{__struct__: Chain.EVM.Notification, event: :status_changed, data: status} = event,
         %State{id: id} = state
       ) do
     Logger.debug("#{id}: Chain status changed to #{status}")
+
+    if pid = Map.get(state, :notify_pid) do
+      send(pid, event)
+    end
+
     {:noreply, %State{state | status: status}}
   end
 
   @doc false
-  def handle_info(msg, state) do
-    IO.inspect(msg)
+  def handle_info(%{__struct__: Chain.EVM.Notification} = event, state) do
+    if pid = Map.get(state, :notify_pid) do
+      send(pid, event)
+    end
+
     {:noreply, state}
   end
 
+  @doc false
+  def handle_info(msg, state) do
+    {:noreply, state}
+  end
+
+  @doc false
   def handle_cast(:stop, %State{id: id} = state) do
     Logger.debug("#{id} Terminating chain")
     ExChain.stop(id)
