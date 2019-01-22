@@ -38,6 +38,18 @@ defmodule Proxy.Deployment.BaseApi do
     |> fetch_body()
   end
 
+  @doc """
+  Load list of steps from deployment service
+  """
+  @spec load_steps() :: {:ok, term()} | {:error, term()}
+  def load_steps() do
+    random_id()
+    |> request("GetInfo")
+  end
+
+  # generate random number for request
+  defp random_id(), do: :rand.uniform(9_999_999_999_999_999_999_999) |> to_string()
+
   # Get deployment service url
   defp url(), do: Application.get_env(:proxy, :deployment_service_url)
 

@@ -23,6 +23,8 @@ use Mix.Config
 
 config :proxy, deployment_service_url: "http://localhost:5001/rpc"
 
+config :proxy, deployment_steps_fetch_timeout: 600_000
+
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment
 # by uncommenting the line below and defining dev.exs, test.exs and such.
