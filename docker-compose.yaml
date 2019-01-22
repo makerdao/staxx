@@ -1,0 +1,12 @@
+version: '3'
+services:
+  testchain-backendgateway:
+    image: testchain_backendgateway:latest
+    ports:
+      - "4000:4000"
+  testchain-deployment:
+    image: testchain-deployment:latest
+    ports:
+      - "5001:5001"
+    volumes:
+      - ~/.ssh:/root/.ssh
