@@ -26,3 +26,4 @@ priv/presets/ganache/node_modules
 # DETS databases
 snapshots
 chains
+.idea
