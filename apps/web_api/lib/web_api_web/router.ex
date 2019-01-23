@@ -14,6 +14,11 @@ defmodule WebApiWeb.Router do
     get "/snapshot/:id", ChainController, :download_snapshot
   end
 
+  scope "/deployment", WebApiWeb do
+    pipe_through :api
+    get "/steps", DeploymentController, :steps
+  end
+
   # scope "/chain", WebApiWeb do
   # pipe_through :api
   # delete "/:id", ChainController, :remove_chain

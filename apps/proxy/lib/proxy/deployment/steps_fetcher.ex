@@ -22,9 +22,15 @@ defmodule Proxy.Deployment.StepsFetcher do
   def handle_info(:timeout, state), do: {:noreply, state}
 
   @doc false
-  def handle_info(:load, _state) do
-    {:ok, %{"type" => "ok", "result" => details}} = BaseApi.load_steps()
-    {:noreply, details, timeout()}
+  def handle_info(:load, state) do
+    case BaseApi.load_steps() do
+      {:ok, %{"type" => "ok", "result" => details}} ->
+        Logger.debug("Loaded steps from deployment service")
+        {:noreply, details, timeout()}
+
+      _ ->
+        {:noreply, state, timeout()}
+    end
   end
 
   @doc false
@@ -34,7 +40,7 @@ defmodule Proxy.Deployment.StepsFetcher do
   end
 
   @doc false
-  def handle_call(:get, state), do: {:reply, state, state}
+  def handle_call(:get, _from, state), do: {:reply, state, state}
 
   @doc """
   Get steps details

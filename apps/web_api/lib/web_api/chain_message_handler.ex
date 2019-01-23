@@ -21,12 +21,6 @@ defmodule WebApi.ChainMessageHandler do
     # Broadcasting event to direct channel
     response =
       case data do
-        %_{} ->
-          Map.from_struct(data)
-
-        %{__struct__: _} ->
-          Map.from_struct(data)
-
         %{} ->
           data
 
