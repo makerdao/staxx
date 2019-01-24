@@ -1,5 +1,12 @@
 # TestchainBackend
 
+## Docker compose
+
+1. Build all images in all repo
+2. Use `make dc-up` for run
+3. Use `make dc-down` for down with removing of data
+
+Instead of 2 and 3 u can use `docker-compose` cmd in console. 
 
 ## Deployment service
 
