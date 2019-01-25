@@ -25,7 +25,7 @@ defmodule Proxy.ExChain do
   @doc """
   List of available chains
   """
-  def chain_list(), do: call(Storage, :list)
+  def chain_list(), do: call(Chain, :list)
 
   @doc """
   List of snapshots
@@ -62,6 +62,36 @@ defmodule Proxy.ExChain do
   """
   def stop(id),
     do: call(Chain, :stop, [id])
+
+  @doc """
+  Clean chain
+  """
+  def clean(id),
+    do: call(Chain, :clean, [id])
+
+  @doc """
+  Load chain details 
+  """
+  def details(id),
+    do: call(Chain, :details, [id])
+
+  @doc """
+  take snapshot from chain
+  """
+  def take_snapshot(id, description \\ ""),
+    do: call(Chain, :take_snapshot, [id, description])
+
+  @doc """
+  Revert snapshot for chain
+  """
+  def revert_snapshot(id, snapshot),
+    do: call(Chain, :revert_snapshot, [id, snapshot])
+
+  @doc """
+  Load snapshot by it's id
+  """
+  def load_snapshot(snapshot_id), 
+    do: call(Chain.SnapshotManager, :by_id, [snapshot_id])
 
   @doc """
   Versions for chains

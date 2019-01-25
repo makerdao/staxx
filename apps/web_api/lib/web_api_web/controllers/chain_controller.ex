@@ -6,7 +6,6 @@ defmodule WebApiWeb.ChainController do
   alias Proxy.ExChain
 
   alias WebApiWeb.SuccessView
-  alias WebApiWeb.ErrorView
   # alias Chain.SnapshotManager
 
   # Get version for binaries and chain
@@ -52,33 +51,20 @@ defmodule WebApiWeb.ChainController do
     end
   end
 
-  # # Remove chain details from internal storage
-  # def remove_chain(conn, %{"id" => id}) do
-  # with false <- Chain.alive?(id),
-  # :ok <- Chain.clean(id) do
-  # conn
-  # |> put_status(200)
-  # |> json(%{status: 0, message: "Chain data will be deleted"})
-  # else
-  # true ->
-  # conn
-  # |> put_status(400)
-  # |> put_view(WebApiWeb.ErrorView)
-  # |> render("400.json", message: "Chain is operational. please stop it first")
+  # Remove chain details from internal storage
+  def remove_chain(conn, %{"id" => id}) do
+    with :ok <- ExChain.clean(id) do
+      conn
+      |> put_status(200)
+      |> json(%{status: 0, message: "Chain data will be deleted"})
+    end
+  end
 
-  # _ ->
-  # conn
-  # |> put_status(500)
-  # |> put_view(WebApiWeb.ErrorView)
-  # |> render("500.json", message: "Something wrong on removing chain")
-  # end
-  # end
-
-  # # Load chain details for running chain
-  # def details(conn, %{"id" => id}) do
-  # with {:ok, info} <- Chain.details(id) do
-  # conn
-  # |> json(%{status: 0, details: info})
-  # end
-  # end
+  # Load chain details for running chain
+  def details(conn, %{"id" => id}) do
+    with {:ok, info} <- ExChain.details(id) do
+      conn
+      |> json(%{status: 0, details: info})
+    end
+  end
 end

@@ -8,6 +8,10 @@ defmodule WebApiWeb.Router do
   scope "/", WebApiWeb do
     match :*, "/", IndexController, :index
     match :*, "/version", ChainController, :version
+  end
+
+  scope "/", WebApiWeb do
+    pipe_through :api
     post "/rpc", InternalController, :rpc
     get "/chains", ChainController, :chain_list
     get "/snapshots/:chain", ChainController, :snapshot_list
@@ -19,9 +23,9 @@ defmodule WebApiWeb.Router do
     get "/steps", DeploymentController, :steps
   end
 
-  # scope "/chain", WebApiWeb do
-  # pipe_through :api
-  # delete "/:id", ChainController, :remove_chain
-  # get "/:id", ChainController, :details
-  # end
+  scope "/chain", WebApiWeb do
+    pipe_through :api
+    delete "/:id", ChainController, :remove_chain
+    get "/:id", ChainController, :details
+  end
 end
