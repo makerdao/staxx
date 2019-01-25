@@ -2,8 +2,25 @@ version: '3'
 services:
   testchain-backendgateway:
     image: testchain_backendgateway:latest
+    expose:
+      - "9100-9105"
     ports:
+      - "9100-9105:9100-9105"
       - "4000:4000"
+    volumes:
+      - "/tmp/chains:/opt/chains"
+      - "/tmp/snapshots:/opt/snapshots"
+  ex_testchain:
+    image: ex_testchain:latest
+    expose:
+      - "8500-8600"
+      - "9100-9105"
+    ports:
+      - "8500-8600:8500-8600"
+      - "9100-9105:9100-9105"
+    volumes:
+      - "/tmp/chains:/opt/chains"
+      - "/tmp/snapshots:/opt/snapshots"
   testchain-deployment:
     image: testchain-deployment:latest
     ports:
