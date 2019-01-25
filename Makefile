@@ -3,6 +3,7 @@ APP_VSN ?= 0.1.0
 BUILD ?= `git rev-parse --short HEAD`
 ALPINE_VERSION ?= 3.8
 DOCKER_ID_USER ?= makerdao
+MIX_ENV ?= prod
 
 help:
 	@echo "$(APP_NAME):$(APP_VSN)-$(BUILD)"
@@ -23,6 +24,7 @@ build: ## Build elixir application with testchain and WS API
 		--build-arg ALPINE_VERSION=$(ALPINE_VERSION) \
 		--build-arg APP_NAME=$(APP_NAME) \
         --build-arg APP_VSN=$(APP_VSN) \
+        --build-arg MIX_ENV=$(MIX_ENV) \
         -t $(APP_NAME):$(APP_VSN)-$(BUILD) \
         -t $(APP_NAME):latest .	
 .PHONY: build
@@ -40,3 +42,12 @@ dev: ## Run local node with correct values
 	@iex --name backend@127.0.0.1 -S mix phx.server
 .PHONY: dev
 
+dc-up:
+	@echo "+ $@"
+	@docker-compose up -d
+.PHONY: dc-up
+
+dc-down:
+	@echo "+ $@"
+	@docker-compose down -v
+.PHONY: dc-down
