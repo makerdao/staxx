@@ -2,6 +2,8 @@ defmodule WebApiWeb.InternalController do
   use WebApiWeb, :controller
   require Logger
 
+  alias Proxy.Deployment.Storage
+
   def rpc(conn, %{"id" => id, "method" => method, "data" => data}) do
     Logger.info("Request id #{id}, method #{method}, data #{inspect(data)}")
     case method do
@@ -15,10 +17,10 @@ defmodule WebApiWeb.InternalController do
   end
 
   defp register_deployment(data) do
-    Storage.InMemory.add_deployment(%{host: data["host"], port: data["port"]})
+    Storage.add_deployment(%{host: data["host"], port: data["port"]})
   end
 
   defp unregister_deployment(data) do
-    Storage.InMemory.delete_deployment(%{host: data["host"], port: data["port"]})
+    Storage.delete_deployment(%{host: data["host"], port: data["port"]})
   end
 end

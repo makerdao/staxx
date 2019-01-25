@@ -12,6 +12,7 @@ defmodule Proxy.Application do
       # {Proxy.Worker, arg},
       Proxy.Chain.Supervisor,
       Proxy.Deployment.StepsFetcher,
+      Proxy.Deployment.Storage,
       {Registry, keys: :unique, name: Proxy.ChainRegistry},
       Proxy.NodeManager
     ]
