@@ -6,6 +6,8 @@ defmodule Proxy.Deployment.BaseApi do
 
   require Logger
 
+  @random_max 9_999_999_999_999_999_999_999
+
   @doc false
   def process_response_body(""), do: %{}
 
@@ -48,7 +50,7 @@ defmodule Proxy.Deployment.BaseApi do
   end
 
   # generate random number for request
-  defp random_id(), do: :rand.uniform(9_999_999_999_999_999_999_999) |> to_string()
+  defp random_id(), do: @random_max |> :rand.uniform() |> to_string()
 
   # Get deployment service url
   defp url(), do: Application.get_env(:proxy, :deployment_service_url)

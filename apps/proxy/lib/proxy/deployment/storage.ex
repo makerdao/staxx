@@ -1,4 +1,8 @@
 defmodule Proxy.Deployment.Storage do
+  @moduledoc """
+  Module that will register deployment service connectivity.
+  On connection it should force steps update etc. for Proxy app
+  """
   use GenServer
 
   @doc false
