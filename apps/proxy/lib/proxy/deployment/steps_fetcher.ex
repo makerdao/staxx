@@ -19,7 +19,10 @@ defmodule Proxy.Deployment.StepsFetcher do
   end
 
   @doc false
-  def handle_info(:timeout, state), do: {:noreply, state}
+  def handle_info(:timeout, state) do
+    Process.send_after(__MODULE__, :load, 10)
+    {:noreply, state}
+  end
 
   @doc false
   def handle_info(:load, state) do
@@ -47,6 +50,12 @@ defmodule Proxy.Deployment.StepsFetcher do
   """
   @spec get() :: nil | map()
   def get(), do: GenServer.call(__MODULE__, :get)
+
+  @doc """
+  Reload list of steps from deplyment service
+  """
+  @spec reload() :: :ok
+  def reload(), do: send(__MODULE__, :load)
 
   # get deployment timeout
   defp timeout(), do: Application.get_env(:proxy, :deployment_steps_fetch_timeout, 600_000)

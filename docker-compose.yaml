@@ -11,33 +11,36 @@ services:
     volumes:
       - "/tmp/chains:/opt/chains"
       - "/tmp/snapshots:/opt/snapshots"
-    # networks:
-     # - net1
-  # ex_testchain:
-    # image: ex_testchain:latest
-    # container_name: ex-testchain.local
-    # expose:
-      # - "8500-8600"
-      # - "9100-9105"
-    # ports:
-      # - "8500-8600:8500-8600"
-      # # - "9100-9105:9100-9105"
-    # volumes:
-      # - "/tmp/chains:/opt/chains"
-      # - "/tmp/snapshots:/opt/snapshots"
-    # networks:
-     # - net1
+    networks:
+     - net1
+  ex_testchain:
+    image: ex_testchain:latest
+    container_name: ex-testchain.local
+    expose:
+      - "8500-8600"
+      - "9100-9105"
+    ports:
+      - "8500-8600:8500-8600"
+      # - "9100-9105:9100-9105"
+    volumes:
+      - "/tmp/chains:/opt/chains"
+      - "/tmp/snapshots:/opt/snapshots"
+    networks:
+     - net1
   testchain-deployment:
     image: testchain-deployment:latest
+    container_name: testchain-deployment.local
     ports:
       - "5001:5001"
+    environment:
+      TCD_GATEWAY: host=testchain-backendgateway.local
     volumes:
       - ~/.ssh:/root/.ssh
-    # networks:
-     # - net1
+    networks:
+     - net1
 
 # We're using custom network setup, as it ships with a DNS
 # system which allows containers to communicate by hostnames.
-# networks:
-  # net1:
-    # driver: bridge
+networks:
+  net1:
+    driver: bridge

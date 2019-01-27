@@ -90,7 +90,7 @@ defmodule Proxy.ExChain do
   @doc """
   Load snapshot by it's id
   """
-  def load_snapshot(snapshot_id), 
+  def load_snapshot(snapshot_id),
     do: call(Chain.SnapshotManager, :by_id, [snapshot_id])
 
   @doc """
