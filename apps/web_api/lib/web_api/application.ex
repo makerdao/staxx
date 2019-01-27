@@ -10,8 +10,7 @@ defmodule WebApi.Application do
     children = [
       # Start the endpoint when the application starts
       WebApiWeb.Endpoint,
-      WebApi.ChainMessageHandler,
-      Storage.InMemory
+      WebApi.ChainMessageHandler
       # Starts a worker by calling: WebApi.Worker.start_link(arg)
       # {WebApi.Worker, arg},
     ]

@@ -21,4 +21,13 @@ defmodule WebApiWeb.DeploymentController do
         |> render("200.json", data: steps)
     end
   end
+
+  def reload(conn, _) do
+    StepsFetcher.reload()
+
+    conn
+    |> put_status(200)
+    |> put_view(SuccessView)
+    |> render("200.json", data: %{})
+  end
 end
