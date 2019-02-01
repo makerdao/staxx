@@ -6,6 +6,7 @@ defmodule WebApiWeb.ChainChannel do
   require Logger
 
   alias Proxy.ExChain
+  alias Proxy.Chain.Worker
 
   use Phoenix.Channel, log_join: false, log_handle_in: :debug
   # alias Chain.Snapshot.Details, as: SnapshotDetails
@@ -55,6 +56,22 @@ defmodule WebApiWeb.ChainChannel do
       err ->
         Logger.error("#{id}: Failed to revert snapshot: #{inspect(err)}")
         {:reply, {:error, %{message: "failed to revert snapshot"}}, socket}
+    end
+  end
+
+  # Run deployment
+  def handle_in("deploy", %{"step" => step}, %{topic: "chain:" <> id} = socket) do
+    res =
+      id
+      |> Worker.get_pid()
+      |> GenServer.call({:deploy, step})
+
+    case res do
+      :ok ->
+        {:reply, {:ok, %{status: "ok"}}, socket}
+
+      {:error, err} ->
+        {:reply, {:error, %{message: err}}, socket}
     end
   end
 end

@@ -38,7 +38,8 @@ defmodule WebApiWeb.ApiChannel do
       block_mine_time: Map.get(payload, "block_mine_time", 0),
       clean_on_stop: Map.get(payload, "clean_on_stop", false),
       description: Map.get(payload, "description", ""),
-      snapshot_id: Map.get(payload, "snapshot_id")
+      snapshot_id: Map.get(payload, "snapshot_id"),
+      step_id: Map.get(payload, "step_id", 0)
       # notify_pid: ChainMessageHandler
     }
 
