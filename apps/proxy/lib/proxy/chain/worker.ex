@@ -248,8 +248,13 @@ defmodule Proxy.Chain.Worker do
     do: {:error, "No chain details exist", state}
 
   defp deploy(step, %State{id: id, details: details} = state) do
+    rpc_url =
+      details
+      |> Map.get(:rpc_url)
+      |> String.replace("localhost", Application.get_env(:proxy, :deploy_chain_front_url))
+
     env = %{
-      "ETH_RPC_URL" => Map.get(details, :rpc_url),
+      "ETH_RPC_URL" => rpc_url,
       "ETH_FROM" => Map.get(details, :coinbase),
       "ETH_RPC_ACCOUNTS" => "yes",
       "SETH_STATUS" => "yes",
