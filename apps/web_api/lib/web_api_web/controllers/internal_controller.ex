@@ -42,6 +42,20 @@ defmodule WebApiWeb.InternalController do
 
   # TODO: Add error handling
 
+  defp process_deployment_result(%{"id" => id, "type" => "error", "result" => result}) do
+    case Proxy.Deployment.ProcessWatcher.pop(id) do
+      nil ->
+        Logger.debug("No process found that want to handle deployment request with id: #{id}")
+
+      chain_id when is_binary(chain_id) ->
+        Logger.debug("Chain #{chain_id} need to handle deployment request")
+        Proxy.Chain.Worker.handle_deployment_failure(chain_id, id, result)
+
+      _ ->
+        Logger.error("Something wrong with fetching deployemnt result #{id}")
+    end
+  end
+
   defp process_deployment_result(%{"id" => id, "type" => "ok", "result" => %{"data" => data}}) do
     case Proxy.Deployment.ProcessWatcher.pop(id) do
       nil ->

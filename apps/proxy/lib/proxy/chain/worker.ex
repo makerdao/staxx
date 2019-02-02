@@ -115,7 +115,7 @@ defmodule Proxy.Chain.Worker do
     # We have to notify that chain started
     notify(state, :started, details)
     new_state = deploy(step, %State{state | details: details})
-    {:noreply, new_state}
+    {:noreply, new_state, Application.get_env(:proxy, :deployment_timeout)}
   end
 
   @doc false
@@ -137,6 +137,14 @@ defmodule Proxy.Chain.Worker do
   end
 
   @doc false
+  def handle_info(:timeout, %State{id: id, status: :deploying} = state) do
+    Logger.error("#{id}: Waiting deployment failed: timeout")
+    notify(id, :deployment_failed, "Timeout waiting deployment")
+    notify(id, :failed)
+    {:noreply, %State{state | status: :failed}}
+  end
+
+  @doc false
   def handle_info(msg, %State{id: id} = state) do
     Logger.debug("#{id}: Handled message #{inspect(msg)}")
     {:noreply, state}
@@ -154,7 +162,7 @@ defmodule Proxy.Chain.Worker do
         {:deployment_finished, request_id, data},
         %State{id: id, status: :deploying} = state
       ) do
-    Logger.debug("Handling deployment #{request_id} finish #{inspect(data)}")
+    Logger.debug("#{id}: Handling deployment #{request_id} finish #{inspect(data)}")
     notify(state, :deployed, data)
     notify(state, :ready)
     {:noreply, %State{state | status: :ready, deploy_data: data}}
@@ -162,10 +170,24 @@ defmodule Proxy.Chain.Worker do
 
   @doc false
   def handle_cast(
+        {:deployment_failed, request_id, msg},
+        %State{id: id, status: :deploying} = state
+      ) do
+    Logger.debug("#{id}: Handling deployment #{request_id} finish #{inspect(msg)}")
+    notify(state, :deploy_failed, msg)
+    notify(state, :failed)
+    {:noreply, %State{state | status: :failed}}
+  end
+
+  @doc false
+  def handle_cast(
         {:deployment_finished, request_id, data},
         %State{id: id, status: status} = state
       ) do
-    Logger.debug("Status #{status} Handling deployment #{request_id} finish #{inspect(data)}")
+    Logger.debug(
+      "#{id}: Status #{status} Handling deployment #{request_id} finish #{inspect(data)}"
+    )
+
     {:noreply, state}
   end
 
@@ -201,6 +223,19 @@ defmodule Proxy.Chain.Worker do
   def handle_deployment(id, request_id, data) do
     with pid when is_pid(pid) <- get_pid(id) do
       GenServer.cast(pid, {:deployment_finished, request_id, data})
+    end
+  end
+
+  @doc """
+  Send deployment failure event to worker
+  """
+  @spec handle_deployment_failure(binary, binary, map()) :: term()
+  def handle_deployment_failure(id, request_id, %{"msg" => msg, "stderrB64" => err}) do
+    with pid when is_pid(pid) <- get_pid(id) do
+      decoded_err = Base.decode64!(err)
+      Logger.error("#{id}: Deployment failed\n #{decoded_err}")
+
+      GenServer.cast(pid, {:deployment_failed, request_id, msg})
     end
   end
 
