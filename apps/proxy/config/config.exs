@@ -22,8 +22,12 @@ use Mix.Config
 #
 
 config :proxy, deployment_service_url: "http://localhost:5001/rpc"
+config :proxy, deploy_chain_front_url: "host.docker.internal"
 
 config :proxy, deployment_steps_fetch_timeout: 30_000
+
+# deployment timeout
+config :proxy, deployment_timeout: 600_000
 
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment

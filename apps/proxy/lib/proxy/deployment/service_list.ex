@@ -1,4 +1,4 @@
-defmodule Proxy.Deployment.Storage do
+defmodule Proxy.Deployment.ServiceList do
   @moduledoc """
   Module that will register deployment service connectivity.
   On connection it should force steps update etc. for Proxy app

@@ -49,8 +49,30 @@ defmodule Proxy.Deployment.BaseApi do
     |> request("GetInfo")
   end
 
+  @doc """
+  Request service to reload sources for deployment scripts
+  """
+  @spec update_source() :: {:ok, term()} | {:error, term()}
+  def update_source() do
+    random_id()
+    |> request("UpdateSource")
+  end
+
+  @doc """
+  Run deployment step with list of env variables
+  """
+  @spec run(binary, 1..9, map()) :: {:ok, term()} | {:error, term()}
+  def run(id, step, env_vars \\ %{}) when step in 1..9 do
+    data = %{
+      stepId: step,
+      envVars: env_vars
+    }
+
+    request(id, "Run", data)
+  end
+
   # generate random number for request
-  defp random_id(), do: @random_max |> :rand.uniform() |> to_string()
+  def random_id(), do: @random_max |> :rand.uniform() |> to_string()
 
   # Get deployment service url
   defp url(), do: Application.get_env(:proxy, :deployment_service_url)
