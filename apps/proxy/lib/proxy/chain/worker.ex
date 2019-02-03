@@ -19,6 +19,7 @@ defmodule Proxy.Chain.Worker do
   alias Proxy.ExChain
   alias Proxy.Chain.Worker.State
   alias Proxy.Deployment.BaseApi
+  alias Proxy.Deployment.StepsFetcher
 
   @doc false
   def start_link({:existing, id, pid}) when is_binary(id),
@@ -106,16 +107,25 @@ defmodule Proxy.Chain.Worker do
   @doc false
   def handle_info(
         %{__struct__: Chain.EVM.Notification, event: :started, data: details},
-        %State{id: id, status: :starting, config: %{step_id: step}} = state
+        %State{id: id, status: :starting, config: %{step_id: step_id}} = state
       ) do
-    Logger.debug(
-      "#{id}: Chain started successfully, have deployment to perform step: #{inspect(step)}"
-    )
+    Logger.debug("#{id}: Chain started successfully, have deployment to perform step: #{step_id}")
 
     # We have to notify that chain started
     notify(state, :started, details)
-    new_state = deploy(step, %State{state | details: details})
-    {:noreply, new_state, Application.get_env(:proxy, :deployment_timeout)}
+
+    # Load step details
+    with step when is_map(step) <- StepsFetcher.get(step_id),
+         hash when byte_size(hash) > 0 <- StepsFetcher.hash() do
+      # Run deployment
+      new_state =
+        deploy(step_id, %State{state | details: details, deploy_step: step, deploy_hash: hash})
+
+      {:noreply, new_state, Application.get_env(:proxy, :deployment_timeout)}
+    else
+      _ ->
+        {:noreply, state}
+    end
   end
 
   @doc false

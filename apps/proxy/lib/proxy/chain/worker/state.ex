@@ -10,5 +10,7 @@ defmodule Proxy.Chain.Worker.State do
             config: nil,
             notify_pid: nil,
             details: nil,
-            deploy_data: nil
+            deploy_data: nil,
+            deploy_step: nil,
+            deploy_hash: nil
 end

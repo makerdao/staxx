@@ -7,7 +7,7 @@ defmodule WebApiWeb.DeploymentController do
   alias WebApiWeb.SuccessView
 
   def steps(conn, _) do
-    case StepsFetcher.get() do
+    case StepsFetcher.all() do
       nil ->
         conn
         |> put_status(200)

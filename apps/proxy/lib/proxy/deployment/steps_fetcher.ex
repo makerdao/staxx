@@ -2,7 +2,7 @@ defmodule Proxy.Deployment.StepsFetcher do
   @moduledoc """
   Module will fetch list of steps from deployment service
   Fetching might be triggered by timeout (automatically) or manually
-  by calling `Proxy.Deploy.StepsFetcher.fetch/0`
+  by calling `Proxy.Deploy.StepsFetcher.reload/0`
   """
   use GenServer
   alias Proxy.Deployment.BaseApi
@@ -37,19 +37,35 @@ defmodule Proxy.Deployment.StepsFetcher do
   end
 
   @doc false
-  def handle_cast(:fetch, _state) do
-    {:ok, %{"type" => "ok", "result" => details}} = BaseApi.load_steps()
-    {:noreply, details, timeout()}
+  def handle_call({:get, step_id}, _from, %{"steps" => steps} = state) do
+    step =
+      steps
+      |> Enum.find(fn %{"id" => id} -> id == step_id end)
+
+    {:reply, step, state}
   end
 
   @doc false
-  def handle_call(:get, _from, state), do: {:reply, state, state}
+  def handle_call({:get, _step_id}, _from, state),
+    do: {:reply, nil, state}
+
+  @doc false
+  def handle_call(:hash, _from, %{"tagHash" => hash} = state),
+    do: {:reply, hash, state}
+
+  @doc false
+  def handle_call(:hash, _from, state),
+    do: {:reply, nil, state}
+
+  @doc false
+  def handle_call(:all, _from, state),
+    do: {:reply, state, state}
 
   @doc """
   Get steps details
   """
-  @spec get() :: nil | map()
-  def get(), do: GenServer.call(__MODULE__, :get)
+  @spec all() :: nil | map()
+  def all(), do: GenServer.call(__MODULE__, :all)
 
   @doc """
   Reload list of steps from deplyment service
@@ -57,6 +73,21 @@ defmodule Proxy.Deployment.StepsFetcher do
   @spec reload() :: :ok
   def reload(), do: send(__MODULE__, :load)
 
+  @doc """
+  Get step details
+  """
+  @spec get(1..9) :: nil | map()
+  def get(step_id),
+    do: GenServer.call(__MODULE__, {:get, step_id})
+
+  @doc """
+  Get hash from git commit
+  """
+  @spec hash() :: nil | binary
+  def hash(),
+    do: GenServer.call(__MODULE__, :hash)
+
   # get deployment timeout
-  defp timeout(), do: Application.get_env(:proxy, :deployment_steps_fetch_timeout, 600_000)
+  defp timeout(),
+    do: Application.get_env(:proxy, :deployment_steps_fetch_timeout, 600_000)
 end
