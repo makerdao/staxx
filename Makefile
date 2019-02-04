@@ -6,7 +6,7 @@ DOCKER_ID_USER ?= makerdao
 MIX_ENV ?= prod
 
 help:
-	@echo "$(APP_NAME):$(APP_VSN)-$(BUILD)"
+	@echo "$(DOCKER_ID_USER)/$(APP_NAME):$(APP_VSN)-$(BUILD)"
 	@perl -nle'print $& if m{^[a-zA-Z_-]+:.*?## .*$$}' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 .PHONY: help
 
