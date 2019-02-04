@@ -189,8 +189,12 @@ defmodule Proxy.Chain.Worker do
     Logger.debug("#{id}: Handling deployment #{request_id} finish #{inspect(data)}")
     notify(state, :deployed, data)
     notify(state, :ready)
-    Storage.store(id, %State{state | status: :ready, deploy_data: data})
-    {:noreply, %State{state | status: :ready, deploy_data: data}}
+    new_state = %State{state | status: :ready, deploy_data: data}
+    Storage.store(id, new_state)
+
+    Logger.debug("#{id}: Send oracles notification")
+    notify_oracles(new_state)
+    {:noreply, new_state}
   end
 
   @doc false
@@ -218,8 +222,8 @@ defmodule Proxy.Chain.Worker do
   end
 
   @doc false
-  def handle_call({:deploy, step}, _from, %State{} = state) do
-    case deploy(step, state) do
+  def handle_call({:deploy, step_id}, _from, %State{} = state) do
+    case deploy(step_id, state) do
       {:ok, new_state} ->
         {:reply, :ok, new_state}
 
@@ -314,4 +318,22 @@ defmodule Proxy.Chain.Worker do
 
   defp notify(%State{id: id, notify_pid: pid}, event, data),
     do: send(pid, %{id: id, event: event, data: data})
+
+  # Send notification to oracles service about adding new relayer
+  defp notify_oracles(%State{
+         deploy_step: %{"ilks" => ilks, "omniaFromAddr" => from},
+         chain_details: %{rpc_url: url},
+         deploy_data: data
+       })
+       when is_map(data) do
+    pairs =
+      ilks
+      |> Enum.filter(fn {_symbol, conf} -> get_in(conf, ["pip", "type"]) == "median" end)
+      |> Enum.map(fn {symbol, _} -> {symbol, Map.get(data, "VAL_#{symbol}")} end)
+      |> Enum.reject(&is_nil/1)
+
+    Proxy.Oracles.Api.new_relayer(url, from, pairs)
+  end
+
+  defp notify_oracles(_), do: {:error, "failed to get all required details"}
 end
