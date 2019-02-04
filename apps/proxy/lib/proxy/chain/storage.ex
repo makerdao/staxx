@@ -15,7 +15,7 @@ defmodule Proxy.Chain.Storage do
     Logger.debug("#{__MODULE__}: Starting chain worker storage")
 
     unless File.dir?(db_path()) do
-      File.mkdir(db_path())
+      File.mkdir_p(db_path())
     end
 
     :dets.open_file(table(), type: :set)
