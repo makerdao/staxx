@@ -12,12 +12,15 @@ defmodule Proxy.Chain.Worker do
   In case of failure status will be set to `:failed`
   """
 
+  @type status :: :starting | :started | :deploying | :deployed | :ready | :failed | :terminated
+
   use GenServer, restart: :transient
 
   require Logger
 
   alias Proxy.ExChain
   alias Proxy.Chain.Worker.State
+  alias Proxy.Chain.Storage
   alias Proxy.Deployment.BaseApi
   alias Proxy.Deployment.StepsFetcher
 
@@ -46,6 +49,8 @@ defmodule Proxy.Chain.Worker do
 
     Logger.debug("Started new chain #{id}")
     {:ok, _} = register(id)
+    # Store new chain worker
+    Storage.store(id, %State{state | id: id})
     {:ok, %State{state | id: id}}
   end
 
@@ -55,6 +60,8 @@ defmodule Proxy.Chain.Worker do
     {:ok, ^id} = ExChain.start_existing(id, self())
     Logger.debug("#{id}: Starting existing chain")
     {:ok, _} = register(id)
+    # Store chain new statuses
+    Storage.store(id, state)
     {:ok, state}
   end
 
@@ -65,15 +72,13 @@ defmodule Proxy.Chain.Worker do
 
   @doc false
   def handle_info(
-        %{__struct__: Chain.EVM.Notification, event: :status_changed, data: :terminated} = event,
+        %{__struct__: Chain.EVM.Notification, event: :status_changed, data: :terminated},
         %State{id: id} = state
       ) do
     Logger.debug("#{id}: Chain stopped going down")
-
-    if pid = Map.get(state, :notify_pid) do
-      send(pid, event)
-    end
-
+    notify(state, :terminated)
+    # Storing state
+    Storage.store(id, %State{state | status: :terminated})
     {:stop, :normal, %State{state | status: :terminated, chain_status: :terminated}}
   end
 
@@ -101,7 +106,8 @@ defmodule Proxy.Chain.Worker do
     notify(state, :started, details)
     notify(state, :ready, details)
 
-    {:noreply, %State{state | status: :ready, details: details}}
+    Storage.store(id, %State{state | status: :ready, chain_details: details})
+    {:noreply, %State{state | status: :ready, chain_details: details}}
   end
 
   @doc false
@@ -119,8 +125,14 @@ defmodule Proxy.Chain.Worker do
          hash when byte_size(hash) > 0 <- StepsFetcher.hash() do
       # Run deployment
       new_state =
-        deploy(step_id, %State{state | details: details, deploy_step: step, deploy_hash: hash})
+        deploy(step_id, %State{
+          state
+          | chain_details: details,
+            deploy_step: step,
+            deploy_hash: hash
+        })
 
+      Storage.store(id, new_state)
       {:noreply, new_state, Application.get_env(:proxy, :deployment_timeout)}
     else
       _ ->
@@ -134,7 +146,8 @@ defmodule Proxy.Chain.Worker do
         %State{id: id, status: status} = state
       ) do
     Logger.debug("#{id}: Got chain :started event with worker status: #{status}")
-    {:noreply, %State{state | details: details}}
+    Storage.store(id, %State{state | chain_details: details})
+    {:noreply, %State{state | chain_details: details}}
   end
 
   @doc false
@@ -151,6 +164,7 @@ defmodule Proxy.Chain.Worker do
     Logger.error("#{id}: Waiting deployment failed: timeout")
     notify(id, :deployment_failed, "Timeout waiting deployment")
     notify(id, :failed)
+    Storage.store(id, %State{state | status: :failed})
     {:noreply, %State{state | status: :failed}}
   end
 
@@ -175,6 +189,7 @@ defmodule Proxy.Chain.Worker do
     Logger.debug("#{id}: Handling deployment #{request_id} finish #{inspect(data)}")
     notify(state, :deployed, data)
     notify(state, :ready)
+    Storage.store(id, %State{state | status: :ready, deploy_data: data})
     {:noreply, %State{state | status: :ready, deploy_data: data}}
   end
 
@@ -186,6 +201,7 @@ defmodule Proxy.Chain.Worker do
     Logger.debug("#{id}: Handling deployment #{request_id} finish #{inspect(msg)}")
     notify(state, :deploy_failed, msg)
     notify(state, :failed)
+    Storage.store(id, %State{state | status: :failed})
     {:noreply, %State{state | status: :failed}}
   end
 
@@ -254,10 +270,10 @@ defmodule Proxy.Chain.Worker do
     do: Registry.register(Proxy.ChainRegistry, id, nil)
 
   # Run deployment scripts
-  defp deploy(_step, %State{details: nil} = state),
+  defp deploy(_step, %State{chain_details: nil} = state),
     do: {:error, "No chain details exist", state}
 
-  defp deploy(step, %State{id: id, details: details} = state) do
+  defp deploy(step, %State{id: id, chain_details: details} = state) do
     rpc_url =
       details
       |> Map.get(:rpc_url)

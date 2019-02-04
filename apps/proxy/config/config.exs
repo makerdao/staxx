@@ -26,6 +26,9 @@ config :proxy, deploy_chain_front_url: "host.docker.internal"
 
 config :proxy, deployment_steps_fetch_timeout: 30_000
 
+# DB path where all list of chain workers will be stored
+config :proxy, dets_db_path: "/tmp/chains"
+
 # deployment timeout
 config :proxy, deployment_timeout: 600_000
 
