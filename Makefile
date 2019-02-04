@@ -23,10 +23,10 @@ build: ## Build elixir application with testchain and WS API
 	@docker build \
 		--build-arg ALPINE_VERSION=$(ALPINE_VERSION) \
 		--build-arg APP_NAME=$(APP_NAME) \
-        --build-arg APP_VSN=$(APP_VSN) \
-        --build-arg MIX_ENV=$(MIX_ENV) \
-        -t $(APP_NAME):$(APP_VSN)-$(BUILD) \
-        -t $(APP_NAME):latest .	
+    --build-arg APP_VSN=$(APP_VSN) \
+    --build-arg MIX_ENV=$(MIX_ENV) \
+    -t $(DOCKER_ID_USER)/$(APP_NAME):$(APP_VSN)-$(BUILD) \
+    -t $(DOCKER_ID_USER)/$(APP_NAME):latest .
 .PHONY: build
 
 run: ## Run the app in Docker
@@ -35,7 +35,7 @@ run: ## Run the app in Docker
 		-v /tmp/snapshots:/opt/snapshots \
 		--expose 4000 -p 4000:4000 \
 		--expose 9100-9105 -p 9100-9105:9100-9105 \
-		--rm -it $(APP_NAME):latest
+		--rm -it $(DOCKER_ID_USER)/$(APP_NAME):latest
 .PHONY: run
 
 dev: ## Run local node with correct values

@@ -3,13 +3,26 @@ defmodule Proxy.Chain.Worker.State do
   Default Worker state
   """
 
+  @type t :: %__MODULE__{
+          id: binary,
+          start: :new | :existing,
+          status: Proxy.Chain.Worker.status(),
+          config: map(),
+          notify_pid: pid() | nil,
+          chain_status: atom(),
+          chain_details: map(),
+          deploy_data: map(),
+          deploy_step: 0..9,
+          deploy_hash: binary
+        }
+
   defstruct id: nil,
             start: :new,
-            chain_status: :none,
             status: :starting,
             config: nil,
             notify_pid: nil,
-            details: nil,
+            chain_status: :none,
+            chain_details: nil,
             deploy_data: nil,
             deploy_step: nil,
             deploy_hash: nil

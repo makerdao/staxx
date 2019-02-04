@@ -11,6 +11,7 @@ defmodule Proxy.Application do
       # Starts a worker by calling: Proxy.Worker.start_link(arg)
       # {Proxy.Worker, arg},
       Proxy.Chain.Supervisor,
+      Proxy.Chain.Storage,
       Proxy.Deployment.StepsFetcher,
       Proxy.Deployment.ServiceList,
       Proxy.Deployment.ProcessWatcher,
