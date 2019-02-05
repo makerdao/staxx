@@ -53,6 +53,7 @@ defmodule Proxy.Oracles.Api do
       |> Jason.encode!()
 
     Logger.debug("Calling oracles service with data: #{req}")
+
     url()
     |> post(req, [{"Content-Type", "application/json"}], recv_timeout: @timeout)
     |> fetch_result()

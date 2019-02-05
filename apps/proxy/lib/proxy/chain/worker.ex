@@ -286,7 +286,8 @@ defmodule Proxy.Chain.Worker do
     rpc_url =
       details
       |> Map.get(:rpc_url)
-      |> String.replace("localhost", Application.get_env(:proxy, :deploy_chain_front_url))
+
+    # |> String.replace("localhost", Application.get_env(:proxy, :deploy_chain_front_url))
 
     env = %{
       "ETH_RPC_URL" => rpc_url,

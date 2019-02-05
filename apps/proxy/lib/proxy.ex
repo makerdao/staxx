@@ -3,6 +3,8 @@ defmodule Proxy do
   Proxy service functions
   """
 
+  require Logger
+
   alias Proxy.ExChain
   alias Proxy.Chain.Worker
   alias Proxy.Chain.Supervisor
@@ -52,4 +54,25 @@ defmodule Proxy do
     |> Worker.get_pid()
     |> GenServer.cast(:stop)
   end
+
+  @doc """
+  Remove all details about chain by id
+  """
+  @spec clean(binary) :: :ok | {:error, binary}
+  def clean(id) do
+    with :ok <- ExChain.clean(id),
+         _ <- Proxy.Chain.Storage.delete(id) do
+      :ok
+    else
+      err ->
+        Logger.error("Failed to clean up chain #{id} details #{inspect(err)}")
+        {:error, "failed to clean up chain #{id} details"}
+    end
+  end
+
+  @doc """
+  Get details about chain by it's id
+  """
+  @spec details(binary) :: nil | map()
+  def details(id), do: Proxy.Chain.Storage.get(id)
 end
