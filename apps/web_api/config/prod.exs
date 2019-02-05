@@ -14,7 +14,8 @@ config :web_api, WebApiWeb.Endpoint,
   url: [host: "localhost", port: {:system, "PORT"}],
   server: true,
   root: ".",
-  version: Application.spec(:phoenix_distillery, :vsn)
+  version: Application.spec(:phoenix_distillery, :vsn),
+  check_origin: false
 
 # Do not print debug messages in production
 config :logger, level: :info
