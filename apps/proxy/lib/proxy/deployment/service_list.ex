@@ -4,6 +4,7 @@ defmodule Proxy.Deployment.ServiceList do
   On connection it should force steps update etc. for Proxy app
   """
   use GenServer
+  require Logger
 
   @doc false
   def start_link(_) do
@@ -21,6 +22,8 @@ defmodule Proxy.Deployment.ServiceList do
       deployments
       |> Map.put(build_deployment_key_by_params(params), params)
 
+    Logger.debug('Deployemnt service connected. Triggering fetch steps')
+    Proxy.Deployment.StepsFetcher.reload()
     {:noreply, %{state | deployments: updated}}
   end
 

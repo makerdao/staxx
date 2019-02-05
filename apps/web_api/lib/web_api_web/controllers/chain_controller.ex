@@ -53,7 +53,8 @@ defmodule WebApiWeb.ChainController do
 
   # Remove chain details from internal storage
   def remove_chain(conn, %{"id" => id}) do
-    with :ok <- ExChain.clean(id) do
+    with :ok <- ExChain.clean(id),
+         _ <- Proxy.Chain.Storage.delete(id) do
       conn
       |> put_status(200)
       |> json(%{status: 0, message: "Chain data will be deleted"})

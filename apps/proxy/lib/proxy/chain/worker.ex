@@ -136,7 +136,9 @@ defmodule Proxy.Chain.Worker do
       {:noreply, new_state, Application.get_env(:proxy, :deployment_timeout)}
     else
       _ ->
-        {:noreply, state}
+        Logger.error("#{id}: Failed to fetch steps from deployment service. Deploy ommited")
+        notify(state, :ready, details)
+        {:noreply, %State{state | status: :ready}}
     end
   end
 
