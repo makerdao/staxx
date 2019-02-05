@@ -8,6 +8,7 @@ defmodule WebApiWeb.ApiChannel do
   require Logger
 
   alias WebApi.ChainMessageHandler
+  alias Proxy.ExChain
 
   def join(_, _, socket), do: {:ok, %{message: "Welcome to ExTestchain !"}, socket}
 
@@ -54,34 +55,37 @@ defmodule WebApiWeb.ApiChannel do
     end
   end
 
-  # @doc """
-  # Get list of snapshots for given chain type
-  # """
-  # def handle_in("list_snapshots", %{"chain" => chain}, socket) do
-  # {:reply, {:ok, %{snapshots: Chain.SnapshotManager.by_chain(chain)}}, socket}
-  # end
+  @doc """
+  Get list of snapshots for given chain type
+  """
+  def handle_in("list_snapshots", %{"chain" => chain}, socket) do
+    with list when is_list(list) <- chain |> String.to_atom() |> ExChain.snapshot_list(),
+         list <- Enum.map(list, &Map.from_struct/1) do
+      {:reply, {:ok, %{snapshots: list}}, socket}
+    else
+      _ ->
+        {:reply, {:error, %{message: "Failed to load list of snapshots"}}, socket}
+    end
+  end
 
-  # def handle_in("list_chains", _, socket) do
-  # case Storage.list() do
-  # list when is_list(list) ->
-  # {:reply, {:ok, %{chains: list}}, socket}
+  def handle_in("list_chains", _, socket) do
+    case ExChain.chain_list() do
+      list when is_list(list) ->
+        {:reply, {:ok, %{chains: list}}, socket}
 
-  # {:error, err} ->
-  # Logger.error("Error retreiving list of chains #{inspect(err)}")
-  # {:reply, {:error, %{message: "Failed to load list of chains"}}, socket}
-  # end
-  # end
+      err ->
+        Logger.error("Error retreiving list of chains #{inspect(err)}")
+        {:reply, {:error, %{message: "Failed to load list of chains"}}, socket}
+    end
+  end
 
-  # def handle_in("remove_chain", %{"id" => id}, socket) do
-  # with false <- Chain.alive?(id),
-  # :ok <- Chain.clean(id) do
-  # {:reply, {:ok, %{message: "Chain removed"}}, socket}
-  # else
-  # true ->
-  # {:reply, {:error, %{message: "Chain is running. Could not be removed"}}, socket}
-
-  # _ ->
-  # {:reply, {:error, %{message: "Something wrong on removing chain"}}, socket}
-  # end
-  # end
+  def handle_in("remove_chain", %{"id" => id}, socket) do
+    with :ok <- ExChain.clean(id),
+         _ <- Proxy.Chain.Storage.delete(id) do
+      {:reply, {:ok, %{message: "Chain removed"}}, socket}
+    else
+      _ ->
+        {:reply, {:error, %{message: "Something wrong on removing chain"}}, socket}
+    end
+  end
 end

@@ -191,11 +191,14 @@ defmodule Proxy.Chain.Worker do
     Logger.debug("#{id}: Handling deployment #{request_id} finish #{inspect(data)}")
     notify(state, :deployed, data)
     notify(state, :ready)
+
     new_state = %State{state | status: :ready, deploy_data: data}
     Storage.store(id, new_state)
 
     Logger.debug("#{id}: Send oracles notification")
-    notify_oracles(new_state)
+    res = notify_oracles(new_state)
+    Logger.debug("#{id}: Notify oracles result: #{inspect(res)}")
+
     {:noreply, new_state}
   end
 
