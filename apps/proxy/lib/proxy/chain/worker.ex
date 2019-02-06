@@ -89,6 +89,9 @@ defmodule Proxy.Chain.Worker do
       ) do
     Logger.debug("#{id}: Chain stopped going down")
     notify(state, :terminated)
+
+    # Send kill relayer signal
+    Proxy.Oracles.Api.remove_relayer()
     # Storing state
     Storage.store(id, %State{state | status: :terminated})
     {:stop, :normal, %State{state | status: :terminated, chain_status: :terminated}}
@@ -117,9 +120,12 @@ defmodule Proxy.Chain.Worker do
 
     notify(state, :started, details)
     notify(state, :ready, details)
-
-    Storage.store(id, %State{state | status: :ready, chain_details: details})
-    {:noreply, %State{state | status: :ready, chain_details: details}}
+    # Combining new state
+    new_state = %State{state | status: :ready, chain_details: details}
+    # Send relayer notification
+    notify_oracles(new_state)
+    Storage.store(id, new_state)
+    {:noreply, new_state}
   end
 
   @doc false

@@ -54,8 +54,18 @@ defmodule Proxy.Oracles.Api do
 
     Logger.debug("Calling oracles service with data: #{req}")
 
-    url()
+    "#{url()}v1/relayer/new/"
     |> post(req, [{"Content-Type", "application/json"}], recv_timeout: @timeout)
+    |> fetch_result()
+  end
+
+  @doc """
+  Kill relayer
+  """
+  @spec remove_relayer() :: {:ok, term()} | {:error, term()}
+  def remove_relayer() do
+    "#{url()}v1/relayer/kill/"
+    |> post("", [{"Content-Type", "application/json"}], recv_timeout: @timeout)
     |> fetch_result()
   end
 
@@ -73,9 +83,13 @@ defmodule Proxy.Oracles.Api do
 
   # Making decision on what is really right 
   # Note. It's 42 ^)
-  defp fetch_result({:ok, %HTTPoison.Response{status_code: 200, body: body}}),
-    do: {:ok, body}
+  defp fetch_result({:ok, %HTTPoison.Response{status_code: 200, body: body}}) do
+    Logger.debug("Oracles response #{inspect(body)}")
+    {:ok, body}
+  end
 
-  defp fetch_result(_res),
-    do: {:error, "Wrong response form oracles service"}
+  defp fetch_result(res) do
+    Logger.warn("Oracles error: #{inspect(res)}")
+    {:error, "Wrong response form oracles service"}
+  end
 end
