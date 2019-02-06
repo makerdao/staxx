@@ -17,7 +17,7 @@ defmodule WebApiWeb.ChainController do
   end
 
   def chain_list(conn, _) do
-    with list when is_list(list) <- ExChain.chain_list() do
+    with list when is_list(list) <- Proxy.chain_list() do
       conn
       |> put_status(200)
       |> put_view(SuccessView)

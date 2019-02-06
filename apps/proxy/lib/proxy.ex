@@ -75,4 +75,10 @@ defmodule Proxy do
   """
   @spec details(binary) :: nil | map()
   def details(id), do: Proxy.Chain.Storage.get(id)
+
+  @doc """
+  List of all avaialbe chains
+  """
+  @spec chain_list() :: [map()]
+  def chain_list(), do: Proxy.Chain.Storage.all()
 end
