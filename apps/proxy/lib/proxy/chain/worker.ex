@@ -65,7 +65,7 @@ defmodule Proxy.Chain.Worker do
       case Storage.get(id) do
         %{id: ^id} = loaded_state ->
           loaded_state
-          |> Map.merge(state)
+          |> Map.merge(Map.drop(state, [:deploy_data, :deploy_step, :deploy_hash, :config]))
 
         _ ->
           state
