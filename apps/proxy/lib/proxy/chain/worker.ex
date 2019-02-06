@@ -60,6 +60,18 @@ defmodule Proxy.Chain.Worker do
     {:ok, ^id} = ExChain.start_existing(id, self())
     Logger.debug("#{id}: Starting existing chain")
     {:ok, _} = register(id)
+
+    state =
+      case Storage.get(id) do
+        %{id: ^id} = loaded_state ->
+          loaded_state
+          |> Map.merge(state)
+
+        _ ->
+          state
+      end
+
+    Logger.debug("#{id} existing state merged to: #{inspect(state)}")
     # Store chain new statuses
     Storage.store(id, state)
     {:ok, state}
@@ -99,7 +111,21 @@ defmodule Proxy.Chain.Worker do
   @doc false
   def handle_info(
         %{__struct__: Chain.EVM.Notification, event: :started, data: details},
-        %State{id: id, status: :starting, config: %{step_id: 0}} = state
+        %State{id: id, start: :existing} = state
+      ) do
+    Logger.debug("#{id}: Existing chain started successfully, have no deployment to perform")
+
+    notify(state, :started, details)
+    notify(state, :ready, details)
+
+    Storage.store(id, %State{state | status: :ready, chain_details: details})
+    {:noreply, %State{state | status: :ready, chain_details: details}}
+  end
+
+  @doc false
+  def handle_info(
+        %{__struct__: Chain.EVM.Notification, event: :started, data: details},
+        %State{id: id, status: :starting, start: :new, config: %{step_id: 0}} = state
       ) do
     Logger.debug("#{id}: Chain started successfully, have no deployment to perform")
 
@@ -113,7 +139,7 @@ defmodule Proxy.Chain.Worker do
   @doc false
   def handle_info(
         %{__struct__: Chain.EVM.Notification, event: :started, data: details},
-        %State{id: id, status: :starting, config: %{step_id: step_id}} = state
+        %State{id: id, status: :starting, start: :new, config: %{step_id: step_id}} = state
       ) do
     Logger.debug("#{id}: Chain started successfully, have deployment to perform step: #{step_id}")
 

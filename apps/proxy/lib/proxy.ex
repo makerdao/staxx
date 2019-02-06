@@ -20,7 +20,11 @@ defmodule Proxy do
       :ok ->
         {:ok, id}
 
-      _ ->
+      {:ok, _} ->
+        {:ok, id}
+
+      err ->
+        Logger.error("#{id}: Something wrong: #{inspect(err)}")
         {:error, "failed to start chain"}
     end
   end
