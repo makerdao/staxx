@@ -29,5 +29,6 @@ defmodule WebApiWeb.Router do
     pipe_through :api
     delete "/:id", ChainController, :remove_chain
     get "/:id", ChainController, :details
+    get "/stop/:id", ChainController, :stop
   end
 end

@@ -67,4 +67,12 @@ defmodule WebApiWeb.ChainController do
       |> json(%{status: 0, details: info})
     end
   end
+
+  def stop(conn, %{"id" => id}) do
+    Proxy.stop(id)
+    ExChain.stop(id)
+
+    conn
+    |> json(%{status: 0, details: %{}})
+  end
 end
