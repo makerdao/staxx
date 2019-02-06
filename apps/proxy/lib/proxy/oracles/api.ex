@@ -77,7 +77,7 @@ defmodule Proxy.Oracles.Api do
 
   defp gen_pairs(res, [{symbol, address} | rest]) do
     res
-    |> Map.put(symbol, %{"decimals" => 18, "oracle" => address})
+    |> Map.put("#{symbol}USD", %{"decimals" => 18, "oracle" => address})
     |> gen_pairs(rest)
   end
 
