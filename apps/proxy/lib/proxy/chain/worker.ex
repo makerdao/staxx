@@ -19,7 +19,7 @@ defmodule Proxy.Chain.Worker do
   require Logger
 
   alias Proxy.ExChain
-  alias Proxy.Chain.Worker.{State, Notifier, Chain}
+  alias Proxy.Chain.Worker.{State, Notifier, ChainHelper}
   alias Proxy.Chain.Storage
 
   @doc false
@@ -59,7 +59,7 @@ defmodule Proxy.Chain.Worker do
     Logger.debug("#{id}: Started existing chain")
     {:ok, _} = register(id)
 
-    state = Chain.merge_existing_state(state)
+    state = ChainHelper.merge_existing_state(state)
     Logger.debug("#{id}: existing state merged to: #{inspect(state)}")
     # Store updated chain state
     Storage.store(state)
@@ -104,7 +104,7 @@ defmodule Proxy.Chain.Worker do
         %{__struct__: Chain.EVM.Notification, event: :started, data: details},
         state
       ) do
-    new_state = Chain.handle_evm_started(state, details)
+    new_state = ChainHelper.handle_evm_started(state, details)
     Storage.store(new_state)
 
     case new_state do
@@ -150,7 +150,7 @@ defmodule Proxy.Chain.Worker do
 
   @doc false
   def handle_cast({:deployment_finished, request_id, data}, state) do
-    new_state = Chain.handle_deployment_finished(state, request_id, data)
+    new_state = ChainHelper.handle_deployment_finished(state, request_id, data)
     Storage.store(new_state)
     {:noreply, new_state}
   end

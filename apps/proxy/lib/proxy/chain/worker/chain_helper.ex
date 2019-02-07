@@ -1,4 +1,4 @@
-defmodule Proxy.Chain.Worker.Chain do
+defmodule Proxy.Chain.Worker.ChainHelper do
   @moduledoc """
   Most of chani action will be here
   """
@@ -80,9 +80,8 @@ defmodule Proxy.Chain.Worker.Chain do
       # Save deployment request association with current chain
       Proxy.Deployment.ProcessWatcher.put(request_id, id)
       # Notify UI that deployment started
-      Notifier.notify(state, :deploying, details)
-      %State{state | status: :deploying}
-      # {:noreply, new_state, Application.get_env(:proxy, :deployment_timeout)}
+      Notifier.notify(new_state, :deploying, details)
+      %State{new_state | status: :deploying}
     else
       _ ->
         Logger.error("#{id}: Failed to fetch steps from deployment service. Deploy ommited")
