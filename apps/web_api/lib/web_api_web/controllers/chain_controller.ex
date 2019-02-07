@@ -65,6 +65,14 @@ defmodule WebApiWeb.ChainController do
     with info when is_map(info) <- Proxy.details(id) do
       conn
       |> json(%{status: 0, details: info})
+    else
+      nil ->
+        conn
+        |> json(%{status: 0, details: nil, message: "Chain was not found"})
+
+      _ ->
+        conn
+        |> json(%{status: 1, details: nil, message: "Error fetchign chain details"})
     end
   end
 

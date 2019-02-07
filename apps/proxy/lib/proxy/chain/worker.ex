@@ -19,10 +19,8 @@ defmodule Proxy.Chain.Worker do
   require Logger
 
   alias Proxy.ExChain
-  alias Proxy.Chain.Worker.State
+  alias Proxy.Chain.Worker.{State, Notifier, Chain}
   alias Proxy.Chain.Storage
-  alias Proxy.Deployment.BaseApi
-  alias Proxy.Deployment.StepsFetcher
 
   @doc false
   def start_link({:existing, id, pid}) when is_binary(id),
@@ -47,10 +45,10 @@ defmodule Proxy.Chain.Worker do
       |> ExChain.to_config()
       |> ExChain.start()
 
-    Logger.debug("Started new chain #{id}")
+    Logger.debug("#{id}: Started new chain")
     {:ok, _} = register(id)
     # Store new chain worker
-    Storage.store(id, %State{state | id: id})
+    Storage.store(%State{state | id: id})
     {:ok, %State{state | id: id}}
   end
 
@@ -58,43 +56,33 @@ defmodule Proxy.Chain.Worker do
   def init(%State{id: id, start: :existing} = state) when is_binary(id) do
     Logger.debug("#{id}: Loading chain details")
     {:ok, ^id} = ExChain.start_existing(id, self())
-    Logger.debug("#{id}: Starting existing chain")
+    Logger.debug("#{id}: Started existing chain")
     {:ok, _} = register(id)
 
-    state =
-      case Storage.get(id) do
-        %{id: ^id} = loaded_state ->
-          loaded_state
-          |> Map.merge(Map.drop(state, [:deploy_data, :deploy_step, :deploy_hash, :config]))
-
-        _ ->
-          state
-      end
-
-    Logger.debug("#{id} existing state merged to: #{inspect(state)}")
-    # Store chain new statuses
-    Storage.store(id, state)
+    state = Chain.merge_existing_state(state)
+    Logger.debug("#{id}: existing state merged to: #{inspect(state)}")
+    # Store updated chain state
+    Storage.store(state)
     {:ok, state}
   end
 
   @doc false
-  def terminate(_, %State{id: id}) do
-    ExChain.stop(id)
-  end
+  def terminate(_, %State{id: id}), do: ExChain.stop(id)
 
   @doc false
   def handle_info(
         %{__struct__: Chain.EVM.Notification, event: :status_changed, data: :terminated},
         %State{id: id} = state
       ) do
-    Logger.debug("#{id}: Chain stopped going down")
-    notify(state, :terminated)
+    Logger.debug("#{id}: EVM stopped, going down")
+    Notifier.notify(state, :terminated)
 
     # Send kill relayer signal
     Proxy.Oracles.Api.remove_relayer()
+    new_state = %State{state | status: :terminated, chain_status: :terminated}
     # Storing state
-    Storage.store(id, %State{state | status: :terminated})
-    {:stop, :normal, %State{state | status: :terminated, chain_status: :terminated}}
+    Storage.store(new_state)
+    {:stop, :normal, new_state}
   end
 
   @doc false
@@ -102,7 +90,7 @@ defmodule Proxy.Chain.Worker do
         %{__struct__: Chain.EVM.Notification, event: :status_changed, data: status} = event,
         %State{id: id} = state
       ) do
-    Logger.debug("#{id}: Chain status changed to #{status}")
+    Logger.debug("#{id}: EVM status changed to #{status}")
 
     if pid = Map.get(state, :notify_pid) do
       send(pid, event)
@@ -114,74 +102,19 @@ defmodule Proxy.Chain.Worker do
   @doc false
   def handle_info(
         %{__struct__: Chain.EVM.Notification, event: :started, data: details},
-        %State{id: id, start: :existing} = state
+        state
       ) do
-    Logger.debug("#{id}: Existing chain started successfully, have no deployment to perform")
+    new_state = Chain.handle_evm_started(state, details)
+    Storage.store(new_state)
 
-    notify(state, :started, details)
-    notify(state, :ready, details)
-    # Combining new state
-    new_state = %State{state | status: :ready, chain_details: details}
-    # Send relayer notification
-    notify_oracles(new_state)
-    Storage.store(id, new_state)
-    {:noreply, new_state}
-  end
+    case new_state do
+      %State{status: :deploying} ->
+        # If deployment process started we have to set timeout
+        {:noreply, new_state, Application.get_env(:proxy, :deployment_timeout)}
 
-  @doc false
-  def handle_info(
-        %{__struct__: Chain.EVM.Notification, event: :started, data: details},
-        %State{id: id, status: :starting, start: :new, config: %{step_id: 0}} = state
-      ) do
-    Logger.debug("#{id}: Chain started successfully, have no deployment to perform")
-
-    notify(state, :started, details)
-    notify(state, :ready, details)
-
-    Storage.store(id, %State{state | status: :ready, chain_details: details})
-    {:noreply, %State{state | status: :ready, chain_details: details}}
-  end
-
-  @doc false
-  def handle_info(
-        %{__struct__: Chain.EVM.Notification, event: :started, data: details},
-        %State{id: id, status: :starting, start: :new, config: %{step_id: step_id}} = state
-      ) do
-    Logger.debug("#{id}: Chain started successfully, have deployment to perform step: #{step_id}")
-
-    # We have to notify that chain started
-    notify(state, :started, details)
-
-    # Load step details
-    with step when is_map(step) <- StepsFetcher.get(step_id),
-         hash when byte_size(hash) > 0 <- StepsFetcher.hash() do
-      # Run deployment
-      new_state =
-        deploy(step_id, %State{
-          state
-          | chain_details: details,
-            deploy_step: step,
-            deploy_hash: hash
-        })
-
-      Storage.store(id, new_state)
-      {:noreply, new_state, Application.get_env(:proxy, :deployment_timeout)}
-    else
       _ ->
-        Logger.error("#{id}: Failed to fetch steps from deployment service. Deploy ommited")
-        notify(state, :ready, details)
-        {:noreply, %State{state | status: :ready}}
+        {:noreply, new_state}
     end
-  end
-
-  @doc false
-  def handle_info(
-        %{__struct__: Chain.EVM.Notification, event: :started, data: details},
-        %State{id: id, status: status} = state
-      ) do
-    Logger.debug("#{id}: Got chain :started event with worker status: #{status}")
-    Storage.store(id, %State{state | chain_details: details})
-    {:noreply, %State{state | chain_details: details}}
   end
 
   @doc false
@@ -196,9 +129,9 @@ defmodule Proxy.Chain.Worker do
   @doc false
   def handle_info(:timeout, %State{id: id, status: :deploying} = state) do
     Logger.error("#{id}: Waiting deployment failed: timeout")
-    notify(id, :deployment_failed, "Timeout waiting deployment")
-    notify(id, :failed)
-    Storage.store(id, %State{state | status: :failed})
+    Notifier.notify(id, :deployment_failed, "Timeout waiting deployment")
+    Notifier.notify(id, :failed)
+    Storage.store(%State{state | status: :failed})
     {:noreply, %State{state | status: :failed}}
   end
 
@@ -216,21 +149,9 @@ defmodule Proxy.Chain.Worker do
   end
 
   @doc false
-  def handle_cast(
-        {:deployment_finished, request_id, data},
-        %State{id: id, status: :deploying} = state
-      ) do
-    Logger.debug("#{id}: Handling deployment #{request_id} finish #{inspect(data)}")
-    notify(state, :deployed, data)
-    notify(state, :ready)
-
-    new_state = %State{state | status: :ready, deploy_data: data}
-    Storage.store(id, new_state)
-
-    Logger.debug("#{id}: Send oracles notification")
-    res = notify_oracles(new_state)
-    Logger.debug("#{id}: Notify oracles result: #{inspect(res)}")
-
+  def handle_cast({:deployment_finished, request_id, data}, state) do
+    new_state = Chain.handle_deployment_finished(state, request_id, data)
+    Storage.store(new_state)
     {:noreply, new_state}
   end
 
@@ -240,33 +161,10 @@ defmodule Proxy.Chain.Worker do
         %State{id: id, status: :deploying} = state
       ) do
     Logger.debug("#{id}: Handling deployment #{request_id} finish #{inspect(msg)}")
-    notify(state, :deploy_failed, msg)
-    notify(state, :failed)
-    Storage.store(id, %State{state | status: :failed})
+    Notifier.notify(state, :deploy_failed, msg)
+    Notifier.notify(state, :failed)
+    Storage.store(%State{state | status: :failed})
     {:noreply, %State{state | status: :failed}}
-  end
-
-  @doc false
-  def handle_cast(
-        {:deployment_finished, request_id, data},
-        %State{id: id, status: status} = state
-      ) do
-    Logger.debug(
-      "#{id}: Status #{status} Handling deployment #{request_id} finish #{inspect(data)}"
-    )
-
-    {:noreply, state}
-  end
-
-  @doc false
-  def handle_call({:deploy, step_id}, _from, %State{} = state) do
-    case deploy(step_id, state) do
-      {:ok, new_state} ->
-        {:reply, :ok, new_state}
-
-      {:error, err, new_state} ->
-        {:reply, {:error, err}, new_state}
-    end
   end
 
   @doc """
@@ -309,69 +207,4 @@ defmodule Proxy.Chain.Worker do
   # via tuple generation
   defp register(id),
     do: Registry.register(Proxy.ChainRegistry, id, nil)
-
-  # Run deployment scripts
-  defp deploy(_step, %State{chain_details: nil} = state),
-    do: {:error, "No chain details exist", state}
-
-  defp deploy(step, %State{id: id, chain_details: details} = state) do
-    rpc_url =
-      details
-      |> Map.get(:rpc_url)
-
-    # |> String.replace("localhost", Application.get_env(:proxy, :deploy_chain_front_url))
-
-    env = %{
-      "ETH_RPC_URL" => rpc_url,
-      "ETH_FROM" => Map.get(details, :coinbase),
-      "ETH_RPC_ACCOUNTS" => "yes",
-      "SETH_STATUS" => "yes",
-      # "ETH_GAS" => Map.get(details, :gas_limit),
-      "ETH_GAS" => "6000000"
-    }
-
-    request_id = BaseApi.random_id()
-    Logger.debug("Starting deployment process with id: #{request_id}")
-
-    case BaseApi.run(request_id, step, env) do
-      {:ok, %{"type" => "ok"}} ->
-        Logger.debug("Deployment process scheduled with request_id #{request_id} !")
-        Proxy.Deployment.ProcessWatcher.put(request_id, id)
-
-        # Notify UI that deployment started
-        notify(state, :deploying, details)
-
-        %State{state | status: :deploying}
-
-      _ ->
-        Logger.error("Failed to start deployment process with request id #{request_id}")
-        notify(state, :error, %{message: "failed to start deployment process"})
-        %State{state | status: :failed}
-    end
-  end
-
-  defp notify(state, event, data \\ %{})
-
-  defp notify(%State{notify_pid: nil}, _, _), do: :ok
-
-  defp notify(%State{id: id, notify_pid: pid}, event, data),
-    do: send(pid, %{id: id, event: event, data: data})
-
-  # Send notification to oracles service about adding new relayer
-  defp notify_oracles(%State{
-         deploy_step: %{"ilks" => ilks, "omniaFromAddr" => from},
-         chain_details: %{rpc_url: url},
-         deploy_data: data
-       })
-       when is_map(data) do
-    pairs =
-      ilks
-      |> Enum.filter(fn {_symbol, conf} -> get_in(conf, ["pip", "type"]) == "median" end)
-      |> Enum.map(fn {symbol, _} -> {symbol, Map.get(data, "VAL_#{symbol}")} end)
-      |> Enum.reject(&is_nil/1)
-
-    Proxy.Oracles.Api.new_relayer(url, from, pairs)
-  end
-
-  defp notify_oracles(_), do: {:error, "failed to get all required details"}
 end
