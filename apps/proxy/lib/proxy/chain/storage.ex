@@ -30,8 +30,8 @@ defmodule Proxy.Chain.Storage do
   @doc """
   Store new worker state in DETS
   """
-  @spec store(binary, Proxy.Chain.Worker.State.t()) :: :ok | {:error, term()}
-  def store(id, worker_state),
+  @spec store(Proxy.Chain.Worker.State.t()) :: :ok | {:error, term()}
+  def store(%{id: id} = worker_state),
     do: :dets.insert(table(), {id, worker_state})
 
   @doc """
