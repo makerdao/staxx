@@ -19,7 +19,7 @@ defmodule Proxy.Chain.Worker do
   require Logger
 
   alias Proxy.ExChain
-  alias Proxy.Chain.Worker.{State, Notifier, ChainHelper}
+  alias Proxy.Chain.Worker.{State, ChainHelper}
   alias Proxy.Chain.Storage
 
   @doc false
@@ -75,7 +75,7 @@ defmodule Proxy.Chain.Worker do
         %State{id: id} = state
       ) do
     Logger.debug("#{id}: EVM stopped, going down")
-    Notifier.notify(state, :terminated)
+    State.notify(state, :terminated)
 
     # Send kill relayer signal
     Proxy.Oracles.Api.remove_relayer()
@@ -129,8 +129,8 @@ defmodule Proxy.Chain.Worker do
   @doc false
   def handle_info(:timeout, %State{id: id, status: :deploying} = state) do
     Logger.error("#{id}: Waiting deployment failed: timeout")
-    Notifier.notify(id, :deployment_failed, "Timeout waiting deployment")
-    Notifier.notify(id, :failed)
+    State.notify(id, :deployment_failed, "Timeout waiting deployment")
+    State.notify(id, :failed)
     Storage.store(%State{state | status: :failed})
     {:noreply, %State{state | status: :failed}}
   end
@@ -161,8 +161,8 @@ defmodule Proxy.Chain.Worker do
         %State{id: id, status: :deploying} = state
       ) do
     Logger.debug("#{id}: Handling deployment #{request_id} finish #{inspect(msg)}")
-    Notifier.notify(state, :deploy_failed, msg)
-    Notifier.notify(state, :failed)
+    State.notify(state, :deploy_failed, msg)
+    State.notify(state, :failed)
     Storage.store(%State{state | status: :failed})
     {:noreply, %State{state | status: :failed}}
   end

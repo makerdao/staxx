@@ -69,6 +69,28 @@ defmodule Proxy.Oracles.Api do
     |> fetch_result()
   end
 
+  @doc """
+  Send notification to oracles service about adding new relayer.
+  If no required deployment information exist - error will be returned
+  """
+  @spec notify_new_chain(Proxy.Chain.Worker.State.t()) :: {:ok, term()} | {:error, term()}
+  def notify_new_chain(%Proxy.Chain.Worker.State{
+        deploy_step: %{"ilks" => ilks, "omniaFromAddr" => from},
+        chain_details: %{rpc_url: url},
+        deploy_data: data
+      })
+      when is_map(data) do
+    pairs =
+      ilks
+      |> Enum.filter(fn {_symbol, conf} -> get_in(conf, ["pip", "type"]) == "median" end)
+      |> Enum.map(fn {symbol, _} -> {symbol, Map.get(data, "VAL_#{symbol}")} end)
+      |> Enum.reject(&is_nil/1)
+
+    new_relayer(url, from, pairs)
+  end
+
+  def notify_new_chain(_), do: {:error, "failed to get all required details"}
+
   # Service URL
   defp url(), do: Application.get_env(:proxy, :oracles_service_url)
 

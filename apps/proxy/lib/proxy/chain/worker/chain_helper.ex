@@ -6,9 +6,10 @@ defmodule Proxy.Chain.Worker.ChainHelper do
   require Logger
 
   alias Proxy.Chain.Storage
-  alias Proxy.Chain.Worker.{Notifier, State}
+  alias Proxy.Chain.Worker.State
   alias Proxy.Deployment.BaseApi
   alias Proxy.Deployment.StepsFetcher
+  alias Proxy.Oracles.Api, as: OraclesApi
 
   @doc """
   Load stored chain details and if details loaded they will be merged with 
@@ -38,12 +39,12 @@ defmodule Proxy.Chain.Worker.ChainHelper do
   def handle_evm_started(%State{id: id, start: :existing} = state, details) do
     Logger.debug("#{id}: Existing chain started successfully, have no deployment to perform")
 
-    Notifier.notify(state, :started, details)
-    Notifier.notify(state, :ready, details)
+    State.notify(state, :started, details)
+    State.notify(state, :ready, details)
     # Combining new state
     new_state = %State{state | status: :ready, chain_details: details}
     # Send relayer notification
-    Notifier.notify_oracles(new_state)
+    OraclesApi.notify_new_chain(new_state)
 
     new_state
   end
@@ -54,8 +55,8 @@ defmodule Proxy.Chain.Worker.ChainHelper do
       ) do
     Logger.debug("#{id}: New EVM started successfully, have no deployment to perform")
 
-    Notifier.notify(state, :started, details)
-    Notifier.notify(state, :ready, details)
+    State.notify(state, :started, details)
+    State.notify(state, :ready, details)
 
     %State{state | status: :ready, chain_details: details}
   end
@@ -69,7 +70,7 @@ defmodule Proxy.Chain.Worker.ChainHelper do
     )
 
     # We have to notify that chain started
-    Notifier.notify(state, :started, details)
+    State.notify(state, :started, details)
 
     # Load step details
     with step when is_map(step) <- StepsFetcher.get(step_id),
@@ -80,13 +81,13 @@ defmodule Proxy.Chain.Worker.ChainHelper do
       # Save deployment request association with current chain
       Proxy.Deployment.ProcessWatcher.put(request_id, id)
       # Notify UI that deployment started
-      Notifier.notify(new_state, :deploying, details)
+      State.notify(new_state, :deploying, details)
       %State{new_state | status: :deploying}
     else
       _ ->
         Logger.error("#{id}: Failed to fetch steps from deployment service. Deploy ommited")
-        Notifier.notify(state, :error, %{message: "failed to start deployment process"})
-        Notifier.notify(state, :ready, details)
+        State.notify(state, :error, %{message: "failed to start deployment process"})
+        State.notify(state, :ready, details)
         %State{state | status: :ready}
     end
   end
@@ -101,13 +102,13 @@ defmodule Proxy.Chain.Worker.ChainHelper do
           Proxy.Chain.Worker.State.t()
   def handle_deployment_finished(%State{id: id, status: :deploying} = state, request_id, data) do
     Logger.debug("#{id}: Handling deployment #{request_id} finish #{inspect(data)}")
-    Notifier.notify(state, :deployed, data)
-    Notifier.notify(state, :ready)
+    State.notify(state, :deployed, data)
+    State.notify(state, :ready)
 
     new_state = %State{state | status: :ready, deploy_data: data}
 
     Logger.debug("#{id}: Send oracles notification")
-    res = Notifier.notify_oracles(new_state)
+    res = OraclesApi.notify_new_chain(new_state)
     Logger.debug("#{id}: Notify oracles result: #{inspect(res)}")
 
     new_state
