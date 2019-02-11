@@ -1,5 +1,5 @@
 # The version of Alpine to use for the final image
-ARG ALPINE_VERSION=3.8
+ARG ALPINE_VERSION=edge
 
 FROM alpine:${ALPINE_VERSION} AS builder
 
@@ -61,6 +61,8 @@ FROM alpine:${ALPINE_VERSION}
 # The name of your application/release (required)
 ARG APP_NAME=${APP_NAME}
 ARG PORT=4000
+# The environment to build with
+ARG MIX_ENV=prod
 
 EXPOSE ${PORT}
 
@@ -73,7 +75,8 @@ RUN apk update && \
 
 ENV REPLACE_OS_VARS=true \
     APP_NAME=${APP_NAME} \
-    PORT=${PORT}
+    PORT=${PORT} \
+    MIX_ENV=${MIX_ENV}
 
 COPY --from=builder /opt/built .
 
