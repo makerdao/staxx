@@ -9,6 +9,7 @@ defmodule Proxy.ExChain do
     :type,
     :notify_pid,
     :accounts,
+    :network_id,
     :block_mine_time,
     :clean_on_stop,
     :description,
