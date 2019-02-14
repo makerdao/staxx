@@ -71,7 +71,7 @@ defmodule Proxy.Chain.Worker do
 
   @doc false
   def handle_info(
-        %{__struct__: Chain.EVM.Notification, event: :status_changed, data: :terminated},
+        %Chain.EVM.Notification{event: :status_changed, data: :terminated},
         %State{id: id} = state
       ) do
     Logger.debug("#{id}: EVM stopped, going down")
@@ -87,7 +87,7 @@ defmodule Proxy.Chain.Worker do
 
   @doc false
   def handle_info(
-        %{__struct__: Chain.EVM.Notification, event: :status_changed, data: status} = event,
+        %Chain.EVM.Notification{event: :status_changed, data: status} = event,
         %State{id: id} = state
       ) do
     Logger.debug("#{id}: EVM status changed to #{status}")
@@ -101,7 +101,7 @@ defmodule Proxy.Chain.Worker do
 
   @doc false
   def handle_info(
-        %{__struct__: Chain.EVM.Notification, event: :started, data: details},
+        %Chain.EVM.Notification{event: :started, data: details},
         state
       ) do
     new_state = ChainHelper.handle_evm_started(state, details)
@@ -118,7 +118,7 @@ defmodule Proxy.Chain.Worker do
   end
 
   @doc false
-  def handle_info(%{__struct__: Chain.EVM.Notification} = event, state) do
+  def handle_info(%Chain.EVM.Notification{} = event, state) do
     if pid = Map.get(state, :notify_pid) do
       send(pid, event)
     end

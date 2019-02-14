@@ -27,7 +27,8 @@ defmodule Proxy.MixProject do
   defp deps do
     [
       {:httpoison, "~> 1.4"},
-      {:jason, "~> 1.1"}
+      {:jason, "~> 1.1"},
+      {:ex_testchain, github: "makerdao/ex_testchain", runtime: false}
     ]
   end
 end
