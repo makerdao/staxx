@@ -82,7 +82,9 @@ defmodule Proxy.Chain.Worker do
     new_state =
       %State{state | status: :terminated, chain_status: :terminated}
       |> Storage.store()
-      |> State.notify(:terminated)
+
+    # Send notification
+    State.notify(new_state, :terminated)
 
     {:stop, :normal, new_state}
   end
