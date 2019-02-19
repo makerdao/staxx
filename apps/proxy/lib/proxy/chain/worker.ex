@@ -75,13 +75,15 @@ defmodule Proxy.Chain.Worker do
         %State{id: id} = state
       ) do
     Logger.debug("#{id}: EVM stopped, going down")
-    State.notify(state, :terminated)
 
     # Send kill relayer signal
     Proxy.Oracles.Api.remove_relayer()
-    new_state = %State{state | status: :terminated, chain_status: :terminated}
-    # Storing state
-    Storage.store(new_state)
+
+    new_state =
+      %State{state | status: :terminated, chain_status: :terminated}
+      |> Storage.store()
+      |> State.notify(:terminated)
+
     {:stop, :normal, new_state}
   end
 
