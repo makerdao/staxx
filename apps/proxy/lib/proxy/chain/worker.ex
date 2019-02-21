@@ -36,14 +36,31 @@ defmodule Proxy.Chain.Worker do
   end
 
   @doc false
-  def init(%State{id: id, start: :new, config: config} = state) do
+  def init(%State{id: id, node: nil} = state) do
+    case Proxy.NodeManager.node() do
+      nil ->
+        Logger.error("#{id}: No free ex_testchain node for starting EVM.")
+        {:error, :no_free_node}
+
+      node ->
+        Logger.debug("#{id}: Node to start EVM selected: #{inspect(node)}")
+
+        state
+        |> State.node(node)
+        |> init()
+    end
+  end
+
+  @doc false
+  def init(%State{id: id, node: node, start: :new, config: config} = state) do
     Logger.debug("Starting new chain #{Map.get(config, :type)}")
 
-    {:ok, ^id} =
+    evm_config =
       config
       |> Map.put(:notify_pid, self())
       |> ExChain.to_config()
-      |> ExChain.start()
+
+    {:ok, ^id} = ExChain.start(node, evm_config)
 
     Logger.debug("#{id}: Started new chain")
     {:ok, _} = register(id)
@@ -53,9 +70,9 @@ defmodule Proxy.Chain.Worker do
   end
 
   @doc false
-  def init(%State{id: id, start: :existing} = state) when is_binary(id) do
+  def init(%State{id: id, node: node, start: :existing} = state) when is_binary(id) do
     Logger.debug("#{id}: Loading chain details")
-    {:ok, ^id} = ExChain.start_existing(id, self())
+    {:ok, ^id} = ExChain.start_existing(node, id, self())
     Logger.debug("#{id}: Started existing chain")
     {:ok, _} = register(id)
 
@@ -67,7 +84,7 @@ defmodule Proxy.Chain.Worker do
   end
 
   @doc false
-  def terminate(_, %State{id: id}), do: ExChain.stop(id)
+  def terminate(_, %State{id: id, node: node}), do: ExChain.stop(node, id)
 
   @doc false
   def handle_info(
@@ -144,9 +161,34 @@ defmodule Proxy.Chain.Worker do
   end
 
   @doc false
-  def handle_cast(:stop, %State{id: id} = state) do
+  def handle_call(:node, _from, %State{node: node} = state),
+    do: {:reply, node, state}
+
+  def handle_call({:take_snapshot, description}, _from, %State{id: id, node: node} = state) do
+    resp = ExChain.take_snapshot(node, id, description)
+    {:reply, resp, state}
+  end
+
+  def handle_call({:revert_snapshot, snapshot_id}, _from, %State{id: id, node: node} = state) do
+    with {:load, snapshot} when is_map(snapshot) <-
+           {:load, ExChain.load_snapshot(node, snapshot_id)},
+         :ok <- ExChain.revert_snapshot(node, id, snapshot) do
+      Logger.debug("#{id}: Reverting snapshot #{snapshot_id}")
+      {:reply, :ok, state}
+    else
+      {:load, snap} ->
+        {:reply, {:error, "failed to load snapshot details #{snapshot_id}"}, state}
+
+      _ ->
+        Logger.error("#{id}: failed to revert snapshot #{snapshot_id}")
+        {:reply, {:error, "something wrong on reverting snapshot #{snapshot_id}"}, state}
+    end
+  end
+
+  @doc false
+  def handle_cast(:stop, %State{id: id, node: node} = state) do
     Logger.debug("#{id} Terminating chain")
-    ExChain.stop(id)
+    ExChain.stop(node, id)
     {:noreply, state}
   end
 

@@ -3,14 +3,12 @@ defmodule WebApiWeb.ChainController do
 
   action_fallback WebApiWeb.FallbackController
 
-  alias Proxy.ExChain
-
   alias WebApiWeb.SuccessView
   # alias Chain.SnapshotManager
 
   # Get version for binaries and chain
   def version(conn, _) do
-    with version when is_binary(version) <- ExChain.version() do
+    with version when is_binary(version) <- Proxy.version() do
       conn
       |> text(version)
     end
@@ -27,18 +25,20 @@ defmodule WebApiWeb.ChainController do
 
   # load list of snapshots for chain
   def snapshot_list(conn, %{"chain" => chain}) do
-    with list when is_list(list) <- chain |> String.to_atom() |> ExChain.snapshot_list(),
-         list <- Enum.map(list, &Map.from_struct/1) do
-      conn
-      |> put_status(200)
-      |> put_view(SuccessView)
-      |> render("200.json", data: list)
-    end
+    list =
+      chain
+      |> String.to_atom()
+      |> Proxy.snapshot_list()
+
+    conn
+    |> put_status(200)
+    |> put_view(SuccessView)
+    |> render("200.json", data: list)
   end
 
   # Load snapshot detailt and download file
   def download_snapshot(conn, %{"id" => id}) do
-    with %{path: path} <- ExChain.get_snapshot(id),
+    with %{path: path} <- Proxy.get_snapshot(id),
          true <- File.exists?(path) do
       conn
       |> send_download({:file, path})
@@ -78,7 +78,6 @@ defmodule WebApiWeb.ChainController do
 
   def stop(conn, %{"id" => id}) do
     Proxy.stop(id)
-    ExChain.stop(id)
 
     conn
     |> json(%{status: 0, details: %{}})

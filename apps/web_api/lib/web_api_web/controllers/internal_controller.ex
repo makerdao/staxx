@@ -33,14 +33,11 @@ defmodule WebApiWeb.InternalController do
 
   @doc false
   def rpc(conn, %{"id" => id, "method" => method, "data" => data}) do
-    Logger.info("Request #{id} with method: #{method}")
-    IO.inspect(data)
+    Logger.info("Request #{id} with method: #{method} data: #{inspect(data)}")
 
     conn
     |> json(%{type: "ok"})
   end
-
-  # TODO: Add error handling
 
   defp process_deployment_result(%{"id" => id, "type" => "error", "result" => result}) do
     case Proxy.Deployment.ProcessWatcher.pop(id) do

@@ -5,6 +5,7 @@ defmodule Proxy.Chain.Worker.State do
 
   @type t :: %__MODULE__{
           id: binary,
+          node: node(),
           start: :new | :existing,
           status: Proxy.Chain.Worker.status(),
           config: map(),
@@ -17,6 +18,7 @@ defmodule Proxy.Chain.Worker.State do
         }
 
   defstruct id: nil,
+            node: nil,
             start: :new,
             status: :starting,
             config: nil,
@@ -26,6 +28,12 @@ defmodule Proxy.Chain.Worker.State do
             deploy_data: nil,
             deploy_step: nil,
             deploy_hash: nil
+
+  @doc """
+  Update node for state and return updated state
+  """
+  @spec node(Proxy.Chain.Worker.State.t(), node()) :: Proxy.Chain.Worker.State.t()
+  def node(%__MODULE__{} = state, node), do: %__MODULE__{state | node: node}
 
   @doc """
   Send notification about chain to `notify_pid`.

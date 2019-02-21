@@ -9,7 +9,7 @@ defmodule Proxy.NodeManager do
 
   defmodule State do
     @moduledoc false
-    defstruct chains: []
+    defstruct nodes: []
   end
 
   @doc false
@@ -30,15 +30,15 @@ defmodule Proxy.NodeManager do
 
       list when is_list(list) ->
         Logger.debug("Connected to nodes #{inspect(list)}")
-        {:ok, %State{chains: list}}
+        {:ok, %State{nodes: list}}
     end
   end
 
   @doc false
-  def handle_info({:nodeup, node}, %State{chains: list} = state) do
+  def handle_info({:nodeup, node}, %State{nodes: list} = state) do
     Logger.debug("New node connected #{node}")
 
-    chains =
+    nodes =
       case Enum.member?(list, node) do
         true ->
           list
@@ -47,17 +47,17 @@ defmodule Proxy.NodeManager do
           list ++ [node]
       end
 
-    {:noreply, %State{state | chains: chains}}
+    {:noreply, %State{state | nodes: nodes}}
   end
 
   @doc false
-  def handle_info({:nodedown, node}, %State{chains: list} = state) do
+  def handle_info({:nodedown, node}, %State{nodes: list} = state) do
     Logger.debug("Node disconnected #{node}")
-    {:noreply, %State{state | chains: List.delete(list, node)}}
+    {:noreply, %State{state | nodes: List.delete(list, node)}}
   end
 
   @doc false
-  def handle_call(:chain, _from, %State{chains: list} = state) do
+  def handle_call(:node, _from, %State{nodes: list} = state) do
     case list do
       [] ->
         {:reply, nil, state}
@@ -70,6 +70,6 @@ defmodule Proxy.NodeManager do
   @doc """
   Get chain node address
   """
-  @spec chain() :: nil | node()
-  def chain(), do: GenServer.call(__MODULE__, :chain)
+  @spec node() :: nil | node()
+  def node(), do: GenServer.call(__MODULE__, :node)
 end
