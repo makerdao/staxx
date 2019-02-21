@@ -176,7 +176,8 @@ defmodule Proxy.Chain.Worker do
       Logger.debug("#{id}: Reverting snapshot #{snapshot_id}")
       {:reply, :ok, state}
     else
-      {:load, snap} ->
+      {:load, err} ->
+        Logger.error("Failed to load snapshot details #{inspect(err)}")
         {:reply, {:error, "failed to load snapshot details #{snapshot_id}"}, state}
 
       _ ->

@@ -4,3 +4,4 @@ config :proxy, deployment_service_url: System.get_env("DEPLOYMENT_SERVICE_URL") 
 config :proxy, deploy_chain_front_url: System.get_env("CHAINS_FRONT_URL") || "host.docker.internal"
 config :proxy, dets_db_path: System.get_env("CHAINS_DB_PATH") || "/opt/chains"
 config :proxy, deployment_steps_fetch_timeout: 30_000
+config :proxy, call_oracles: System.get_env("CALL_ORACLES") != nil
