@@ -125,6 +125,20 @@ defmodule Proxy.Chain.Worker do
 
   @doc false
   def handle_info(
+        %Notification{event: :status_changed, data: :active},
+        %State{id: id, notify_pid: pid} = state
+      ) do
+    Logger.debug("#{id}: EVM status changed to active")
+
+    if pid do
+      send(pid, %Notification{id: id, event: :active})
+    end
+
+    {:noreply, %State{state | chain_status: :active}}
+  end
+
+  @doc false
+  def handle_info(
         %Notification{event: :status_changed, data: status},
         %State{id: id} = state
       ) do
