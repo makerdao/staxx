@@ -28,7 +28,7 @@ defmodule Proxy.Deployment.StepsFetcher do
   def handle_info(:load, state) do
     case BaseApi.load_steps() do
       {:ok, %{"type" => "ok", "result" => details}} ->
-        Logger.debug("Loaded steps from deployment service")
+        # Logger.debug("Loaded steps from deployment service")
         {:noreply, details, timeout()}
 
       _ ->

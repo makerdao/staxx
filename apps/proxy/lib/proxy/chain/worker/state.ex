@@ -11,6 +11,7 @@ defmodule Proxy.Chain.Worker.State do
   """
 
   alias Proxy.Chain.Storage.Record
+  alias Proxy.Chain.Worker.Notification
 
   @type status :: :initializing | :ready | :terminating | :terminated | :locked | :failed
 
@@ -56,7 +57,9 @@ defmodule Proxy.Chain.Worker.State do
   def notify(%__MODULE__{notify_pid: nil} = state, _, _), do: state
 
   def notify(%__MODULE__{id: id, notify_pid: pid} = state, event, data) do
-    send(pid, %{id: id, event: event, data: data})
+    notification = %Notification{id: id, event: event, data: data}
+    send(pid, notification)
+    Proxy.EventBus.Broadcaster.notify({"chain.#{id}", notification})
     state
   end
 

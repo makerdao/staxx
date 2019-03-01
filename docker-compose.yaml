@@ -1,5 +1,14 @@
 version: '3'
 services:
+  nats:
+    image: 'nats:linux'
+    entrypoint: "/gnatsd -DV -m 8222"
+    expose:
+      - "4222"
+    ports:
+      - "8222:8222"
+      - "4222:4222"
+    hostname: nats-server
   testchain-backendgateway:
     image: makerdao/testchain_backendgateway:latest
     container_name: testchain-backendgateway.local

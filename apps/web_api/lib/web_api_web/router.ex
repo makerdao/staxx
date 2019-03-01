@@ -31,4 +31,10 @@ defmodule WebApiWeb.Router do
     get "/:id", ChainController, :details
     get "/stop/:id", ChainController, :stop
   end
+
+  scope "/docker", WebApiWeb do
+    pipe_through :api
+    post "/start", DockerController, :start
+    get "/stop/:id", DockerController, :stop
+  end
 end

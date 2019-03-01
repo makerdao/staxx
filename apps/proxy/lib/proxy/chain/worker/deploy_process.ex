@@ -11,7 +11,7 @@ defmodule Proxy.Chain.Worker.DeployProcess do
 
   alias Proxy.Chain.Worker.State
 
-  def start_link(%State{} = state) do
+  def start_link(%State{} = _state) do
     GenServer.start_link(__MODULE__, [])
   end
 

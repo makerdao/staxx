@@ -28,7 +28,9 @@ defmodule Proxy.MixProject do
     [
       {:httpoison, "~> 1.4"},
       {:jason, "~> 1.1"},
-      {:ex_testchain, github: "makerdao/ex_testchain", runtime: false}
+      {:gnat, "~> 0.6.0"},
+      {:ex_testchain, github: "makerdao/ex_testchain", runtime: false},
+      {:testchain_dockerservice, github: "makerdao/testchain-dockerservice", runtime: false}
     ]
   end
 end

@@ -16,7 +16,8 @@ defmodule Proxy.Application do
       Proxy.Deployment.ServiceList,
       Proxy.Deployment.ProcessWatcher,
       {Registry, keys: :unique, name: Proxy.ChainRegistry},
-      Proxy.NodeManager
+      Proxy.NodeManager,
+      Proxy.EventBus.Supervisor
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
