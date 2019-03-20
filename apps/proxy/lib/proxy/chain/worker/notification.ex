@@ -7,3 +7,9 @@ defmodule Proxy.Chain.Worker.Notification do
   @derive Jason.Encoder
   defstruct id: nil, event: nil, data: %{}
 end
+
+require Protocol
+
+Protocol.derive(Jason.Encoder, Chain.EVM.Process)
+Protocol.derive(Jason.Encoder, Chain.EVM.Account)
+Protocol.derive(Jason.Encoder, Chain.EVM.Notification)

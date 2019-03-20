@@ -34,6 +34,7 @@ RUN apk update && \
 # This copies our app mix.exs and mix.lock source code into the build container
 COPY mix.* ./
 COPY apps/proxy/mix.* ./apps/proxy/
+COPY apps/stacks/mix.* ./apps/stacks/
 COPY apps/web_api/mix.* ./apps/web_api/
 
 RUN mix do deps.get, deps.compile

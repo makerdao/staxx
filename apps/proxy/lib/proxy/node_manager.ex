@@ -1,6 +1,6 @@
 defmodule Proxy.NodeManager do
   @moduledoc """
-  Node connection manager. 
+  Node connection manager.
   It handles new nodes connecting/disconnedting and selects right node to make a call to
   """
 
@@ -18,10 +18,10 @@ defmodule Proxy.NodeManager do
   @doc false
   def init(_) do
     Logger.debug("#{__MODULE__} started")
-    # Starting handling node connect/disconnect 
+    # Starting handling node connect/disconnect
     :net_kernel.monitor_nodes(true)
 
-    # Have to check list of connected nodes. 
+    # Have to check list of connected nodes.
     # because node might connect on start of application
     # and before `:net_kernel.monitor_nodes(true)` will set monitoring
     case Node.list() do
@@ -102,17 +102,17 @@ defmodule Proxy.NodeManager do
   defp is_chain_node(node) do
     node
     |> Atom.to_string()
-    |> String.contains?("chain")
+    |> String.contains?("ex_testchain")
   end
 
   # Checks if this is chain node
   defp is_docker_node(node) do
     node
     |> Atom.to_string()
-    |> String.contains?("docker")
+    |> String.contains?("dockerservice")
   end
 
-  # Check if node already exist in list. 
+  # Check if node already exist in list.
   # Otherwise it will add it
   defp add_node(list, node) do
     case Enum.member?(list, node) do
