@@ -23,7 +23,7 @@ defmodule Proxy.EventBus.Nats do
     {:noreply, conn}
   end
 
-  def handle_cast({:push, event}, conn) do 
+  def handle_cast({:push, event}, conn) do
     Logger.error("Wrong topic received #{inspect(event)}")
     {:noreply, conn}
   end

@@ -52,13 +52,13 @@ defmodule Proxy.Chain.Worker.State do
   If no `notify_pid` config exist into state - `:ok` will be returned
   """
   @spec notify(t(), binary | atom, term()) :: t()
-  def notify(state, event, data \\ %{})
-
-  def notify(%__MODULE__{notify_pid: nil} = state, _, _), do: state
-
-  def notify(%__MODULE__{id: id, notify_pid: pid} = state, event, data) do
+  def notify(%__MODULE__{id: id, notify_pid: pid} = state, event, data \\ %{}) do
     notification = %Notification{id: id, event: event, data: data}
-    send(pid, notification)
+
+    if pid do
+      send(pid, notification)
+    end
+
     Proxy.EventBus.Broadcaster.notify({"chain.#{id}", notification})
     state
   end

@@ -8,32 +8,26 @@ defmodule WebApiWeb.DockerController do
   alias WebApiWeb.SuccessView
   alias WebApiWeb.ErrorView
 
-  def start(conn, params) do
+  def start(conn, %{"stack_id" => id} = params) do
     container = %Docker.Struct.Container{
       image: Map.get(params, "image", ""),
       name: Map.get(params, "name", ""),
+      network: Map.get(params, "network", ""),
       ports: Map.get(params, "ports", []),
-      env: parse_env(Map.get(params, "env", []))
+      env: parse_env(Map.get(params, "env", %{}))
     }
 
-    Logger.debug("Starting new docker container #{inspect(container)}")
-    case Proxy.Chain.Docker.start(container) do
-      {:ok, container} ->
-        conn
-        |> put_status(200)
-        |> put_view(SuccessView)
-        |> render("200.json", data: container)
+    Logger.debug("Stack #{id} Starting new docker container #{inspect(container)}")
 
-      {:error, err} ->
-        conn
-        |> put_status(500)
-        |> put_view(ErrorView)
-        |> render("500.json", message: err)
+    with {:ok, container} <- Stacks.start_container(id, container) do
+      conn
+      |> put_status(200)
+      |> put_view(SuccessView)
+      |> render("200.json", data: container)
     end
   end
 
   def stop(conn, %{"id" => id}) do
-    IO.inspect(id)
     case Proxy.Chain.Docker.stop(id) do
       {:ok, _id} ->
         conn
@@ -51,5 +45,4 @@ defmodule WebApiWeb.DockerController do
 
   defp parse_env(map) when is_map(map), do: map
   defp parse_env(_some), do: %{}
-
 end

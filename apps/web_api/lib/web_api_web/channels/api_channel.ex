@@ -8,6 +8,7 @@ defmodule WebApiWeb.ApiChannel do
   require Logger
 
   alias WebApi.ChainMessageHandler
+  alias WebApi.Utils
 
   def join(_, _, socket), do: {:ok, %{message: "Welcome to ExTestchain !"}, socket}
 
@@ -28,20 +29,7 @@ defmodule WebApiWeb.ApiChannel do
   Start new chain handler
   """
   def handle_in("start", payload, socket) do
-    config = %{
-      type: String.to_atom(Map.get(payload, "type", "ganache")),
-      # id: Map.get(payload, "id"),
-      # http_port: Map.get(payload, "http_port"),
-      # ws_port: Map.get(payload, "ws_port"),
-      # db_path: Map.get(payload, "db_path", ""),
-      network_id: Map.get(payload, "network_id", 999),
-      accounts: Map.get(payload, "accounts", 1),
-      block_mine_time: Map.get(payload, "block_mine_time", 0),
-      clean_on_stop: Map.get(payload, "clean_on_stop", false),
-      description: Map.get(payload, "description", ""),
-      snapshot_id: Map.get(payload, "snapshot_id"),
-      step_id: Map.get(payload, "step_id", 0)
-    }
+    config = Utils.chain_config_from_payload(payload)
 
     case Proxy.start(config, ChainMessageHandler) do
       {:ok, id} ->

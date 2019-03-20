@@ -1,9 +1,9 @@
-defmodule Proxy.MixProject do
+defmodule Stacks.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :proxy,
+      app: :stacks,
       version: "0.1.0",
       build_path: "../../_build",
       config_path: "../../config/config.exs",
@@ -19,17 +19,18 @@ defmodule Proxy.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {Proxy.Application, []}
+      mod: {Stacks.Application, []}
     ]
   end
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:httpoison, "~> 1.4"},
-      {:jason, "~> 1.1"},
-      {:gnat, "~> 0.6.1"},
-      {:gen_stage, "~> 0.14"}
+      {:proxy, in_umbrella: true},
+      {:ecto, "~> 3.0"},
+      {:ecto_sql, "~> 3.0"},
+      {:postgrex, ">= 0.0.0"},
+      {:telemetry, "~> 0.4.0", override: true}
     ]
   end
 end

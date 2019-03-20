@@ -84,7 +84,7 @@ defmodule Proxy.ExChain do
     do: call(node, Chain, :clean, [id])
 
   @doc """
-  Load chain details 
+  Load chain details
   """
   @spec details(node(), Chain.evm_id()) :: Proxy.ExChain.ex_response()
   def details(node, id),
@@ -119,8 +119,10 @@ defmodule Proxy.ExChain do
   def version(node), do: call(node, Chain, :version)
 
   @doc """
-  Convert to chain configuration
+  Convert set of configs in map to chain configuration
+  Actually picks required chain config keys
   """
+  @spec to_config(map) :: map
   def to_config(config) when is_map(config),
     do: Map.take(config, @chain_config_keys)
 

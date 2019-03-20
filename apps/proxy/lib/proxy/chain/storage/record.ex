@@ -42,7 +42,7 @@ defmodule Proxy.Chain.Storage.Record do
     do: %__MODULE__{record | status: status}
 
   @spec config(t(), map()) :: t()
-  def config(%__MODULE__{} = record, config), 
+  def config(%__MODULE__{} = record, config),
     do: %__MODULE__{record | config: config}
 
   @spec chain_details(t(), term()) :: t()

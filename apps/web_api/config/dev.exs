@@ -9,7 +9,7 @@ use Mix.Config
 config :web_api, WebApiWeb.Endpoint,
   http: [port: 4000],
   debug_errors: false,
-  code_reloader: true,
+  code_reloader: false,
   check_origin: false,
   watchers: []
 

@@ -7,7 +7,7 @@ defmodule Proxy.Chain.Worker.DeployProcess do
   """
   use GenServer
 
-  require Logger 
+  require Logger
 
   alias Proxy.Chain.Worker.State
 
