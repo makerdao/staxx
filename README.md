@@ -6,7 +6,7 @@
 2. Use `make dc-up` for run
 3. Use `make dc-down` for down with removing of data
 
-Instead of 2 and 3 u can use `docker-compose` cmd in console. 
+Instead of 2 and 3 u can use `docker-compose` cmd in console.
 
 ## Deployment service
 
@@ -40,4 +40,14 @@ iex(7)> Proxy.Deployment.BaseApi.request("test", "GetInfo")
  }}
 ```
 
+## Local docker-compose env
 
+To start everything in docker on your local machine there is set of make commands.
+Everything is wrapped into `docker-compose-dev.yml` file. So you have to have `docker-compose`
+installed on your machine.
+
+Commands:
+
+ - `make run-dev` - Will start QA portal in docker images and will set `localhost:3000` - for UI and `localhost:4000` - for WS/Web API
+ - `make logs-dev` - Will spam you with logs from system
+ - `make stop-dev` - Will stop all services
