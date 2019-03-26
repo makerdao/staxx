@@ -27,6 +27,8 @@ defmodule Stacks.MixProject do
   defp deps do
     [
       {:proxy, in_umbrella: true},
+      {:yaml_elixir, "~> 2.1"},
+      {:poison, "~> 3.1"},
       {:ecto, "~> 3.0"},
       {:ecto_sql, "~> 3.0"},
       {:postgrex, ">= 0.0.0"},

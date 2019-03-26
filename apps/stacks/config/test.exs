@@ -5,3 +5,5 @@ config :stacks, Stacks.Repo,
   username: "postgres",
   password: "postgres",
   hostname: "localhost"
+
+config :stacks, stacks_dir: "/tmp/stacks"

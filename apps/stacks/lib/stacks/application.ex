@@ -9,7 +9,8 @@ defmodule Stacks.Application do
     # List all child processes to be supervised
     children = [
       {Registry, keys: :unique, name: Stacks.Registry},
-      Stacks.WatcherSupervisor
+      Stacks.WatcherSupervisor,
+      Stacks.ConfigLoader,
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

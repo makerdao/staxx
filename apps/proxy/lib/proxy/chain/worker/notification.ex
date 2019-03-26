@@ -6,6 +6,23 @@ defmodule Proxy.Chain.Worker.Notification do
 
   @derive Jason.Encoder
   defstruct id: nil, event: nil, data: %{}
+
+  @doc """
+  Send notification to event bus
+  """
+  @spec send_to_event_bus(%__MODULE__{}) :: :ok
+  def send_to_event_bus(%__MODULE__{id: id} = notification) do
+    Proxy.EventBus.Broadcaster.notify({"chain.#{id}", notification})
+  end
+
+  @doc """
+  Send custom notification to event bus
+  """
+  @spec send_to_event_bus(binary, binary, term) :: :ok
+  def send_to_event_bus(id, event, data \\ %{}) do
+    %__MODULE__{id: id, event: event, data: data}
+    |> send_to_event_bus()
+  end
 end
 
 require Protocol

@@ -8,7 +8,7 @@ defmodule WebApiWeb.DockerController do
   alias WebApiWeb.SuccessView
   alias WebApiWeb.ErrorView
 
-  def start(conn, %{"stack_id" => id} = params) do
+  def start(conn, %{"stack_id" => id, "stack_name" => stack_name} = params) do
     container = %Docker.Struct.Container{
       image: Map.get(params, "image", ""),
       name: Map.get(params, "name", ""),
@@ -19,7 +19,7 @@ defmodule WebApiWeb.DockerController do
 
     Logger.debug("Stack #{id} Starting new docker container #{inspect(container)}")
 
-    with {:ok, container} <- Stacks.start_container(id, container) do
+    with {:ok, container} <- Stacks.start_container(id, stack_name, container) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)

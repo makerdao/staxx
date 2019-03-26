@@ -59,7 +59,7 @@ defmodule Proxy.Chain.Worker.State do
       send(pid, notification)
     end
 
-    Proxy.EventBus.Broadcaster.notify({"chain.#{id}", notification})
+    Notification.send_to_event_bus(notification)
     state
   end
 
