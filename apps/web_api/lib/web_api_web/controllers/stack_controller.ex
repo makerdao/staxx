@@ -50,9 +50,10 @@ defmodule WebApiWeb.StackController do
   end
 
   # Send stack ready notification
-  def stack_ready(conn, %{"id" => id, "stack_name" => stack}) do
+  def stack_ready(conn, %{"id" => id, "stack_name" => stack} = payload) do
     data = %{
-      stack_name: stack
+      stack_name: stack,
+      data: Map.get(payload, "data", %{})
     }
 
     with true <- Stacks.alive?(id),
