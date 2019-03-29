@@ -1,6 +1,6 @@
-defmodule Proxy.EventBus.Nats do
+defmodule EventBus.Nats do
   @moduledoc """
-  Nats handler. 
+  Nats handler.
   """
   use GenServer
 

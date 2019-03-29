@@ -1,6 +1,6 @@
-defmodule Proxy.EventBus.Broadcaster do
+defmodule EventBus.Broadcaster do
   @moduledoc """
-  Broadcasting system for application. 
+  Broadcasting system for application.
   It have ability to send some events to event bus.
   """
 
@@ -16,9 +16,8 @@ defmodule Proxy.EventBus.Broadcaster do
   @doc """
   Sends an event and returns only after the event is dispatched.
   """
-  def notify(event) do
-    GenStage.cast(__MODULE__, {:notify, event})
-  end
+  def notify({topic, event}) when is_binary(topic),
+    do: GenStage.cast(__MODULE__, {:notify, {topic, event}})
 
   ## Callbacks
 

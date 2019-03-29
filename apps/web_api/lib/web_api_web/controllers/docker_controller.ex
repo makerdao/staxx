@@ -11,8 +11,8 @@ defmodule WebApiWeb.DockerController do
   def start(conn, %{"stack_id" => id, "stack_name" => stack_name} = params) do
     container = %Docker.Struct.Container{
       image: Map.get(params, "image", ""),
-      name: Map.get(params, "name", id),
-      network: Map.get(params, "network", ""),
+      name: Map.get(params, "name", ""),
+      network: Map.get(params, "network", id),
       ports: Map.get(params, "ports", []),
       env: parse_env(Map.get(params, "env", %{}))
     }

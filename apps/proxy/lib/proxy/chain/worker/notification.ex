@@ -11,9 +11,8 @@ defmodule Proxy.Chain.Worker.Notification do
   Send notification to event bus
   """
   @spec send_to_event_bus(%__MODULE__{}) :: :ok
-  def send_to_event_bus(%__MODULE__{id: id} = notification) do
-    Proxy.EventBus.Broadcaster.notify({"chain.#{id}", notification})
-  end
+  def send_to_event_bus(%__MODULE__{} = notification),
+    do: EventBus.dispatch(notification)
 
   @doc """
   Send custom notification to event bus

@@ -10,7 +10,6 @@ defmodule WebApiWeb.StackController do
   alias WebApiWeb.SuccessView
   alias WebApiWeb.ErrorView
 
-  alias WebApi.ChainMessageHandler
   alias WebApi.Utils
 
   # Start new stack
@@ -18,7 +17,7 @@ defmodule WebApiWeb.StackController do
     Logger.debug("#{__MODULE__}: New stack is starting")
     config = Utils.chain_config_from_payload(chain_config)
 
-    with {:ok, id} <- Stacks.start(config, params, ChainMessageHandler) do
+    with {:ok, id} <- Stacks.start(config, params) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)

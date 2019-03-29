@@ -38,6 +38,7 @@ defmodule WebApi.MixProject do
     [
       {:proxy, in_umbrella: true},
       {:stacks, in_umbrella: true},
+      {:event_bus, in_umbrella: true},
       {:phoenix, "~> 1.4.0"},
       {:phoenix_pubsub, "~> 1.1"},
       {:gettext, "~> 0.11"},

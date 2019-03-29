@@ -7,7 +7,6 @@ defmodule WebApiWeb.ApiChannel do
 
   require Logger
 
-  alias WebApi.ChainMessageHandler
   alias WebApi.Utils
 
   def join(_, _, socket), do: {:ok, %{message: "Welcome to ExTestchain !"}, socket}
@@ -16,7 +15,7 @@ defmodule WebApiWeb.ApiChannel do
   Start existing chain
   """
   def handle_in("start_existing", %{"id" => id}, socket) do
-    case Proxy.start(id, ChainMessageHandler) do
+    case Proxy.start(id) do
       {:ok, id} ->
         {:reply, {:ok, %{id: id}}, socket}
 
@@ -31,10 +30,8 @@ defmodule WebApiWeb.ApiChannel do
   def handle_in("start", payload, socket) do
     config = Utils.chain_config_from_payload(payload)
 
-    case Proxy.start(config, ChainMessageHandler) do
+    case Proxy.start(config) do
       {:ok, id} ->
-        # Subscribing to notification :started and sending response to socket
-        # ChainMessageHandler.notify_on(id, :started, self(), socket_ref(socket))
         {:reply, {:ok, %{id: id}}, socket}
 
       {:error, err} ->
