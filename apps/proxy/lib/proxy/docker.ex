@@ -36,4 +36,18 @@ defmodule Proxy.Chain.Docker do
         GenServer.call({Docker.Cmd, node}, {:stop, id}, @timeout)
     end
   end
+
+  @doc """
+  Prune all networks
+  """
+  @spec prune_networks() :: :ok | {:error, term}
+  def prune_networks() do
+    case NodeManager.docker_node() do
+      nil ->
+        {:error, "No docker node connected"}
+
+      node ->
+        GenServer.cast({Docker.Cmd, node}, :prune_networks)
+    end
+  end
 end

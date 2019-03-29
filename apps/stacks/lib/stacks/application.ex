@@ -11,6 +11,7 @@ defmodule Stacks.Application do
       {Registry, keys: :unique, name: Stacks.Registry},
       Stacks.WatcherSupervisor,
       Stacks.ConfigLoader,
+      Stacks.NetworkRemover
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
