@@ -6,8 +6,8 @@ defmodule Stacks.NetworkRemover do
 
   require Logger
 
-  # @timeout 180_000
-  @timeout 10_000
+  @timeout 360_000
+  # @timeout 10_000
 
   @doc false
   def start_link(_),
