@@ -67,7 +67,7 @@ services:
     networks:
      - net1
   testchain-dashboard:
-    image: makerdao/testchain-dashboard
+    image: makerdao/testchain-dashboard:dev
     container_name: testchain-dashboard.local
     expose:
       - "3000"
