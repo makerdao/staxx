@@ -74,7 +74,7 @@ services:
     expose:
       - "3000"
     ports:
-      - "3000:3000"
+      - "4001:3000"
     environment:
       TESTCHAIN_SERVICE_URL: http://localhost
       TESTCHAIN_SERVICE_PORT: 4000
