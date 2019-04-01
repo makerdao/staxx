@@ -125,25 +125,16 @@ defmodule Proxy.Chain.Worker do
 
   @doc false
   def handle_info(
-        %Notification{event: :status_changed, data: :active},
-        %State{id: id, notify_pid: pid} = state
-      ) do
-    Logger.debug("#{id}: EVM status changed to active")
-
-    if pid do
-      send(pid, %Notification{id: id, event: :active})
-    end
-
-    {:noreply, %State{state | chain_status: :active}}
-  end
-
-  @doc false
-  def handle_info(
         %Notification{event: :status_changed, data: status},
         %State{id: id} = state
       ) do
     Logger.debug("#{id}: EVM status changed to #{status}")
-    {:noreply, %State{state | chain_status: status}}
+
+    updated_state =
+      state
+      |> ChainHelper.handle_chain_status_change(status)
+
+    {:noreply, %State{updated_state | chain_status: status}}
   end
 
   @doc false
@@ -164,11 +155,9 @@ defmodule Proxy.Chain.Worker do
   end
 
   @doc false
-  def handle_info(%Notification{} = event, state) do
-    if pid = Map.get(state, :notify_pid) do
-      send(pid, event)
-    end
-
+  def handle_info(%Notification{event: chain_event, data: data} = event, %State{id: id} = state) do
+    Logger.debug("#{id}: Received notification for chain #{inspect(event)}")
+    Proxy.Chain.Worker.Notification.send_to_event_bus(id, chain_event, data)
     {:noreply, state}
   end
 

@@ -11,6 +11,8 @@ defmodule Proxy.Chain.Worker.ChainHelper do
   alias Proxy.Oracles.Api, as: OraclesApi
   alias Proxy.Chain.Storage.Record
 
+  @proxify_events [:active, :snapshot_taking, :snapshot_reverting]
+
   @doc """
   Handle EVM started event.
 
@@ -136,6 +138,22 @@ defmodule Proxy.Chain.Worker.ChainHelper do
 
   def handle_deployment_finished(%State{id: id, status: status} = state, _request_id, data) do
     Logger.debug("#{id}: Deployment finished event for status: #{status}, #{inspect(data)}")
+    state
+  end
+
+  @doc """
+  Handle chain status update
+  """
+  @spec handle_chain_status_change(Proxy.Chain.Worker.State.t(), atom) ::
+          Proxy.Chain.Worker.State.t()
+  def handle_chain_status_change(state, status)
+      when status in @proxify_events do
+    state
+    |> State.notify(status)
+  end
+
+  def handle_chain_status_change(%State{id: id} = state, status) do
+    Logger.debug("#{id}: Unhandled EVM status: #{status}")
     state
   end
 
