@@ -155,9 +155,9 @@ defmodule Proxy.Chain.Worker do
   end
 
   @doc false
-  def handle_info(%Notification{event: chain_event, data: data} = event, %State{id: id} = state) do
-    Logger.debug("#{id}: Received notification for chain #{inspect(event)}")
-    Proxy.Chain.Worker.Notification.send_to_event_bus(id, chain_event, data)
+  def handle_info(%Notification{event: event, data: data}, %State{id: id} = state) do
+    Logger.debug("#{id}: Received notification for chain with event: #{inspect(event)}")
+    State.notify(state, event, data)
     {:noreply, state}
   end
 
