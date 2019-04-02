@@ -11,6 +11,7 @@ defmodule Proxy.Chain.Worker.ChainHelper do
   alias Proxy.Oracles.Api, as: OraclesApi
   alias Proxy.Chain.Storage.Record
 
+  # List of events that should be resend to event bus
   @proxify_events [:active, :snapshot_taking, :snapshot_reverting]
 
   @doc """
@@ -28,6 +29,7 @@ defmodule Proxy.Chain.Worker.ChainHelper do
     record =
       state
       |> Record.from_state()
+      |> Record.status(:ready)
       |> Record.chain_details(details)
       |> Record.store()
 

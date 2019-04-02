@@ -19,15 +19,23 @@ defmodule Stacks do
     do: Watcher.alive?(id)
 
   @doc """
+  List available stacks
+  """
+  @spec list() :: {:ok, []} | {:error, term}
+  def list() do
+    {:ok, []}
+  end
+
+  @doc """
   Start new stack
   """
-  @spec start(map, map, pid | module) :: {:ok, binary} | {:error, term}
-  def start(chain_config, params, notify_pid \\ nil) do
+  @spec start(map | binary, map, pid | module) :: {:ok, binary} | {:error, term}
+  def start(chain_config_or_id, params, notify_pid \\ nil) do
     modules = fetch_stacks(params)
     Logger.debug("Starting new stack with modules: #{inspect(modules)}")
 
     with :ok <- validate(modules),
-         {:ok, id} <- Proxy.start(chain_config, notify_pid),
+         {:ok, id} <- Proxy.start(chain_config_or_id, notify_pid),
          {:ok, _pid} <- WatcherSupervisor.start_watcher(id),
          :ok <- start_stack_list(modules, id) do
       Logger.debug("Started new chain for stack #{id}")
