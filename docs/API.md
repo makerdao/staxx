@@ -48,6 +48,7 @@ POST `/stack/start` with payload:
       "block_mine_time": 0, // Block mining time
       "clean_on_stop": true, // Remove all files after chain will be stopped
       "snapshot_id": null, // Snapshot ID
+      "deploy_tag": null, // tag or commit id we need to switch before deployemnt
       "step_id": 1 // deployment step
     },
     "deps": [] // For testchain we have no dependencies

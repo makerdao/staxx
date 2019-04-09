@@ -20,6 +20,7 @@ defmodule WebApi.Utils do
       clean_on_stop: Map.get(payload, "clean_on_stop", false),
       description: Map.get(payload, "description", ""),
       snapshot_id: Map.get(payload, "snapshot_id"),
+      deploy_tag: Map.get(payload, "deploy_tag"),
       step_id: Map.get(payload, "step_id", 0)
     }
   end

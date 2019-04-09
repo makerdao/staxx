@@ -22,6 +22,7 @@ defmodule Proxy.Chain.Worker.State do
           status: status,
           notify_pid: pid() | nil,
           chain_status: atom(),
+          deploy_tag: nil | binary,
           deploy_step_id: 0..9
         }
 
@@ -31,6 +32,7 @@ defmodule Proxy.Chain.Worker.State do
             status: :initializing,
             notify_pid: nil,
             chain_status: :none,
+            deploy_tag: nil,
             deploy_step_id: 0
 
   @doc """

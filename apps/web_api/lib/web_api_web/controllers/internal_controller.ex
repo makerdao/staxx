@@ -31,6 +31,15 @@ defmodule WebApiWeb.InternalController do
     |> json(%{type: "ok"})
   end
 
+  def rpc(conn, %{"method" => "CheckoutResult", "data" => data}) do
+    id = Map.get(data, "id")
+    Logger.info("Request id #{id}, checkout successfull, data: #{inspect(data)}")
+    Proxy.Deployment.Deployer.handle(id, {:checkout, data})
+
+    conn
+    |> json(%{type: "ok"})
+  end
+
   @doc false
   def rpc(conn, %{"id" => id, "method" => method, "data" => data}) do
     Logger.info("Request #{id} with method: #{method} data: #{inspect(data)}")

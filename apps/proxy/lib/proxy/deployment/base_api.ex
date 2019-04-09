@@ -71,6 +71,27 @@ defmodule Proxy.Deployment.BaseApi do
     request(id, "Run", data)
   end
 
+  @doc """
+  Check out new commit for deployemnt scripts
+  """
+  @spec checkout(binary, binary) :: {:ok, term} | {:error, term}
+  def checkout(id, commit) when is_binary(commit) do
+    data = %{
+      commit: commit
+    }
+
+    request(id, "Checkout", data)
+  end
+
+  @doc """
+  Will load list of available comits from deployment scripts repo
+  """
+  @spec get_commit_list() :: {:ok, term} | {:error, term}
+  def get_commit_list() do
+    random_id()
+    |> request("GetCommitList")
+  end
+
   # generate random number for request
   def random_id(), do: @random_max |> :rand.uniform() |> to_string()
 

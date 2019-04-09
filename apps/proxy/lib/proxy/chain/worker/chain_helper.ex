@@ -6,9 +6,7 @@ defmodule Proxy.Chain.Worker.ChainHelper do
   require Logger
 
   alias Proxy.Chain.Worker.State
-  alias Proxy.Deployment.BaseApi
   alias Proxy.Deployment.StepsFetcher
-  alias Proxy.Oracles.Api, as: OraclesApi
   alias Proxy.Chain.Storage.Record
 
   # List of events that should be resend to event bus
@@ -26,15 +24,15 @@ defmodule Proxy.Chain.Worker.ChainHelper do
   def handle_evm_started(%State{id: id, start: :existing} = state, details) do
     Logger.debug("#{id}: Existing chain started successfully, have no deployment to perform")
 
-    record =
-      state
-      |> Record.from_state()
-      |> Record.status(:ready)
-      |> Record.chain_details(details)
-      |> Record.store()
+    # record =
+    state
+    |> Record.from_state()
+    |> Record.status(:ready)
+    |> Record.chain_details(details)
+    |> Record.store()
 
     # Send relayer notification
-    spawn(OraclesApi, :notify_new_chain, [record])
+    # spawn(OraclesApi, :notify_new_chain, [record])
 
     # Combining new state
     state
@@ -71,7 +69,7 @@ defmodule Proxy.Chain.Worker.ChainHelper do
     # Load step details
     with step when is_map(step) <- StepsFetcher.get(step_id),
          hash when byte_size(hash) > 0 <- StepsFetcher.hash(),
-         {:ok, request_id} <- run_deployment(id, step_id, details) do
+         {:ok, request_id} <- run_deployment(state, step_id, details) do
       Logger.debug("Deployment process scheduled with request_id #{request_id} !")
       # Save deployment request association with current chain
       Proxy.Deployment.ProcessWatcher.put(request_id, id)
@@ -88,8 +86,10 @@ defmodule Proxy.Chain.Worker.ChainHelper do
       |> State.chain_status(:started)
       |> State.notify(:deploying, details)
     else
-      _ ->
-        Logger.error("#{id}: Failed to fetch steps from deployment service. Deploy ommited")
+      err ->
+        Logger.error(
+          "#{id}: Failed to fetch steps from deployment service. Deploy ommited #{inspect(err)}"
+        )
 
         state
         |> State.status(:failed)
@@ -130,7 +130,7 @@ defmodule Proxy.Chain.Worker.ChainHelper do
       |> Record.store()
 
     # Send relayer notification
-    spawn(OraclesApi, :notify_new_chain, [record])
+    # spawn(OraclesApi, :notify_new_chain, [record])
 
     state
     |> State.status(:ready)
@@ -162,29 +162,13 @@ defmodule Proxy.Chain.Worker.ChainHelper do
   @doc """
   Run deployment scripts for chain
   """
-  @spec run_deployment(1..9, map()) :: {:ok, term} | {:error, term}
-  def run_deployment(_step_id, nil),
+  @spec run_deployment(State.t(), 1..9, map()) :: {:ok, term} | {:error, term}
+  def run_deployment(%State{id: id, deploy_tag: tag}, step_id, %{
+        rpc_url: rpc_url,
+        coinbase: coinbase
+      }),
+      do: Proxy.Deployment.Deployer.deploy(id, step_id, rpc_url, coinbase, tag)
+
+  def run_deployment(_state, _step_id, _details),
     do: {:error, "No chain details exist"}
-
-  def run_deployment(id, step_id, details) do
-    request_id = BaseApi.random_id()
-    Logger.debug("#{id}: Starting deployment process with id: #{request_id}")
-
-    env = %{
-      "ETH_RPC_URL" => Map.get(details, :rpc_url),
-      "ETH_FROM" => Map.get(details, :coinbase),
-      "ETH_RPC_ACCOUNTS" => "yes",
-      "SETH_STATUS" => "yes",
-      # "ETH_GAS" => Map.get(details, :gas_limit),
-      "ETH_GAS" => "6000000"
-    }
-
-    case BaseApi.run(request_id, step_id, env) do
-      {:ok, %{"type" => "ok"}} ->
-        {:ok, request_id}
-
-      _ ->
-        {:error, "failed to start deployment"}
-    end
-  end
 end

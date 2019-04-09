@@ -24,6 +24,7 @@ defmodule Proxy.Chain.Worker do
       id: id,
       start: :new,
       notify_pid: pid,
+      deploy_tag: Map.get(config, :deploy_tag),
       deploy_step_id: Map.get(config, :step_id, 0)
     }
 
