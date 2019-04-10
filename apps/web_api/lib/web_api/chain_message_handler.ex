@@ -13,6 +13,7 @@ defmodule WebApi.ChainMessageHandler do
 
   @doc false
   def init(_) do
+    :ok = EventBus.subscribe(EventBus.global())
     {:ok, []}
   end
 

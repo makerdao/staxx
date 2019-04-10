@@ -4,6 +4,7 @@ BUILD ?= `git rev-parse --short HEAD`
 ALPINE_VERSION ?= edge
 DOCKER_ID_USER ?= makerdao
 MIX_ENV ?= prod
+TAG ?= latest
 
 help:
 	@echo "$(DOCKER_ID_USER)/$(APP_NAME):$(APP_VSN)-$(BUILD)"
@@ -26,17 +27,30 @@ build: ## Build elixir application with testchain and WS API
     --build-arg APP_VSN=$(APP_VSN) \
     --build-arg MIX_ENV=$(MIX_ENV) \
     -t $(DOCKER_ID_USER)/$(APP_NAME):$(APP_VSN)-$(BUILD) \
-    -t $(DOCKER_ID_USER)/$(APP_NAME):latest .
+    -t $(DOCKER_ID_USER)/$(APP_NAME):$(TAG) .
 .PHONY: build
+
+logs-dev:
+	@docker-compose logs -f ex_testchain testchain-backendgateway testchain-deployment
+.PHONY: logs-dev
 
 run: ## Run the app in Docker
 	@docker run \
 		-v /tmp/chains:/opt/chains \
 		-v /tmp/snapshots:/opt/snapshots \
+		-v /tmp/stacks:/opt/stacks \
 		--expose 4000 -p 4000:4000 \
 		--expose 9100-9105 -p 9100-9105:9100-9105 \
 		--rm -it $(DOCKER_ID_USER)/$(APP_NAME):latest
 .PHONY: run
+
+run-dev:
+	@docker-compose -f ./docker-compose-dev.yml up -d
+.PHONY: run-dev
+
+stop-dev:
+	@docker-compose -f ./docker-compose-dev.yml stop
+.PHONY: stop-dev
 
 dev: ## Run local node with correct values
 	@iex --name testchain_backendgateway@127.0.0.1 -S mix phx.server

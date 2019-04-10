@@ -7,7 +7,7 @@ defmodule Proxy do
 
   alias Proxy.ExChain
   alias Proxy.Chain.Worker
-  alias Proxy.Chain.Supervisor
+  alias Proxy.Chain.Supervisor, as: ChainSupervisor
 
   @doc """
   Start new/existing chain
@@ -16,7 +16,7 @@ defmodule Proxy do
   def start(id_or_config, pid \\ nil)
 
   def start(id, pid) when is_binary(id) do
-    case Supervisor.start_chain(id, :existing, pid) do
+    case ChainSupervisor.start_chain(id, :existing, pid) do
       :ok ->
         {:ok, id}
 
@@ -30,22 +30,28 @@ defmodule Proxy do
   end
 
   def start(config, pid) when is_map(config) do
-    id =
-      with nil <- Map.get(config, :id),
-           do: ExChain.unique_id()
+    with {:node, node} when not is_nil(node) <- {:node, Proxy.NodeManager.node()},
+         {:id, id} when is_binary(id) <- {:id, Proxy.ExChain.unique_id(node)},
+         {:ok, _} <-
+           config
+           |> Map.put(:id, id)
+           |> Map.put(:node, node)
+           |> Map.put(:clean_on_stop, false)
+           |> ChainSupervisor.start_chain(:new, pid) do
+      {:ok, id}
+    else
+      {:node, _} ->
+        {:error, "No active ex_testchain node connected !"}
 
-    res =
-      config
-      |> Map.put(:id, id)
-      |> Map.put(:clean_on_stop, false)
-      |> Supervisor.start_chain(:new, pid)
-
-    case res do
-      {:ok, _} ->
-        {:ok, id}
+      {:id, _} ->
+        {:error, "Failed to generrate new id for EVM"}
 
       {:error, err} ->
         {:error, err}
+
+      err ->
+        Logger.error("Failed to start EVM: #{inspect(err)}")
+        {:error, "Unknown error"}
     end
   end
 
@@ -60,17 +66,69 @@ defmodule Proxy do
   end
 
   @doc """
+  Send take snapshot command to worker
+  """
+  @spec take_snapshot(Chain.evm_id(), binary()) :: :ok | {:error, term()}
+  def take_snapshot(id, description \\ "") do
+    id
+    |> Worker.get_pid()
+    |> GenServer.call({:take_snapshot, description})
+  end
+
+  @doc """
+  Will send command to the chain to revert snapshot.
+  `:ok` will mean that reverting snapshot process started you have to wait for an event
+  about complition
+  """
+  @spec revert_snapshot(Chain.evm_id(), binary) :: :ok | {:error, term()}
+  def revert_snapshot(id, snapshot_id) do
+    id
+    |> Worker.get_pid()
+    |> GenServer.call({:revert_snapshot, snapshot_id})
+  end
+
+  @doc """
+  Load snapshot details
+  """
+  @spec get_snapshot(binary) :: map() | {:error, term()}
+  def get_snapshot(snapshot_id) do
+    Proxy.NodeManager.node()
+    |> ExChain.get_snapshot(snapshot_id)
+  end
+
+  @doc """
   Remove all details about chain by id
   """
   @spec clean(binary) :: :ok | {:error, binary}
   def clean(id) do
-    with :ok <- ExChain.clean(id),
+    with {:node, node} when not is_nil(node) <- {:node, Proxy.NodeManager.node()},
+         :ok <- ExChain.clean(node, id),
          _ <- Proxy.Chain.Storage.delete(id) do
       :ok
     else
+      {:node, _} ->
+        {:error, "No active ex_testchain node connected !"}
+
       err ->
         Logger.error("Failed to clean up chain #{id} details #{inspect(err)}")
         {:error, "failed to clean up chain #{id} details"}
+    end
+  end
+
+  @doc """
+  Load list of snapshots from random ex_testchain node
+  """
+  @spec snapshot_list(Chain.evm_type()) :: [map()]
+  def snapshot_list(chain_type) do
+    with {:node, node} when not is_nil(node) <- {:node, Proxy.NodeManager.node()},
+         list <- ExChain.snapshot_list(node, chain_type),
+         list <- Enum.map(list, &Map.from_struct/1) do
+      list
+    else
+      err ->
+        Logger.error("Failed to load list of snapshots for #{chain_type} err: #{inspect(err)}")
+
+        []
     end
   end
 
@@ -85,4 +143,13 @@ defmodule Proxy do
   """
   @spec chain_list() :: [map()]
   def chain_list(), do: Proxy.Chain.Storage.all()
+
+  @doc """
+  Get chains version
+  """
+  @spec version() :: binary | {:error, term()}
+  def version() do
+    Proxy.NodeManager.node()
+    |> ExChain.version()
+  end
 end

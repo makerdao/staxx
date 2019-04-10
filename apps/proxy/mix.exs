@@ -26,9 +26,10 @@ defmodule Proxy.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:event_bus, in_umbrella: true},
       {:httpoison, "~> 1.4"},
       {:jason, "~> 1.1"},
-      {:ex_testchain, github: "makerdao/ex_testchain", runtime: false}
+      {:gen_stage, "~> 0.14"}
     ]
   end
 end

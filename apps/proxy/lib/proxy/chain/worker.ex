@@ -3,75 +3,110 @@ defmodule Proxy.Chain.Worker do
   Chain/deployment/other tasks performer.
 
   All tasksthat will iteract with chain should go through this worker.
-
-  Worker has it's own statuses a bit different to ExTestchain
-
-  When new worker is spawning it's status is set to `:starting` then flow is this:
-  `:starting` -> `:started` -> `:deploying` -> `:deployed` -> `:ready`
-  So chain is fully ready only when status is set to `:ready`
-  In case of failure status will be set to `:failed`
   """
-
-  @type status :: :starting | :started | :deploying | :deployed | :ready | :failed | :terminated
-
   use GenServer, restart: :transient
 
   require Logger
 
   alias Proxy.ExChain
   alias Proxy.Chain.Worker.{State, ChainHelper}
-  alias Proxy.Chain.Storage
+  alias Proxy.Chain.Storage.Record
+  alias Chain.EVM.Notification
 
   @doc false
-  def start_link({:existing, id, pid}) when is_binary(id),
-    do: GenServer.start_link(__MODULE__, %State{id: id, start: :existing, notify_pid: pid})
+  def start_link({:existing, id, pid}) when is_binary(id) do
+    state = %State{id: id, start: :existing, notify_pid: pid}
+    GenServer.start_link(__MODULE__, {state, nil})
+  end
 
   def start_link({:new, %{id: id} = config, pid}) when is_map(config) do
-    GenServer.start_link(__MODULE__, %State{
+    state = %State{
       id: id,
       start: :new,
-      config: config,
-      notify_pid: pid
-    })
+      notify_pid: pid,
+      deploy_tag: Map.get(config, :deploy_tag),
+      deploy_step_id: Map.get(config, :step_id, 0)
+    }
+
+    GenServer.start_link(__MODULE__, {state, config})
   end
 
   @doc false
-  def init(%State{id: id, start: :new, config: config} = state) do
+  def init({%State{id: id, node: nil} = state, config}) do
+    case Proxy.NodeManager.node() do
+      nil ->
+        Logger.error("#{id}: No free ex_testchain node for starting EVM.")
+        {:error, :no_free_node}
+
+      node ->
+        Logger.debug("#{id}: Node to start EVM selected: #{inspect(node)}")
+
+        new_state =
+          state
+          |> State.node(node)
+
+        init({new_state, config})
+    end
+  end
+
+  @doc false
+  def init({%State{id: id, node: node, start: :new} = state, config}) do
     Logger.debug("Starting new chain #{Map.get(config, :type)}")
 
-    {:ok, ^id} =
+    evm_config =
       config
       |> Map.put(:notify_pid, self())
       |> ExChain.to_config()
-      |> ExChain.start()
+
+    {:ok, ^id} = ExChain.start(node, evm_config)
 
     Logger.debug("#{id}: Started new chain")
     {:ok, _} = register(id)
+
     # Store new chain worker
-    Storage.store(%State{state | id: id})
-    {:ok, %State{state | id: id}}
-  end
+    state
+    |> Record.from_state()
+    |> Record.config(config)
+    |> Record.store()
 
-  @doc false
-  def init(%State{id: id, start: :existing} = state) when is_binary(id) do
-    Logger.debug("#{id}: Loading chain details")
-    {:ok, ^id} = ExChain.start_existing(id, self())
-    Logger.debug("#{id}: Started existing chain")
-    {:ok, _} = register(id)
-
-    state = ChainHelper.merge_existing_state(state)
-    Logger.debug("#{id}: existing state merged to: #{inspect(state)}")
-    # Store updated chain state
-    Storage.store(state)
     {:ok, state}
   end
 
   @doc false
-  def terminate(_, %State{id: id}), do: ExChain.stop(id)
+  def init({%State{id: id, node: node, start: :existing} = state, _}) when is_binary(id) do
+    Logger.debug("#{id}: Loading chain details")
+    {:ok, ^id} = ExChain.start_existing(node, id, self())
+    Logger.debug("#{id}: Started existing chain")
+    {:ok, _} = register(id)
+
+    Logger.debug("#{id}: existing state merged to: #{inspect(state)}")
+
+    # Store updated chain state
+    state
+    |> Record.from_state()
+    |> Record.store()
+
+    {:ok, state}
+  end
+
+  @doc false
+  def terminate(_, %State{id: id, node: node}), do: ExChain.stop(node, id)
+
+  @doc false
+  def handle_continue(:deployment_failed, state) do
+    new_state =
+      state
+      |> State.notify(:deployment_failed, "Timeout waiting deployment")
+      |> State.notify(:failed)
+      |> State.status(:failed)
+      |> State.store()
+
+    {:noreply, new_state}
+  end
 
   @doc false
   def handle_info(
-        %Chain.EVM.Notification{event: :status_changed, data: :terminated},
+        %Notification{event: :status_changed, data: :terminated},
         %State{id: id} = state
       ) do
     Logger.debug("#{id}: EVM stopped, going down")
@@ -79,38 +114,39 @@ defmodule Proxy.Chain.Worker do
     # Send kill relayer signal
     Proxy.Oracles.Api.remove_relayer()
 
-    new_state = %State{state | status: :terminated, chain_status: :terminated}
-    Storage.store(new_state)
-    # Send notification
-    State.notify(new_state, :terminated)
+    new_state =
+      state
+      |> State.status(:terminated)
+      |> State.chain_status(:terminated)
+      |> State.notify(:terminated)
+      |> State.store()
 
     {:stop, :normal, new_state}
   end
 
   @doc false
   def handle_info(
-        %Chain.EVM.Notification{event: :status_changed, data: status} = event,
+        %Notification{event: :status_changed, data: status},
         %State{id: id} = state
       ) do
     Logger.debug("#{id}: EVM status changed to #{status}")
 
-    if pid = Map.get(state, :notify_pid) do
-      send(pid, event)
-    end
+    updated_state =
+      state
+      |> ChainHelper.handle_chain_status_change(status)
 
-    {:noreply, %State{state | chain_status: status}}
+    {:noreply, %State{updated_state | chain_status: status}}
   end
 
   @doc false
   def handle_info(
-        %Chain.EVM.Notification{event: :started, data: details},
+        %Notification{event: :started, data: details},
         state
       ) do
     new_state = ChainHelper.handle_evm_started(state, details)
-    Storage.store(new_state)
 
     case new_state do
-      %State{status: :deploying} ->
+      %State{status: :initializing} ->
         # If deployment process started we have to set timeout
         {:noreply, new_state, Application.get_env(:proxy, :deployment_timeout)}
 
@@ -120,21 +156,17 @@ defmodule Proxy.Chain.Worker do
   end
 
   @doc false
-  def handle_info(%Chain.EVM.Notification{} = event, state) do
-    if pid = Map.get(state, :notify_pid) do
-      send(pid, event)
-    end
-
+  def handle_info(%Notification{event: event, data: data}, %State{id: id} = state) do
+    Logger.debug("#{id}: Received notification for chain with event: #{inspect(event)}")
+    State.notify(state, event, data)
     {:noreply, state}
   end
 
   @doc false
-  def handle_info(:timeout, %State{id: id, status: :deploying} = state) do
+  def handle_info(:timeout, %State{id: id, status: :initializing} = state) do
     Logger.error("#{id}: Waiting deployment failed: timeout")
-    State.notify(id, :deployment_failed, "Timeout waiting deployment")
-    State.notify(id, :failed)
-    Storage.store(%State{state | status: :failed})
-    {:noreply, %State{state | status: :failed}}
+
+    {:noreply, state, {:continue, :deployment_failed}}
   end
 
   @doc false
@@ -144,29 +176,52 @@ defmodule Proxy.Chain.Worker do
   end
 
   @doc false
-  def handle_cast(:stop, %State{id: id} = state) do
+  def handle_call(:node, _from, %State{node: node} = state),
+    do: {:reply, node, state}
+
+  def handle_call({:take_snapshot, description}, _from, %State{id: id, node: node} = state) do
+    resp = ExChain.take_snapshot(node, id, description)
+    {:reply, resp, state}
+  end
+
+  def handle_call({:revert_snapshot, snapshot_id}, _from, %State{id: id, node: node} = state) do
+    with {:load, snapshot} when is_map(snapshot) <-
+           {:load, ExChain.load_snapshot(node, snapshot_id)},
+         :ok <- ExChain.revert_snapshot(node, id, snapshot) do
+      Logger.debug("#{id}: Reverting snapshot #{snapshot_id}")
+      {:reply, :ok, state}
+    else
+      {:load, err} ->
+        Logger.error("Failed to load snapshot details #{inspect(err)}")
+        {:reply, {:error, "failed to load snapshot details #{snapshot_id}"}, state}
+
+      _ ->
+        Logger.error("#{id}: failed to revert snapshot #{snapshot_id}")
+        {:reply, {:error, "something wrong on reverting snapshot #{snapshot_id}"}, state}
+    end
+  end
+
+  @doc false
+  def handle_cast(:stop, %State{id: id, node: node} = state) do
     Logger.debug("#{id} Terminating chain")
-    ExChain.stop(id)
+    ExChain.stop(node, id)
     {:noreply, state}
   end
 
   @doc false
   def handle_cast({:deployment_finished, request_id, data}, state) do
     new_state = ChainHelper.handle_deployment_finished(state, request_id, data)
-    Storage.store(new_state)
     {:noreply, new_state}
   end
 
   @doc false
   def handle_cast(
         {:deployment_failed, request_id, msg},
-        %State{id: id, status: :deploying} = state
+        %State{id: id, status: :initializing} = state
       ) do
     Logger.debug("#{id}: Handling deployment #{request_id} finish #{inspect(msg)}")
-    State.notify(state, :deploy_failed, msg)
-    State.notify(state, :failed)
-    Storage.store(%State{state | status: :failed})
-    {:noreply, %State{state | status: :failed}}
+
+    {:noreply, state, {:continue, :deployment_failed}}
   end
 
   @doc """

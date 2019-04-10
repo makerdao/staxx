@@ -30,33 +30,39 @@ defmodule Proxy.Oracles.Api do
   """
   @spec new_relayer(binary, binary, [{binary, binary}]) :: {:ok, term()} | {:error, term()}
   def new_relayer(rpc_url, from, pairs \\ []) do
-    req =
-      %{
-        "ethereum" => %{
-          "network" => rpc_url,
-          "infuraKey" => "7e7589fbfb8e4237b6ad945825a1d791",
-          "from" => from,
-          "keystore" => "/home/nkunkel/keys/",
-          "password" => "/home/nkunkel/keys/unlock-key"
-        },
-        "pairs" => gen_pairs(%{}, pairs),
-        "options" => %{
-          "interval" => 60,
-          "msgSpread" => 0.5,
-          "msgExpiration" => 180,
-          "oracleSpread" => 1,
-          "oracleExpiration" => 3600,
-          "verbose" => true,
-          "relayer" => true
-        }
-      }
-      |> Jason.encode!()
+    case send?() do
+      false ->
+        {:ok, %{}}
 
-    Logger.debug("Calling oracles service with data: #{req}")
+      true ->
+        req =
+          %{
+            "ethereum" => %{
+              "network" => rpc_url,
+              "infuraKey" => "7e7589fbfb8e4237b6ad945825a1d791",
+              "from" => from,
+              "keystore" => "/home/nkunkel/keys/",
+              "password" => "/home/nkunkel/keys/unlock-key"
+            },
+            "pairs" => gen_pairs(%{}, pairs),
+            "options" => %{
+              "interval" => 60,
+              "msgSpread" => 0.5,
+              "msgExpiration" => 180,
+              "oracleSpread" => 1,
+              "oracleExpiration" => 3600,
+              "verbose" => true,
+              "relayer" => true
+            }
+          }
+          |> Jason.encode!()
 
-    "#{url()}v1/relayer/new/"
-    |> post(req, [{"Content-Type", "application/json"}], recv_timeout: @timeout)
-    |> fetch_result()
+        Logger.debug("Calling oracles service with data: #{req}")
+
+        "#{url()}v1/relayer/new/"
+        |> post(req, [{"Content-Type", "application/json"}], recv_timeout: @timeout)
+        |> fetch_result()
+    end
   end
 
   @doc """
@@ -64,17 +70,23 @@ defmodule Proxy.Oracles.Api do
   """
   @spec remove_relayer() :: {:ok, term()} | {:error, term()}
   def remove_relayer() do
-    "#{url()}v1/relayer/kill/"
-    |> post("", [{"Content-Type", "application/json"}], recv_timeout: @timeout)
-    |> fetch_result()
+    case send?() do
+      false ->
+        {:ok, %{}}
+
+      true ->
+        "#{url()}v1/relayer/kill/"
+        |> post("", [{"Content-Type", "application/json"}], recv_timeout: @timeout)
+        |> fetch_result()
+    end
   end
 
   @doc """
   Send notification to oracles service about adding new relayer.
   If no required deployment information exist - error will be returned
   """
-  @spec notify_new_chain(Proxy.Chain.Worker.State.t()) :: {:ok, term()} | {:error, term()}
-  def notify_new_chain(%Proxy.Chain.Worker.State{
+  @spec notify_new_chain(Proxy.Chain.Storage.Record.t()) :: {:ok, term()} | {:error, term()}
+  def notify_new_chain(%Proxy.Chain.Storage.Record{
         deploy_step: %{"ilks" => ilks, "omniaFromAddr" => from},
         chain_details: %{rpc_url: url},
         deploy_data: data
@@ -114,4 +126,7 @@ defmodule Proxy.Oracles.Api do
     Logger.warn("Oracles error: #{inspect(res)}")
     {:error, "Wrong response form oracles service"}
   end
+
+  # Check if oracles service should be called
+  defp send?(), do: Application.get_env(:proxy, :call_oracles, false)
 end

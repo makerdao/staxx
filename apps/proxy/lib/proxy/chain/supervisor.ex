@@ -6,6 +6,7 @@ defmodule Proxy.Chain.Supervisor do
   # Automatically defines child_spec/1
   use DynamicSupervisor
 
+  @doc false
   def start_link(arg) do
     DynamicSupervisor.start_link(__MODULE__, arg, name: __MODULE__)
   end

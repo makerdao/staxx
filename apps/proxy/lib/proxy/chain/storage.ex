@@ -6,6 +6,8 @@ defmodule Proxy.Chain.Storage do
   use GenServer
   require Logger
 
+  alias Proxy.Chain.Storage.Record
+
   @table "chain_workers"
 
   def start_link(_), do: GenServer.start_link(__MODULE__, nil, name: __MODULE__)
@@ -30,9 +32,9 @@ defmodule Proxy.Chain.Storage do
   @doc """
   Store new worker state in DETS
   """
-  @spec store(Proxy.Chain.Worker.State.t()) :: :ok | {:error, term()}
-  def store(%{id: id} = worker_state),
-    do: :dets.insert(table(), {id, worker_state})
+  @spec store(Proxy.Chain.Storage.Record.t()) :: :ok | {:error, term()}
+  def store(%Record{id: id} = record),
+    do: :dets.insert(table(), {id, record})
 
   @doc """
   Load all existing worker details
@@ -41,20 +43,22 @@ defmodule Proxy.Chain.Storage do
   def all() do
     table()
     |> :dets.match({:_, :"$1"})
-    |> Enum.map(fn [worker] -> worker end)
+    |> List.flatten()
   end
 
   @doc """
   Get chain worker details by it's id
   """
-  @spec get(binary) :: nil | map()
-  def get(id) do
+  @spec get(binary | %{id: binary}) :: nil | map()
+  def get(%{id: id}), do: get(id)
+
+  def get(id) when is_binary(id) do
     case :dets.lookup(table(), id) do
       [] ->
         nil
 
-      [{^id, worker}] ->
-        worker
+      [{^id, details}] ->
+        details
     end
   end
 

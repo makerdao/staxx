@@ -5,7 +5,6 @@ defmodule WebApiWeb.ChainChannel do
 
   require Logger
 
-  alias Proxy.ExChain
   alias Proxy.Chain.Worker
 
   use Phoenix.Channel, log_join: false, log_handle_in: :debug
@@ -34,7 +33,7 @@ defmodule WebApiWeb.ChainChannel do
         %{"description" => description},
         %{topic: "chain:" <> id} = socket
       ) do
-    case ExChain.take_snapshot(id, description) do
+    case Proxy.take_snapshot(id, description) do
       :ok ->
         {:reply, {:ok, %{status: "ok"}}, socket}
 
@@ -49,10 +48,13 @@ defmodule WebApiWeb.ChainChannel do
         %{"snapshot" => snapshot_id},
         %{topic: "chain:" <> id} = socket
       ) do
-    with snapshot when is_map(snapshot) <- ExChain.load_snapshot(snapshot_id),
-         :ok <- ExChain.revert_snapshot(id, snapshot) do
-      {:reply, {:ok, %{status: "ok"}}, socket}
-    else
+    case Proxy.revert_snapshot(id, snapshot_id) do
+      :ok ->
+        {:reply, {:ok, %{status: "ok"}}, socket}
+
+      {:error, err} ->
+        {:reply, {:error, %{message: err}}, socket}
+
       err ->
         Logger.error("#{id}: Failed to revert snapshot: #{inspect(err)}")
         {:reply, {:error, %{message: "failed to revert snapshot"}}, socket}

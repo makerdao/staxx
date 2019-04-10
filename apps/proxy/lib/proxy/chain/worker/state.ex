@@ -1,41 +1,79 @@
 defmodule Proxy.Chain.Worker.State do
   @moduledoc """
   Default Worker state
+
+  Worker has it's own statuses a bit different to ExTestchain
+
+  When new worker is spawning it's status is set to `:initializing` then flow is this:
+  `:initializing` -> `:ready` -> `:terminating` -> `:terminated`
+  So chain is fully ready only when status is set to `:ready`
+  In case of failure status will be set to `:failed`
   """
+
+  alias Proxy.Chain.Storage.Record
+  alias Proxy.Chain.Worker.Notification
+
+  @type status :: :initializing | :ready | :terminating | :terminated | :locked | :failed
 
   @type t :: %__MODULE__{
           id: binary,
+          node: node(),
           start: :new | :existing,
-          status: Proxy.Chain.Worker.status(),
-          config: map(),
+          status: status,
           notify_pid: pid() | nil,
           chain_status: atom(),
-          chain_details: map(),
-          deploy_data: map(),
-          deploy_step: 0..9,
-          deploy_hash: binary
+          deploy_tag: nil | binary,
+          deploy_step_id: 0..9
         }
 
   defstruct id: nil,
+            node: nil,
             start: :new,
-            status: :starting,
-            config: nil,
+            status: :initializing,
             notify_pid: nil,
             chain_status: :none,
-            chain_details: nil,
-            deploy_data: nil,
-            deploy_step: nil,
-            deploy_hash: nil
+            deploy_tag: nil,
+            deploy_step_id: 0
+
+  @doc """
+  Update node for state and return updated state
+  """
+  @spec node(t(), node()) :: t()
+  def node(%__MODULE__{} = state, node), do: %__MODULE__{state | node: node}
+
+  @spec status(t(), status()) :: t()
+  def status(%__MODULE__{} = state, status),
+    do: %__MODULE__{state | status: status}
+
+  @spec chain_status(t(), atom) :: t()
+  def chain_status(%__MODULE__{} = state, chain_status),
+    do: %__MODULE__{state | chain_status: chain_status}
 
   @doc """
   Send notification about chain to `notify_pid`.
   If no `notify_pid` config exist into state - `:ok` will be returned
   """
-  @spec notify(Proxy.Chain.Worker.State.t(), binary | atom, term()) :: :ok
-  def notify(state, event, data \\ %{})
+  @spec notify(t(), binary | atom, term()) :: t()
+  def notify(%__MODULE__{id: id, notify_pid: pid} = state, event, data \\ %{}) do
+    notification = %Notification{id: id, event: event, data: data}
 
-  def notify(%__MODULE__{notify_pid: nil}, _, _), do: :ok
+    if pid do
+      send(pid, notification)
+    end
 
-  def notify(%__MODULE__{id: id, notify_pid: pid}, event, data),
-    do: send(pid, %{id: id, event: event, data: data})
+    Notification.send_to_event_bus(notification)
+    state
+  end
+
+  @doc """
+  Store state into DB. Will call Storage to store worker
+  """
+  @spec store(t()) :: t()
+  def store(%__MODULE__{} = state) do
+    state
+    |> Record.from_state()
+    |> Record.store()
+
+    state
+  end
 end

@@ -30,10 +30,17 @@ config :proxy, deployment_steps_fetch_timeout: 30_000
 config :proxy, dets_db_path: "/tmp/chains"
 
 # deployment timeout
-config :proxy, deployment_timeout: 600_000
+config :proxy, deployment_timeout: 1_800_000
+config :proxy, action_timeout: 600_000
 
 # Url where to send new realayer registration after deployment scripts
 config :proxy, oracles_service_url: "http://128.199.52.29:8080/"
+
+# Is oracles service should be called
+config :proxy, call_oracles: false
+
+# Nats.io configuration
+config :proxy, nats: %{host: "127.0.0.1", port: 4222}
 
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment
