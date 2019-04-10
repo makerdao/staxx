@@ -57,6 +57,32 @@ defmodule Proxy.Deployment.Deployer do
     |> Task.await(@timeout)
   end
 
+  # TODO: May be use that
+  defp run_deploy(id, step_id, rpc_url, coinbase) do
+    request_id = BaseApi.random_id()
+    Logger.debug("#{id}: Starting deployment process with id: #{request_id}")
+
+    env = %{
+      "ETH_RPC_URL" => rpc_url,
+      "ETH_FROM" => coinbase,
+      "ETH_RPC_ACCOUNTS" => "yes",
+      "SETH_STATUS" => "yes",
+      # "ETH_GAS" => Map.get(details, :gas_limit),
+      "ETH_GAS" => "6000000"
+    }
+
+    TaskSupervisor
+    |> Task.Supervisor.async(fn -> 
+      {:ok, _} = Registry.register(Proxy.Deployment.Registry, request_id, [])
+      {:ok, _} = BaseApi.run(request_id, step_id, env)
+
+      # receive do
+        # {:deployment, data} ->
+      # end
+    end)
+    |> Task.await(@timeout)
+  end
+
   defp run_deployment(id, step_id, rpc_url, coinbase) do
     request_id = BaseApi.random_id()
     Logger.debug("#{id}: Starting deployment process with id: #{request_id}")
