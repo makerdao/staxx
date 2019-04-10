@@ -96,7 +96,7 @@ defmodule Proxy.Chain.Worker do
   def handle_continue(:deployment_failed, state) do
     new_state =
       state
-      |> State.notify(:deployment_failed, "Timeout waiting deployment")
+      |> State.notify(:deployment_failed, "Deployment process failed.")
       |> State.notify(:failed)
       |> State.status(:failed)
       |> State.store()

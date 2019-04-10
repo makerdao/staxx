@@ -54,6 +54,8 @@ services:
       TCD_GATEWAY: host=testchain-backendgateway.local
     # volumes:
     #   - ~/.ssh:/root/.ssh
+    depends_on:
+      - nats
     networks:
      - net1
   testchain-dockerservice:
@@ -61,6 +63,8 @@ services:
     container_name: testchain-dockerservice.local
     expose:
       - "9100-9105"
+    depends_on:
+      - nats
     environment:
       NATS_HOST: nats.local
       NATS_PORT: 4222
@@ -75,6 +79,8 @@ services:
       - "3000"
     ports:
       - "4001:3000"
+    depends_on:
+      - testchain-backendgateway
     environment:
       TESTCHAIN_SERVICE_URL: http://localhost
       TESTCHAIN_SERVICE_PORT: 4000
