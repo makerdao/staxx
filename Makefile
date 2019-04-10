@@ -30,6 +30,22 @@ build: ## Build elixir application with testchain and WS API
     -t $(DOCKER_ID_USER)/$(APP_NAME):$(TAG) .
 .PHONY: build
 
+upgrade-dev:
+	@echo "====== Stopping and removing running containers"
+	@docker-compose -f docker-compose-dev.yml rm -s -f
+	@echo "====== Removing local images"
+	@docker rmi -f makerdao/testchain-deployment:dev \ 
+								 makerdao/ex_testchain:dev \
+								 makerdao/testchain_dockerservice:dev \
+								 makerdao/testchain_backendgateway:dev \
+								 makerdao/testchain-dashboard
+.PHONY: upgrade-dev
+
+rm-dev:
+	@echo "====== Stopping and removing running containers"
+	@docker-compose -f docker-compose-dev.yml rm -s -f
+.PHONY: rm-dev
+
 logs-dev:
 	@docker-compose logs -f ex_testchain testchain-backendgateway testchain-deployment
 .PHONY: logs-dev

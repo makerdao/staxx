@@ -48,6 +48,16 @@ installed on your machine.
 
 Commands:
 
- - `make run-dev` - Will start QA portal in docker images and will set `localhost:3000` - for UI and `localhost:4000` - for WS/Web API
+ - `make run-dev` - Will start QA portal in docker images and will set `localhost:4001` - for UI and `localhost:4000` - for WS/Web API
  - `make logs-dev` - Will spam you with logs from system
  - `make stop-dev` - Will stop all services
+ - `make rm-dev` - Will remove local containers (NOT IMAGES, ONLY CONTAINERS !)
+ - `make upgrade-dev` - Will stopp all running containers and remove them as well as images
+
+## Setting up stacks
+
+For now we support only `vdb` stack available
+[Github VDB repo](https://github.com/makerdao/testchain-stack-vdb)
+
+To set it up locally you have to place all files from [stack_config](https://github.com/makerdao/testchain-stack-vdb/tree/master/stack_config) to `/tmp/stacks/vdb` (if you didn't change anything)
+
