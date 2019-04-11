@@ -50,9 +50,44 @@ Commands:
 
  - `make run-dev` - Will start QA portal in docker images and will set `localhost:4001` - for UI and `localhost:4000` - for WS/Web API
  - `make logs-dev` - Will spam you with logs from system
+ - `make logs-deploy` - Will show list of logs for deployment service
  - `make stop-dev` - Will stop all services
  - `make rm-dev` - Will remove local containers (NOT IMAGES, ONLY CONTAINERS !)
  - `make upgrade-dev` - Will stopp all running containers and remove them as well as images
+
+**NOTE**:
+Deployment service have to download latest sources of deployment contracts and update `dapp` dependencies
+So It will take pretty long (up to 15 minutes).
+
+To monitor this process you could use command `make logs-deploy`
+
+```bash
+master ✓ make logs-deploy
+Attaching to testchain-deployment.local
+testchain-deployment.local  | time="2019-04-11T07:56:14Z" level=info msg="Config loaded" app=TCD
+testchain-deployment.local  | time="2019-04-11T07:56:14Z" level=debug msg="Config: &{Server:HTTP Host:testchain-deployment Port:5001 Deploy:{DeploymentDirPath:/deployment DeploymentSubPath:./ ResultSubPath:out/addresses.json} Gateway:{Host:testchain-backendgateway.local Port:4000 ClientTimeoutInSecond:5 RegisterPeriodInSec:10} Github:{RepoOwner:makerdao RepoName:testchain-dss-deployment-scripts DefaultCheckoutTarget:tags/qa-deploy} NATS:{ErrorTopic:error GroupName:testchain-deployment TopicPrefix:Prefix Servers:nats://nats.local:4222 MaxReconnect:3 ReconnectWaitSec:1} LogLevel:debug}" app=TCD
+testchain-deployment.local  | time="2019-04-11T07:56:14Z" level=info msg="Start service with host: testchain-deployment, port: 5001" app=TCD
+testchain-deployment.local  | time="2019-04-11T07:56:14Z" level=info msg="First update src started, it takes a few minutes" app=TCD
+```
+
+This logs mean service still downloading...
+
+After it will be ready you will see this in logs:
+
+```bash
+testchain-deployment.local  | time="2019-04-11T08:07:28Z" level=info msg="First update src finished" app=TCD
+testchain-deployment.local  | time="2019-04-11T08:07:28Z" level=info msg="Used HTTP server" app=TCD
+testchain-deployment.local  | time="2019-04-11T08:07:28Z" level=info msg="HTTP method added: GetInfo" app=TCD component=httpServer
+testchain-deployment.local  | time="2019-04-11T08:07:28Z" level=info msg="HTTP method added: Run" app=TCD component=httpServer
+testchain-deployment.local  | time="2019-04-11T08:07:28Z" level=info msg="HTTP method added: UpdateSource" app=TCD component=httpServer
+testchain-deployment.local  | time="2019-04-11T08:07:28Z" level=info msg="HTTP method added: GetResult" app=TCD component=httpServer
+testchain-deployment.local  | time="2019-04-11T08:07:28Z" level=info msg="HTTP method added: GetCommitList" app=TCD component=httpServer
+testchain-deployment.local  | time="2019-04-11T08:07:28Z" level=info msg="HTTP method added: Checkout" app=TCD component=httpServer
+testchain-deployment.local  | time="2019-04-11T08:07:38Z" level=debug msg="Request data: {\"id\":\"\",\"method\":\"RegisterDeployment\",\"data\":{\"host\":\"testchain-deployment\",\"port\":5001}}" app=TCD component=gateway_client
+testchain-deployment.local  | time="2019-04-11T08:07:38Z" level=debug msg="Request data" app=TCD component=httpServer data="{}" method=GetInfo
+```
+
+That will mean your service is ready to work :sunglasses:
 
 ## Setting up stacks
 

@@ -46,6 +46,10 @@ rm-dev:
 	@docker-compose -f docker-compose-dev.yml rm -s -f
 .PHONY: rm-dev
 
+logs-deploy:
+	@docker-compose logs -f testchain-deployment
+.PHONY: logs-deploy
+
 logs-dev:
 	@docker-compose logs -f ex_testchain testchain-backendgateway testchain-deployment
 .PHONY: logs-dev
