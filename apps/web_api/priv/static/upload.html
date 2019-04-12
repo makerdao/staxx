@@ -1,0 +1,25 @@
+<html>
+    <head>
+    </head>
+    <body>
+      <form action="/snapshots" method="post" enctype="multipart/form-data">
+        <p>
+          <label>Chain type:</label>
+          <select name="snapshot[type]">
+            <option value="ganache">Ganache</option>
+            <option value="geth">Geth</option>
+            <option value="geth_vdb">Geth VDB</option>
+          </select>
+        </p>
+        <p>
+          <label>Snapshot description:</label>
+          <input type="text" name="snapshot[description]"/>
+        </p>
+        <div class="form-group">
+          <label>Snapshot file</label>
+          <input class="form-control" id="snapshot_file" name="snapshot[file]" type="file" accept=".tgz">
+        </div>
+        <input type="submit" value="Upload snapshot" name="upload">
+      </form>
+    </body>
+</html>

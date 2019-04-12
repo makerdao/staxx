@@ -6,12 +6,43 @@ defmodule WebApiWeb.ChainController do
   alias WebApiWeb.SuccessView
   # alias Chain.SnapshotManager
 
+  # content type of snapshot that will be uploaded
+  @filetype "application/gzip"
+
   # Get version for binaries and chain
   def version(conn, _) do
     with version when is_binary(version) <- Proxy.version() do
       conn
       |> text(version)
     end
+  end
+
+  def upload(conn, %{
+        "snapshot" => %{"file" => file, "description" => description, "type" => type}
+      }) do
+    id =
+      file
+      |> Map.get(:filename)
+      |> String.replace(".tgz", "")
+
+    with @filetype <- Map.get(file, :content_type),
+         true <- "" != description,
+         true <- File.exists?(Map.get(file, :path)),
+         :ok <- copy_snapshot(file),
+         chain_type <- String.to_atom(type),
+         {:ok, details} <- Proxy.upload_snapshot(id, chain_type, description) do
+      conn
+      |> put_status(200)
+      |> put_view(SuccessView)
+      |> render("200.json", data: details)
+    end
+  end
+
+  def upload(conn, _params) do
+    conn
+    |> put_status(400)
+    |> put_view(ErrorView)
+    |> render("400.json", message: "Wrong details passed")
   end
 
   def chain_list(conn, _) do
@@ -36,7 +67,7 @@ defmodule WebApiWeb.ChainController do
     |> render("200.json", data: list)
   end
 
-  # Load snapshot detailt and download file
+  # Load snapshot details and download file
   def download_snapshot(conn, %{"id" => id}) do
     with %{path: path} <- Proxy.get_snapshot(id),
          true <- File.exists?(path) do
@@ -48,6 +79,15 @@ defmodule WebApiWeb.ChainController do
         |> put_status(404)
         |> put_view(WebApiWeb.ErrorView)
         |> render("404.json")
+    end
+  end
+
+  def remove_snapshot(conn, %{"id" => id}) do
+    with :ok <- Proxy.remove_snapshot(id) do
+      conn
+      |> put_status(200)
+      |> put_view(SuccessView)
+      |> render("200.json", data: [])
     end
   end
 
@@ -81,5 +121,21 @@ defmodule WebApiWeb.ChainController do
 
     conn
     |> json(%{status: 0, details: %{}})
+  end
+
+  # Generate path where to store file
+  defp copy_snapshot(%Plug.Upload{path: path, filename: name}) do
+    destination =
+      :proxy
+      |> Application.get_env(:snapshot_path)
+      |> Path.join(name)
+
+    case File.exists?(destination) do
+      true ->
+        :ok
+
+      false ->
+        File.cp(path, destination)
+    end
   end
 end

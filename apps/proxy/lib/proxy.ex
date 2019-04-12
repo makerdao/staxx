@@ -90,10 +90,29 @@ defmodule Proxy do
   @doc """
   Load snapshot details
   """
-  @spec get_snapshot(binary) :: map() | {:error, term()}
+  @spec get_snapshot(binary) :: map() | ExChain.ex_response()
   def get_snapshot(snapshot_id) do
     Proxy.NodeManager.node()
     |> ExChain.get_snapshot(snapshot_id)
+  end
+
+  @doc """
+  Binding to remove snapshot from ex_testchain
+  """
+  @spec remove_snapshot(binary) :: :ok | ExChain.ex_response()
+  def remove_snapshot(snapshot_id) do
+    Proxy.NodeManager.node()
+    |> ExChain.remove_snapshot(snapshot_id)
+  end
+
+  @doc """
+  Alias for uploading snapshot to storage
+  File has to be already placed to snapshot store
+  """
+  @spec upload_snapshot(binary, Chain.evm_type(), binary) :: {:ok, term} | ExChain.ex_response()
+  def upload_snapshot(snapshot_id, chain_type, description \\ "") do
+    Proxy.NodeManager.node()
+    |> ExChain.upload_snapshot(snapshot_id, chain_type, description)
   end
 
   @doc """

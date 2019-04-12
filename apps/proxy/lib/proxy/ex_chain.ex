@@ -49,6 +49,20 @@ defmodule Proxy.ExChain do
     do: call(node, Chain.SnapshotManager, :by_id, [snapshot_id])
 
   @doc """
+  Upload new snapshot to snapshot store
+  """
+  @spec upload_snapshot(node, binary, Chain.evm_type(), binary) :: {:ok, term} | ex_response()
+  def upload_snapshot(node, snapshot_id, chain_type, description \\ ""),
+    do: call(node, Chain.SnapshotManager, :upload, [snapshot_id, chain_type, description])
+
+  @doc """
+  Remove snapshot by it's id from storage and delete file
+  """
+  @spec remove_snapshot(node(), binary) :: :ok | ex_response()
+  def remove_snapshot(node, snapshot_id),
+    do: call(node, Chain.SnapshotManager, :remove, [snapshot_id])
+
+  @doc """
   Start existing chain
   """
   @spec start_existing(node(), Chain.evm_id(), pid | module) :: Proxy.ExChain.ex_response()
@@ -111,6 +125,21 @@ defmodule Proxy.ExChain do
   @spec load_snapshot(node(), binary()) :: Proxy.ExChain.ex_response()
   def load_snapshot(node, snapshot_id),
     do: call(node, Chain.SnapshotManager, :by_id, [snapshot_id])
+
+  @doc """
+  Write external data to chain
+  Note: this data will be included into snapshot
+  """
+  @spec write_external_data(node(), Chain.evm_id(), term) :: :ok | {:error, term}
+  def write_external_data(node, id, data),
+    do: call(node, Chain, :write_external_data, [id, data])
+
+  @doc """
+  Read external data that was stored by `ExChain.write_external_data/3`
+  """
+  @spec read_external_data(node(), Chain.evm_id()) :: {:ok, term} | {:error, term}
+  def read_external_data(node, id),
+    do: call(node, Chain, :read_external_data, [id])
 
   @doc """
   Versions for chains

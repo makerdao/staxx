@@ -61,6 +61,23 @@ defmodule Proxy.Chain.Storage.Record do
   def deploy_data(%__MODULE__{} = record, data),
     do: %__MODULE__{record | deploy_data: data}
 
+  @spec merge_deploy_details(t(), t()) :: t()
+  def merge_deploy_details(%__MODULE__{} = record, %__MODULE__{
+        deploy_data: deploy_data,
+        deploy_step: deploy_step,
+        deploy_hash: deploy_hash
+      }) do
+    %__MODULE__{
+      record
+      | deploy_data: deploy_data,
+        deploy_step: deploy_step,
+        deploy_hash: deploy_hash
+    }
+  end
+
+  def merge_deploy_details(%__MODULE__{} = rec, _),
+    do: rec
+
   @spec store(t()) :: t()
   def store(%__MODULE__{} = rec) do
     Proxy.Chain.Storage.store(rec)

@@ -5,6 +5,7 @@ defmodule Proxy.Chain.Worker.ChainHelper do
 
   require Logger
 
+  alias Proxy.ExChain
   alias Proxy.Chain.Worker.State
   alias Proxy.Deployment.StepsFetcher
   alias Proxy.Chain.Storage.Record
@@ -24,7 +25,6 @@ defmodule Proxy.Chain.Worker.ChainHelper do
   def handle_evm_started(%State{id: id, start: :existing} = state, details) do
     Logger.debug("#{id}: Existing chain started successfully, have no deployment to perform")
 
-    # record =
     state
     |> Record.from_state()
     |> Record.status(:ready)
@@ -50,6 +50,9 @@ defmodule Proxy.Chain.Worker.ChainHelper do
     |> Record.from_state()
     |> Record.status(:ready)
     |> Record.chain_details(details)
+    # We have to load deploy data only here. 
+    # Because in other cases it will be filled by deploy afterwards
+    |> read_deploy_data_to_record(state)
     |> Record.store()
 
     # Combining new state
@@ -129,8 +132,10 @@ defmodule Proxy.Chain.Worker.ChainHelper do
       |> Record.deploy_data(data)
       |> Record.store()
 
-    # Send relayer notification
-    # spawn(OraclesApi, :notify_new_chain, [record])
+    Logger.debug("#{id}: Writing deployment details to external chain data")
+    # Write deployment details to chain as external data.
+    # It will be read on starting chain from snapshot
+    write_deploy_data(state, record)
 
     state
     |> State.status(:ready)
@@ -171,4 +176,52 @@ defmodule Proxy.Chain.Worker.ChainHelper do
 
   def run_deployment(_state, _step_id, _details),
     do: {:error, "No chain details exist"}
+
+  @doc """
+  Write deployment data as external chain data
+  """
+  @spec write_deploy_data(State.t(), map) :: :ok | {:error, term}
+  def write_deploy_data(%State{node: nil}, _data), do: :ok
+
+  def write_deploy_data(%State{node: node, id: id}, %Record{} = data),
+    do: ExChain.write_external_data(node, id, {:deploy, %Record{data | id: nil, status: nil}})
+
+  def write_deploy_data(_, _), do: {:error, "wrong deployment details"}
+
+  @doc """
+  Load deployment data from chain
+  """
+  @spec read_deploy_data(State.t()) ::
+          {:ok, nil}
+          | {:ok, Record.t()}
+          | {:error, term}
+  def read_deploy_data(%State{id: id, node: node}) do
+    case ExChain.read_external_data(node, id) do
+      {:ok, nil} ->
+        {:ok, nil}
+
+      {:ok, {:deploy, data}} ->
+        {:ok, data}
+
+      {:error, err} ->
+        {:error, err}
+
+      _ ->
+        {:error, "Wrong details loaded"}
+    end
+  end
+
+  # Read deploy data and merge it into given record details
+  defp read_deploy_data_to_record(%Record{} = record, %State{id: id} = state) do
+    case read_deploy_data(state) do
+      {:ok, %Record{} = loaded} ->
+        Logger.debug("#{id}: We have loaded deploy details from storage. #{inspect(loaded)}")
+
+        record
+        |> Record.merge_deploy_details(loaded)
+
+      _ ->
+        record
+    end
+  end
 end

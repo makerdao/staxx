@@ -29,6 +29,9 @@ config :proxy, deployment_steps_fetch_timeout: 30_000
 # DB path where all list of chain workers will be stored
 config :proxy, dets_db_path: "/tmp/chains"
 
+# Place where to upload snapshots
+config :proxy, snapshot_path: "/tmp/snapshots"
+
 # deployment timeout
 config :proxy, deployment_timeout: 1_800_000
 config :proxy, action_timeout: 600_000

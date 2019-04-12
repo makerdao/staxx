@@ -14,8 +14,10 @@ defmodule WebApiWeb.Router do
     pipe_through :api
     post "/rpc", InternalController, :rpc
     get "/chains", ChainController, :chain_list
+    post "/snapshots", ChainController, :upload
     get "/snapshots/:chain", ChainController, :snapshot_list
     get "/snapshot/:id", ChainController, :download_snapshot
+    delete "/snapshot/:id", ChainController, :remove_snapshot
   end
 
   scope "/deployment", WebApiWeb do
