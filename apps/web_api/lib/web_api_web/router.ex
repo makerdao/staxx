@@ -25,6 +25,7 @@ defmodule WebApiWeb.Router do
     get "/steps", DeploymentController, :steps
     # This is tmp route for testing only !
     post "/steps/reload", DeploymentController, :reload
+    get "/commits", DeploymentController, :commit_list
   end
 
   scope "/chain", WebApiWeb do

@@ -2,6 +2,16 @@
 
 Web API for working with QA Dashboard backend
 
+ - `GET /chains` - List of available chains
+ - `GET /snapshots/:chain_type` - List of snapshots for given chain type (`ganache`, `geth`)
+ - `GET /snapshot/:id` - Get snapshot details
+ - `DELETE /snapshot/:id` - Delete snapshot by it's ID
+ - `GET /deployment/steps` - Load list of deployment steps
+ - `GET /deployment/commits` - List of available commits
+ - `GET /chain/:id` - Chain details by chain ID
+ - `DELETE /chain/:id` - Remove all chain data from system (only for stopped chain !)
+ - `GET /chain/stop/:id` - Stop chain by ID
+
 ## STACKS API
 
 ### Stacks configuration

@@ -4,6 +4,7 @@ defmodule WebApiWeb.DeploymentController do
   action_fallback WebApiWeb.FallbackController
 
   alias Proxy.Deployment.StepsFetcher
+  alias Proxy.Deployment.BaseApi
   alias WebApiWeb.SuccessView
 
   def steps(conn, _) do
@@ -29,5 +30,14 @@ defmodule WebApiWeb.DeploymentController do
     |> put_status(200)
     |> put_view(SuccessView)
     |> render("200.json", data: %{})
+  end
+
+  def commit_list(conn, _) do
+    with {:ok, list} <- BaseApi.get_commit_list() do
+      conn
+      |> put_status(200)
+      |> put_view(SuccessView)
+      |> render("200.json", data: list)
+    end
   end
 end
