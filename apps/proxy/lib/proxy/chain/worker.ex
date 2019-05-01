@@ -219,7 +219,7 @@ defmodule Proxy.Chain.Worker do
         {:deployment_failed, request_id, msg},
         %State{id: id, status: :initializing} = state
       ) do
-    Logger.debug("#{id}: Handling deployment #{request_id} finish #{inspect(msg)}")
+    Logger.debug("#{id}: Handling deployment failure #{request_id}: #{inspect(msg)}")
 
     {:noreply, state, {:continue, :deployment_failed}}
   end
