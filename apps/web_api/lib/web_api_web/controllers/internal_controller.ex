@@ -23,6 +23,14 @@ defmodule WebApiWeb.InternalController do
   end
 
   @doc false
+  def rpc(conn, %{"id" => id, "method" => "UpdateResult", "data" => data}) do
+    Logger.info("Request id #{id}, method: UpdateResult data #{inspect(data)}")
+
+    conn
+    |> json(%{type: "ok"})
+  end
+
+  @doc false
   def rpc(conn, %{"method" => "RunResult", "data" => data}) do
     Logger.info("Request id #{Map.get(data, "id")}, method: RunResult data #{inspect(data)}")
     process_deployment_result(data)

@@ -20,6 +20,11 @@ deps: ## Load all required deps for project
 	@mix do deps.get, deps.compile
 .PHONY: deps
 
+docker-push:
+	@echo "Pushing docker image"
+	@docker push $(DOCKER_ID_USER)/$(APP_NAME):$(TAG)
+.PHONY: docker-push
+
 build: ## Build elixir application with testchain and WS API
 	@docker build \
 		--build-arg ALPINE_VERSION=$(ALPINE_VERSION) \
@@ -34,7 +39,7 @@ upgrade-dev:
 	@echo "====== Stopping and removing running containers"
 	@docker-compose -f docker-compose-dev.yml rm -s -f
 	@echo "====== Removing local images"
-	@docker rmi -f makerdao/testchain-deployment:dev \ 
+	@docker rmi -f makerdao/testchain-deployment:dev \
 								 makerdao/ex_testchain:dev \
 								 makerdao/testchain_dockerservice:dev \
 								 makerdao/testchain_backendgateway:dev \
