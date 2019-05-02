@@ -72,12 +72,12 @@ defmodule Proxy.Deployment.Deployer do
     }
 
     TaskSupervisor
-    |> Task.Supervisor.async(fn -> 
+    |> Task.Supervisor.async(fn ->
       {:ok, _} = Registry.register(Proxy.Deployment.Registry, request_id, [])
       {:ok, _} = BaseApi.run(request_id, step_id, env)
 
       # receive do
-        # {:deployment, data} ->
+      # {:deployment, data} ->
       # end
     end)
     |> Task.await(@timeout)
