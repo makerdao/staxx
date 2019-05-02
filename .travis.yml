@@ -7,7 +7,7 @@ branches: # build all
   - /.*/
 before_install:
   - docker pull nats:linux
-  - docker run -d -p 127.0.0.1:4222:4222 nats:linux /gnatsd -DV
+  - docker run -d -p 127.0.0.1:4222:4222 nats:linux
   - docker ps -a
 # before_script:
 #   - npm install -g ganache-cli
