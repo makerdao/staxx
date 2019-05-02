@@ -5,10 +5,10 @@ branches: # build all
   only:
   - gh-pages
   - /.*/
-# before_install:
-#   - sudo add-apt-repository -y ppa:ethereum/ethereum
-#   - sudo apt-get update -q
-#   - sudo apt-get install -y ethereum
+before_install:
+  - docker pull nats:linux
+  - docker run -d -p 127.0.0.1:4222:4222 nats:linux /gnatsd -DV
+  - docker ps -a
 # before_script:
 #   - npm install -g ganache-cli
 
@@ -33,5 +33,5 @@ after_success:
     if [ "$TRAVIS_BRANCH" == "master" ]; then
       echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
       make build TAG=dev;
-      make docker-push;
+      make docker-push TAG=dev;
     fi
