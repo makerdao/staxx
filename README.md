@@ -1,4 +1,5 @@
 # TestchainBackend
+[![Build Status](https://travis-ci.org/makerdao/testchain-backendgateway.svg?branch=master)](https://travis-ci.org/makerdao/testchain-backendgateway)
 
 ## Docker compose
 
