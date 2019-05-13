@@ -26,4 +26,5 @@ defmodule Stacks.WatcherSupervisor do
   @spec start_watcher(binary) :: DynamicSupervisor.on_start_child()
   def start_watcher(id),
     do: DynamicSupervisor.start_child(__MODULE__, {Stacks.Watcher, id})
+
 end

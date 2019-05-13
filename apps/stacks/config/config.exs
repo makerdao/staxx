@@ -5,4 +5,6 @@ use Mix.Config
 config :stacks,
   ecto_repos: [Stacks.Repo]
 
+config :stacks, docker_events_topic: "Prefix.Docker.Events"
+
 import_config "#{Mix.env()}.exs"

@@ -11,6 +11,15 @@ services:
       - "4222:4222"
     networks:
      - net1
+  consul:
+    image: 'consul:latest'
+    ports:
+      - "8500:8500"
+      - "8600:8600"
+    environment:
+      CONSUL_BIND_INTERFACE: eth0
+    networks:
+      - net1
   testchain-backendgateway:
     image: makerdao/testchain_backendgateway:dev
     container_name: testchain-backendgateway.local

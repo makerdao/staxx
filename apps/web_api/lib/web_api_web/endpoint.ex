@@ -42,6 +42,7 @@ defmodule WebApiWeb.Endpoint do
 
   plug Corsica,
     origins: "*",
+    allow_headers: :all,
     log: [rejected: :error, invalid: :warn, accepted: :debug]
 
   plug WebApiWeb.Router

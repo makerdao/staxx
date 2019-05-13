@@ -113,6 +113,16 @@ defmodule Stacks do
     end
   end
 
+  @doc """
+  Sends notification to stack that own container that container has failed
+  """
+  @spec container_failed(binary) :: :ok | {:error, term}
+  def container_failed(container_id) when is_binary(container_id) do
+    Stacks.WatcherSupervisor
+    |> DynamicSupervisor.which_children()
+    |> Enum.each(&send_container_failed(&1, container_id))
+  end
+
   defp start_stack_list([], _id), do: :ok
 
   defp start_stack_list([name | rest], id) do
@@ -154,4 +164,8 @@ defmodule Stacks do
     |> Map.keys()
     |> Enum.reject(&(&1 == "testchain"))
   end
+
+  # wrapper function for checking if container relates to stack
+  defp send_container_failed({_, pid, _, _}, container_id),
+    do: Watcher.container_failed(pid, container_id)
 end

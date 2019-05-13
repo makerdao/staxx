@@ -31,6 +31,25 @@ defmodule Stacks.Watcher do
   def init(state), do: {:ok, state}
 
   @doc false
+  def handle_cast(
+        {:container_failed, container_id},
+        %State{id: id, containers: list} = state
+      ) do
+    case Enum.member?(list, container_id) do
+      false ->
+        {:noreply, state}
+
+      true ->
+        Logger.debug("Stack #{id}: Container died #{container_id}")
+        {:noreply, state}
+    end
+  end
+
+  @doc false
+  def handle_call(:get_id, _from, %State{id: id} = state),
+    do: {:reply, id, state}
+
+  @doc false
   def handle_cast(:stop, %State{id: id, containers: list} = state) do
     Logger.debug("Stack #{id}: Stopping watcher process and containers: #{inspect(list)}")
 
@@ -65,11 +84,25 @@ defmodule Stacks.Watcher do
     do: GenServer.cast(get_pid(id), {:add, container_id})
 
   @doc """
+  Send notification about caontainer failure
+  """
+  @spec container_failed(pid, binary) :: :ok
+  def container_failed(pid, container_id),
+    do: GenServer.cast(pid, {:container_failed, container_id})
+
+  @doc """
   Send stop command to watcher supervisor
   """
   @spec stop(binary) :: :ok
   def stop(id),
     do: GenServer.cast(get_pid(id), :stop)
+
+  @doc """
+  Get stack id by watcher pid
+  """
+  @spec get_id(pid | node) :: binary
+  def get_id(pid),
+    do: GenServer.call(pid, :get_id)
 
   @doc """
   Check if watcher for stack with given id is alive

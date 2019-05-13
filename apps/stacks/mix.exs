@@ -27,6 +27,7 @@ defmodule Stacks.MixProject do
   defp deps do
     [
       {:proxy, in_umbrella: true},
+      {:event_bus, in_umbrella: true},
       {:yaml_elixir, "~> 2.1"},
       {:poison, "~> 3.1"},
       {:ecto, "~> 3.0"},
