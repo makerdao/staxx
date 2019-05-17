@@ -68,7 +68,7 @@ defmodule Proxy.Deployment.Deployer do
       "ETH_RPC_ACCOUNTS" => "yes",
       "SETH_STATUS" => "yes",
       # "ETH_GAS" => Map.get(details, :gas_limit),
-      "ETH_GAS" => "6000000"
+      # "ETH_GAS" => "6000000"
     }
 
     TaskSupervisor
