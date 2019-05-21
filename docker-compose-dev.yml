@@ -93,6 +93,7 @@ services:
     environment:
       TESTCHAIN_SERVICE_URL: http://localhost
       TESTCHAIN_SERVICE_PORT: 4000
+      TESTCHAIN_SERVICE_WS_URL: ws://localhost:4000/socket
     networks:
      - net1
 
