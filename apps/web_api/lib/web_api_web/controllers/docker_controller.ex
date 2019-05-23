@@ -7,9 +7,10 @@ defmodule WebApiWeb.DockerController do
 
   alias WebApiWeb.SuccessView
   alias WebApiWeb.ErrorView
+  alias Docker.Struct.Container
 
   def start(conn, %{"stack_id" => id, "stack_name" => stack_name} = params) do
-    container = %Docker.Struct.Container{
+    container = %Container{
       image: Map.get(params, "image", ""),
       name: Map.get(params, "name", ""),
       network: Map.get(params, "network", id),
@@ -23,12 +24,12 @@ defmodule WebApiWeb.DockerController do
       conn
       |> put_status(200)
       |> put_view(SuccessView)
-      |> render("200.json", data: container)
+      |> render("200.json", data: encode(container))
     end
   end
 
   def stop(conn, %{"id" => id}) do
-    case Proxy.Chain.Docker.stop(id) do
+    case Proxy.Docker.stop(id) do
       {:ok, _id} ->
         conn
         |> put_status(200)
@@ -45,4 +46,15 @@ defmodule WebApiWeb.DockerController do
 
   defp parse_env(map) when is_map(map), do: map
   defp parse_env(_some), do: %{}
+
+  defp encode(%Container{ports: ports} = container) do
+    updated_ports =
+      ports
+      |> Enum.map(&make_port/1)
+
+    %Container{container | ports: updated_ports}
+  end
+
+  defp make_port({port, _}), do: port
+  defp make_port(port), do: port
 end

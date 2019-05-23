@@ -1,4 +1,4 @@
-defmodule Proxy.Chain.Docker do
+defmodule Proxy.Docker do
   @moduledoc """
   Docker service integration
   """

@@ -8,7 +8,6 @@ defmodule WebApiWeb.StackController do
   alias Proxy.Chain.Worker.Notification
 
   alias WebApiWeb.SuccessView
-  alias WebApiWeb.ErrorView
 
   alias WebApi.Utils
 
@@ -54,6 +53,17 @@ defmodule WebApiWeb.StackController do
       |> put_status(200)
       |> put_view(SuccessView)
       |> render("200.json", data: %{})
+    end
+  end
+
+  def info(conn, %{"id" => id}) do
+    Logger.debug("#{__MODULE__}: Loading stack #{id} details")
+
+    with urls <- Stacks.info(id) do
+      conn
+      |> put_status(200)
+      |> put_view(SuccessView)
+      |> render("200.json", data: %{urls: urls})
     end
   end
 

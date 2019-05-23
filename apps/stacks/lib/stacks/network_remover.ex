@@ -20,7 +20,7 @@ defmodule Stacks.NetworkRemover do
   @doc false
   def handle_info(:timeout, state) do
     Logger.debug(fn -> "Clearing unused docker netwrorks" end)
-    Proxy.Chain.Docker.prune_networks()
+    Proxy.Docker.prune_networks()
     {:noreply, state, @timeout}
   end
 end

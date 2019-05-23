@@ -88,12 +88,12 @@ defmodule Proxy.Deployment.Deployer do
     Logger.debug("#{id}: Starting deployment process with id: #{request_id}")
 
     env = %{
-      "ETH_RPC_URL" => rpc_url,
+      "ETH_RPC_URL" => String.replace(rpc_url, "localhost", "host.docker.internal"),
       "ETH_FROM" => coinbase,
       "ETH_RPC_ACCOUNTS" => "yes",
       "SETH_STATUS" => "yes",
       # "ETH_GAS" => Map.get(details, :gas_limit),
-      "ETH_GAS" => "6000000"
+      "ETH_GAS" => "19000000"
     }
 
     case BaseApi.run(request_id, step_id, env) do

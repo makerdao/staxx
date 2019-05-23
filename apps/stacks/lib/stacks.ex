@@ -58,8 +58,8 @@ defmodule Stacks do
   def start_container(id, stack, %Container{image: image} = container) do
     with {:alive, true} <- {:alive, Watcher.alive?(id)},
          {:image, true} <- {:image, ConfigLoader.has_image(stack, image)},
-         {:ok, %{id: container_id} = container} <- Proxy.Chain.Docker.start(container),
-         :ok <- Watcher.add_container(id, container_id) do
+         {:ok, %{id: container_id, ports: ports} = container} <- Proxy.Docker.start(container),
+         :ok <- Watcher.add_container(id, container_id, ports) do
       {:ok, container}
     else
       {:alive, _} ->
@@ -91,6 +91,13 @@ defmodule Stacks do
         Logger.error("#{id}: Failed to stop stack with error #{inspect(err)}")
     end
   end
+
+  @doc """
+  Load information about stack
+  """
+  @spec info(binary) :: term
+  def info(id),
+    do: Watcher.info(id)
 
   @doc """
   Validate if all stacks are allowed to start

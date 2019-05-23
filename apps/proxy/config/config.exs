@@ -21,6 +21,8 @@ use Mix.Config
 #     config :logger, level: :info
 #
 
+# config :proxy, replace_docker_url: true
+
 config :proxy, deployment_service_url: "http://localhost:5001/rpc"
 config :proxy, deploy_chain_front_url: "host.docker.internal"
 
