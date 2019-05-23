@@ -61,8 +61,11 @@ services:
       - "5001:5001"
     environment:
       TCD_GATEWAY: host=testchain-backendgateway.local
-    # volumes:
-    #   - ~/.ssh:/root/.ssh
+    volumes:
+    #  - ~/.ssh:/root/.ssh
+      - nix-db:/nix
+    tmpfs:
+      - /tmp
     depends_on:
       - nats
     networks:
@@ -102,3 +105,6 @@ services:
 networks:
   net1:
     driver: bridge
+
+volumes:
+  nix-db:
