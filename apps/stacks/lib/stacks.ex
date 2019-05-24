@@ -55,11 +55,11 @@ defmodule Stacks do
   Starting new container for given stack id
   """
   @spec start_container(binary, binary, Container.t()) :: :ok | {:error, term}
-  def start_container(id, stack, %Container{image: image} = container) do
+  def start_container(id, stack_name, %Container{image: image} = container) do
     with {:alive, true} <- {:alive, Watcher.alive?(id)},
-         {:image, true} <- {:image, ConfigLoader.has_image(stack, image)},
+         {:image, true} <- {:image, ConfigLoader.has_image(stack_name, image)},
          {:ok, %{id: container_id, ports: ports} = container} <- Proxy.Docker.start(container),
-         :ok <- Watcher.add_container(id, container_id, ports) do
+         :ok <- Watcher.add_container(id, stack_name, container_id, ports) do
       {:ok, container}
     else
       {:alive, _} ->
@@ -67,8 +67,8 @@ defmodule Stacks do
         {:error, "failed to find stack with id #{id}"}
 
       {:image, _} ->
-        Logger.error("Stack #{id}: No image #{image} is allowed for stack #{stack}")
-        {:error, "#{image} image is not allowed for stack #{stack}"}
+        Logger.error("Stack #{id}: No image #{image} is allowed for stack #{stack_name}")
+        {:error, "#{image} image is not allowed for stack #{stack_name}"}
 
       err ->
         Logger.error("Stack #{id}: failed to start container #{image} with err: #{inspect(err)}")
@@ -109,7 +109,7 @@ defmodule Stacks do
     result =
       list
       |> Enum.reject(&(&1 == "testchain"))
-      |> Enum.filter(fn name -> ConfigLoader.get(name) == nil end)
+      |> Enum.filter(fn stack_name -> ConfigLoader.get(stack_name) == nil end)
 
     case result do
       [] ->
@@ -132,17 +132,17 @@ defmodule Stacks do
 
   defp start_stack_list([], _id), do: :ok
 
-  defp start_stack_list([name | rest], id) do
-    name
+  defp start_stack_list([stack_name | rest], id) do
+    stack_name
     |> ConfigLoader.get()
-    |> start_stack(name, id)
+    |> start_stack(stack_name, id)
 
-    Logger.debug("Stack #{id}: started stack #{name}")
+    Logger.debug("Stack #{id}: started stack #{stack_name}")
     start_stack_list(rest, id)
   end
 
-  defp start_stack(%{"config" => %{"manager" => image}}, name, id) do
-    Logger.debug("Stack #{id}: starting manager #{image} for #{name}")
+  defp start_stack(%{"config" => %{"manager" => image}}, stack_name, id) do
+    Logger.debug("Stack #{id}: starting manager #{image} for #{stack_name}")
     # Start vdb manager
     container = %Container{
       image: image,
@@ -151,18 +151,21 @@ defmodule Stacks do
       ports: [],
       env: %{
         "STACK_ID" => id,
-        "STACK_NAME" => name,
+        "STACK_NAME" => stack_name,
         "WEB_API_URL" => "http://host.docker.internal:4000",
         "NATS_URL" => "http://host.docker.internal:4222"
       }
     }
 
-    start_container(id, name, container)
+    start_container(id, stack_name, container)
   end
 
-  defp start_stack(config, name, id) do
-    Logger.error("Stack #{id}: Something wrong with stack #{name} config: #{inspect(config)}")
-    {:error, "unknown stack #{name}"}
+  defp start_stack(config, stack_name, id) do
+    Logger.error(
+      "Stack #{id}: Something wrong with stack #{stack_name} config: #{inspect(config)}"
+    )
+
+    {:error, "unknown stack #{stack_name}"}
   end
 
   # Get list of stacks that need to be started

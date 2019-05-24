@@ -8,3 +8,4 @@ config :proxy, call_oracles: System.get_env("CALL_ORACLES") != nil
 config :proxy, nats: %{host: System.get_env("NATS_URL") || "nats.local", port: 4222}
 
 config :stacks, stacks_dir: System.get_env("STACKS_DIR") || "/opt/stacks"
+config :stacks, front_url: "http://localhost"

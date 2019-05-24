@@ -45,6 +45,7 @@ defmodule WebApiWeb.Router do
     pipe_through :api
     post "/start", StackController, :start
     get "/stop/:id", StackController, :stop
+    get "/info/:id", StackController, :info
     post "/notify", StackController, :notify
     post "/notify/ready", StackController, :stack_ready
     post "/notify/failed", StackController, :stack_failed

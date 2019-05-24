@@ -7,4 +7,6 @@ config :stacks,
 
 config :stacks, docker_events_topic: "Prefix.Docker.Events"
 
+config :stacks, front_url: "http://localhost"
+
 import_config "#{Mix.env()}.exs"

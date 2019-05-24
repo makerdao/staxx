@@ -11,13 +11,16 @@ defmodule Stacks.Watcher do
 
   defmodule State do
     @moduledoc false
+
+    @type containers :: %{binary => [{pos_integer, pos_integer}]}
+
     @type t :: %__MODULE__{
             id: binary,
-            containers: %{binary => term}
+            stacks: %{binary => containers()}
           }
 
     @enforce_keys [:id]
-    defstruct id: nil, containers: %{}
+    defstruct id: nil, stacks: %{}
   end
 
   @doc false
@@ -35,72 +38,78 @@ defmodule Stacks.Watcher do
     do: {:reply, id, state}
 
   @doc false
-  def handle_call(:info, _from, %State{id: id, containers: containers} = state) do
+  def handle_call(:info, _from, %State{id: id, stacks: stacks} = state) do
     Logger.debug("Stack #{id}: Loading list of running containers")
 
     urls =
-      containers
-      |> Enum.map(fn {_id, ports} -> ports end)
-      |> Enum.map(&pick_ports/1)
-      |> Enum.reject(&is_nil/1)
-      |> Enum.map(&"http://localhost:#{&1}")
+      stacks
+      |> Enum.map(fn {stack_name, containers} ->
+        {stack_name, list_of_exported_urls(containers)}
+      end)
+      |> Enum.into(%{})
 
     {:reply, urls, state}
   end
 
   @doc false
   def handle_cast(
-        {:container_failed, container_id},
-        %State{id: id, containers: list} = state
+        {:container_failed, _container_id},
+        %State{id: _id, stacks: _list} = state
       ) do
-    case Map.has_key?(list, container_id) do
-      false ->
-        {:noreply, state}
+    # case Map.has_key?(list, container_id) do
+    # false ->
+    # {:noreply, state}
 
-      true ->
-        Logger.debug("Stack #{id}: Container died #{container_id}")
-        {:noreply, state}
-    end
+    # true ->
+    # Logger.debug("Stack #{id}: Container died #{container_id}")
+    # {:noreply, state}
+    # end
+    Logger.debug("Container failure should be reworked")
+    {:noreply, state}
   end
 
   @doc false
-  def handle_cast(:stop, %State{id: id, containers: list} = state) do
+  def handle_cast(:stop, %State{id: id, stacks: list} = state) do
     Logger.debug("Stack #{id}: Stopping watcher process and containers: #{inspect(list)}")
 
     list
-    |> Map.keys()
-    |> Enum.map(&Task.async(Proxy.Docker, :stop, [&1]))
-    |> Enum.map(&Task.await(&1, @timeout))
+    |> Enum.map(fn {_stack_name, containers} -> containers end)
+    |> Enum.map(&stop_containers/1)
 
     {:stop, :normal, state}
   end
 
   @doc false
-  def handle_cast({:add, container_id, ports}, %State{id: id, containers: list} = state) do
+  def handle_cast(
+        {:add, stack_name, container_id, ports},
+        %State{id: id, stacks: list} = state
+      ) do
     Logger.debug(
-      "Stack #{id}: Added new container to list #{container_id}\n with list of ports: #{
+      "Stack #{id}: Added new container to stack #{stack_name}: #{container_id}\n with list of ports: #{
         inspect(ports)
       }"
     )
 
+    containers = Map.get(list, stack_name, %{})
+
     updated =
-      case Map.has_key?(list, container_id) do
+      case Map.has_key?(containers, container_id) do
         true ->
           list
 
         false ->
-          Map.put(list, container_id, ports)
+          Map.put(containers, container_id, ports)
       end
 
-    {:noreply, %State{state | containers: updated}}
+    {:noreply, %State{state | stacks: Map.put(list, stack_name, updated)}}
   end
 
   @doc """
   Add new container ID to stack watcher
   """
-  @spec add_container(binary, binary, [pos_integer]) :: :ok
-  def add_container(id, container_id, ports \\ []),
-    do: GenServer.cast(get_pid(id), {:add, container_id, ports})
+  @spec add_container(binary, binary, binary, [pos_integer]) :: :ok
+  def add_container(id, stack_name, container_id, ports \\ []),
+    do: GenServer.cast(get_pid(id), {:add, stack_name, container_id, ports})
 
   @doc """
   Send notification about caontainer failure
@@ -151,7 +160,26 @@ defmodule Stacks.Watcher do
     end
   end
 
+  # Stop list of containers
+  defp stop_containers(list) do
+    list
+    |> Map.keys()
+    |> Enum.map(&Task.async(Proxy.Docker, :stop, [&1]))
+    |> Enum.map(&Task.await(&1, @timeout))
+  end
+
   # Get only external ports from list of containers
   defp pick_ports({port, _}), do: port
   defp pick_ports(_), do: nil
+
+  defp list_of_exported_urls(containers) do
+    front_url = Application.get_env(:stacks, :front_url, "http://localhost")
+
+    containers
+    |> Enum.map(fn {_id, ports} -> ports end)
+    |> List.flatten()
+    |> Enum.map(&pick_ports/1)
+    |> Enum.reject(&is_nil/1)
+    |> Enum.map(&"#{front_url}:#{&1}")
+  end
 end
