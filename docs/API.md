@@ -127,6 +127,30 @@ curl --request GET \
 }
 ```
 
+### Stack info
+Will show list of exported resources for stack
+GET `/stack/info/{stack_id}`
+
+```bash
+curl --request GET \
+  --url http://localhost:4000/stack/info/5341658974976052158
+```
+
+```javascript
+{
+  "status": 0,
+  "message": "",
+  "errors": [],
+  "data": {
+    "urls": {
+      "vdb": [ // stack name
+        "http://localhost:51329" // exported resource
+      ]
+    }
+  }
+}
+```
+
 ### Notifications
 Send any notification for stack
 
