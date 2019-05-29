@@ -52,6 +52,7 @@ services:
     volumes:
       - "/tmp/chains:/opt/chains"
       - "/tmp/snapshots:/opt/snapshots"
+      - "/tmp/stacks:/opt/stacks"
     networks:
      - net1
   testchain-deployment:
