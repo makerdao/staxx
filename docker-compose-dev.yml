@@ -2,12 +2,10 @@ version: '3'
 services:
   nats:
     image: 'nats:linux'
-    entrypoint: "/gnatsd -DV -m 8222"
     container_name: nats.local
     expose:
       - "4222"
     ports:
-      - "8222:8222"
       - "4222:4222"
     networks:
      - net1
