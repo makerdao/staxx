@@ -1,15 +1,15 @@
-defmodule Stacks.MixProject do
+defmodule DeploymentScope.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :stacks,
+      app: :deployment_scope,
       version: "0.1.0",
       build_path: "../../_build",
       config_path: "../../config/config.exs",
       deps_path: "../../deps",
       lockfile: "../../mix.lock",
-      elixir: "~> 1.7",
+      elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
@@ -19,7 +19,7 @@ defmodule Stacks.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {Stacks.Application, []}
+      mod: {DeploymentScope.Application, []}
     ]
   end
 
@@ -27,10 +27,7 @@ defmodule Stacks.MixProject do
   defp deps do
     [
       {:proxy, in_umbrella: true},
-      {:event_bus, in_umbrella: true},
-      {:yaml_elixir, "~> 2.1"},
-      {:poison, "~> 3.1"},
-      {:telemetry, "~> 0.4.0", override: true}
+      {:stacks, in_umbrella: true}
     ]
   end
 end

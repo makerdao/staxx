@@ -59,8 +59,8 @@ services:
     ports:
       - "5001:5001"
     environment:
-      TCD_GATEWAY: host=testchain-backendgateway.local
-      # TCD_GATEWAY: host=host.docker.internal
+      # TCD_GATEWAY: host=testchain-backendgateway.local
+      TCD_GATEWAY: host=host.docker.internal
       GITHUB_DEFAULT_CHECKOUT_TARGET: master
     volumes:
       - nix-db:/nix

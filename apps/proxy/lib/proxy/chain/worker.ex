@@ -111,9 +111,6 @@ defmodule Proxy.Chain.Worker do
       ) do
     Logger.debug("#{id}: EVM stopped, going down")
 
-    # Send kill relayer signal
-    Proxy.Oracles.Api.remove_relayer()
-
     new_state =
       state
       |> State.status(:terminated)

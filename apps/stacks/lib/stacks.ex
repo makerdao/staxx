@@ -7,7 +7,8 @@ defmodule Stacks do
 
   alias Stacks.WatcherSupervisor
   alias Stacks.Watcher
-  alias Stacks.ConfigLoader
+  alias Stacks.Stack.ConfigLoader
+  alias Stacks.Stack.Config
 
   alias Docker.Struct.Container
 
@@ -141,7 +142,7 @@ defmodule Stacks do
     start_stack_list(rest, id)
   end
 
-  defp start_stack(%{"config" => %{"manager" => image}}, stack_name, id) do
+  defp start_stack(%Config{manager: image}, stack_name, id) do
     Logger.debug("Stack #{id}: starting manager #{image} for #{stack_name}")
     # Start vdb manager
     container = %Container{

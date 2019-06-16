@@ -1,6 +1,6 @@
-defmodule Stacks.WatcherSupervisor do
+defmodule DeploymentScope.Supervisor do
   @moduledoc """
-  Supervisor that will watch all chains running
+  Supervisor that will manage all deployment scopes
   """
 
   # Automatically defines child_spec/1

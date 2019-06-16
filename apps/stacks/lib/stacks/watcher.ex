@@ -2,7 +2,6 @@ defmodule Stacks.Watcher do
   @moduledoc """
   Stack watcher. Will handle list of resources for stack
   """
-
   use GenServer, restart: :transient
 
   require Logger

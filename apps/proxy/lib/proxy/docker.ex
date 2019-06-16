@@ -7,7 +7,7 @@ defmodule Proxy.Docker do
   alias Proxy.NodeManager
 
   # Response waiting timeout
-  @timeout 30_000
+  @timeout 180_000
 
   @doc """
   Start new docker image

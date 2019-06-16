@@ -41,17 +41,24 @@ defmodule Proxy.Chain.Worker.State do
   @spec node(t(), node()) :: t()
   def node(%__MODULE__{} = state, node), do: %__MODULE__{state | node: node}
 
+  @doc """
+  Set status for state and return updated state
+  """
   @spec status(t(), status()) :: t()
   def status(%__MODULE__{} = state, status),
     do: %__MODULE__{state | status: status}
 
+  @doc """
+  Set chain status for state and return updated state
+  """
   @spec chain_status(t(), atom) :: t()
   def chain_status(%__MODULE__{} = state, chain_status),
     do: %__MODULE__{state | chain_status: chain_status}
 
   @doc """
   Send notification about chain to `notify_pid`.
-  If no `notify_pid` config exist into state - `:ok` will be returned
+  Notification will be send to `notify_pid` if it's exist
+  And to global event bus
   """
   @spec notify(t(), binary | atom, term()) :: t()
   def notify(%__MODULE__{id: id, notify_pid: pid} = state, event, data \\ %{}) do

@@ -66,7 +66,7 @@ defmodule Proxy.Deployment.Deployer do
       "ETH_RPC_URL" => rpc_url,
       "ETH_FROM" => coinbase,
       "ETH_RPC_ACCOUNTS" => "yes",
-      "SETH_STATUS" => "yes",
+      "SETH_STATUS" => "yes"
       # "ETH_GAS" => Map.get(details, :gas_limit),
       # "ETH_GAS" => "6000000"
     }

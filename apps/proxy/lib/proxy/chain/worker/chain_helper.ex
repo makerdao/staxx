@@ -31,9 +31,6 @@ defmodule Proxy.Chain.Worker.ChainHelper do
     |> Record.chain_details(details)
     |> Record.store()
 
-    # Send relayer notification
-    # spawn(OraclesApi, :notify_new_chain, [record])
-
     # Combining new state
     state
     |> State.status(:ready)
@@ -50,7 +47,7 @@ defmodule Proxy.Chain.Worker.ChainHelper do
     |> Record.from_state()
     |> Record.status(:ready)
     |> Record.chain_details(details)
-    # We have to load deploy data only here. 
+    # We have to load deploy data only here.
     # Because in other cases it will be filled by deploy afterwards
     |> read_deploy_data_to_record(state)
     |> Record.store()
