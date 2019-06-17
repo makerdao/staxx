@@ -52,7 +52,10 @@ release :testchain_backendgateway do
   set version: "0.1.0"
   set applications: [
     :runtime_tools,
+    event_bus: :permanent,
+    docker: :permanent,
     proxy: :permanent,
+    stacks: :permanent,
     web_api: :permanent
   ]
 
@@ -63,4 +66,3 @@ release :testchain_backendgateway do
     {:copy, "rel/config/config.exs", "etc/config.exs"}
   ]
 end
-

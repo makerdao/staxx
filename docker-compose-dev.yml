@@ -70,20 +70,6 @@ services:
       - nats
     networks:
      - net1
-  testchain-dockerservice:
-    image: makerdao/testchain_dockerservice:dev
-    container_name: testchain-dockerservice.local
-    expose:
-      - "9100-9105"
-    depends_on:
-      - nats
-    environment:
-      NATS_HOST: nats.local
-      NATS_PORT: 4222
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    networks:
-     - net1
   testchain-dashboard:
     image: makerdao/testchain-dashboard
     container_name: testchain-dashboard.local
