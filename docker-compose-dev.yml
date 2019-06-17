@@ -31,6 +31,7 @@ services:
     environment:
       NATS_URL: nats.local
     volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
       - "/tmp/chains:/opt/chains"
       - "/tmp/snapshots:/opt/snapshots"
       - "/tmp/stacks:/opt/stacks"
@@ -50,7 +51,6 @@ services:
     volumes:
       - "/tmp/chains:/opt/chains"
       - "/tmp/snapshots:/opt/snapshots"
-      - "/tmp/stacks:/opt/stacks"
     networks:
      - net1
   testchain-deployment:

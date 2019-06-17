@@ -26,6 +26,7 @@ defmodule Stacks.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:docker, in_umbrella: true},
       {:proxy, in_umbrella: true},
       {:event_bus, in_umbrella: true},
       {:yaml_elixir, "~> 2.1"},

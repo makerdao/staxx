@@ -1,9 +1,9 @@
-defmodule Proxy.MixProject do
+defmodule Docker.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :proxy,
+      app: :docker,
       version: "0.1.0",
       build_path: "../../_build",
       config_path: "../../config/config.exs",
@@ -19,18 +19,15 @@ defmodule Proxy.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {Proxy.Application, []}
+      mod: {Docker.Application, []}
     ]
   end
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:docker, in_umbrella: true},
       {:event_bus, in_umbrella: true},
-      {:httpoison, "~> 1.4"},
-      {:jason, "~> 1.1"},
-      {:gen_stage, "~> 0.14"}
+      {:jason, "~> 1.1"}
     ]
   end
 end

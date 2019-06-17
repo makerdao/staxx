@@ -29,7 +29,7 @@ defmodule WebApiWeb.DockerController do
   end
 
   def stop(conn, %{"id" => id}) do
-    case Proxy.Docker.stop(id) do
+    case Docker.stop(id) do
       {:ok, _id} ->
         conn
         |> put_status(200)

@@ -163,7 +163,7 @@ defmodule Stacks.Watcher do
   defp stop_containers(list) do
     list
     |> Map.keys()
-    |> Enum.map(&Task.async(Proxy.Docker, :stop, [&1]))
+    |> Enum.map(&Task.async(Docker, :stop, [&1]))
     |> Enum.map(&Task.await(&1, @timeout))
   end
 

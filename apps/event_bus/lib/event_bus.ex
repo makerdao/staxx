@@ -11,6 +11,13 @@ defmodule EventBus do
     do: EventBus.Broadcaster.notify({"chain.#{id}", event})
 
   @doc """
+  Send new notification to event bus
+  """
+  @spec push(binary, binary | map) :: :ok
+  def push(topic, message),
+    do: EventBus.Broadcaster.notify({topic, message})
+
+  @doc """
   Subscribe caller to given topic
   Event will be sent as Erlang message in format:
   ```elixir
