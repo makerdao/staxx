@@ -30,7 +30,7 @@ defmodule Proxy do
   end
 
   def start(config, pid) when is_map(config) do
-    with {:ok, %{id: id} = config} <- new_chain_config(config, pid),
+    with %{id: id} = config <- new_chain_config!(config, pid),
          {:ok, _} <- ChainSupervisor.start_chain(config, :new, pid) do
       {:ok, id}
     else
@@ -54,8 +54,8 @@ defmodule Proxy do
   It will generate new uniq chain ID, will bind it to config
   also it will bind node and set `:clean_on_stop` to `false`.
   """
-  @spec new_chain_config(binary | map, pid | nil) :: {:ok, map} | {:error, term}
-  def new_chain_config(config, notify_pid \\ nil) do
+  @spec new_chain_config!(binary | map, pid | nil) :: map
+  def new_chain_config!(config, notify_pid \\ nil) do
     with {:node, node} when not is_nil(node) <- {:node, Proxy.NodeManager.node()},
          {:id, id} when is_binary(id) <- {:id, Proxy.ExChain.unique_id(node)} do
       config
@@ -64,10 +64,10 @@ defmodule Proxy do
       |> Map.put(:clean_on_stop, false)
     else
       {:node, _} ->
-        {:error, "No active ex_testchain node connected !"}
+        raise "No active ex_testchain node connected !"
 
       {:id, _} ->
-        {:error, "Failed to generrate new id for EVM"}
+        raise "Failed to generrate new id for EVM"
     end
   end
 
