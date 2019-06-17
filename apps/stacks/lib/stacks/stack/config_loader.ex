@@ -16,7 +16,7 @@ defmodule Stacks.Stack.ConfigLoader do
 
   alias Stacks.Stack.Config
 
-  @stack_config_filename "config.json"
+  @stack_config_filename "stack.json"
 
   @doc false
   def start_link(_) do
