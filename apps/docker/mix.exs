@@ -27,7 +27,8 @@ defmodule Docker.MixProject do
   defp deps do
     [
       {:event_bus, in_umbrella: true},
-      {:jason, "~> 1.1"}
+      {:jason, "~> 1.1"},
+      {:faker, "~> 0.12", only: :test}
     ]
   end
 end

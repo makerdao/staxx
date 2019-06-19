@@ -1,6 +1,9 @@
 defmodule Docker.NetworkRemover do
   @moduledoc """
   Module removes unused networks for docker env
+
+  It's very simple reccuring executer for command.
+  Some sort of a cron job. But way more simple, lightweight and OTP based
   """
   use GenServer
 

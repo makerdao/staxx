@@ -1,6 +1,8 @@
-defmodule Docker.Events do
+defmodule Docker.EventListener do
   @moduledoc """
-  Module that handles
+  This pid is listening for all docker events from docker daemon and handles them.
+  Main events that are handled are: `start`, `stop`, `kill` and `die`
+  All this event sare handled as JSON strings and are send into global event bus.
   """
   use GenServer
 
@@ -96,8 +98,6 @@ defmodule Docker.Events do
       "events",
       "--filter",
       "event=start",
-      "--filter",
-      "event=create",
       "--filter",
       "event=die",
       "--filter",

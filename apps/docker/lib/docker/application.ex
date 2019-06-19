@@ -9,11 +9,10 @@ defmodule Docker.Application do
     # List all child processes to be supervised
     children = [
       # Starts a worker by calling: Docker.Worker.start_link(arg)
-      # {Docker.Worker, arg},
+      {Registry, keys: :unique, name: Docker.ContainerRegistry},
       Docker.ContainerSupervisor,
       Docker.PortMapper,
-      Docker.Events,
-      Docker.Cmd,
+      Docker.EventListener,
       Docker.NetworkRemover
     ]
 

@@ -38,6 +38,17 @@ defmodule Docker.PortMapper do
   end
 
   @doc false
+  def handle_call({:reserved?, port}, _from, table) do
+    case :ets.lookup(table, port) do
+      [] ->
+        {:reply, false, table}
+
+      [_] ->
+        {:reply, true, table}
+    end
+  end
+
+  @doc false
   def handle_cast({:terminate, port}, table) do
     :ets.delete(table, port)
     {:noreply, table}
@@ -50,9 +61,23 @@ defmodule Docker.PortMapper do
   def random(), do: GenServer.call(__MODULE__, :random)
 
   @doc """
+  Check if port already reserved by someone
+  """
+  @spec reserved?(pos_integer) :: boolean
+  def reserved?(port) when is_integer(port),
+    do: GenServer.call(__MODULE__, {:reserved?, port})
+
+  @doc """
   Remove port from reserved list of ports
   """
   @spec terminate(pos_integer) :: :ok
   def terminate(port) when is_integer(port),
     do: GenServer.cast(__MODULE__, {:terminate, port})
+
+  @doc """
+  Removes port from list of reserved ports
+  """
+  @spec free(pos_integer) :: :ok
+  def free(port),
+    do: terminate(port)
 end

@@ -33,12 +33,8 @@ defmodule Docker do
       create_network(network)
     end
 
-    reserved =
-      container
-      |> Map.get(:ports, [])
-      |> Enum.map(&reserve_ports/1)
-
-    container = %Container{container | ports: reserved}
+    # Do ports reservation
+    container = Container.reserve_ports(container)
 
     case System.cmd(executable!(), build_start_params(container)) do
       {id, 0} ->
@@ -198,10 +194,4 @@ defmodule Docker do
     |> String.replace(".", "")
     |> String.downcase()
   end
-
-  # Reserve ports
-  defp reserve_ports(port) when is_integer(port),
-    do: {Docker.PortMapper.random(), port}
-
-  defp reserve_ports(port), do: port
 end
