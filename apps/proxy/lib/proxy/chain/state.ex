@@ -18,7 +18,7 @@ defmodule Proxy.Chain.State do
   @type t :: %__MODULE__{
           id: binary,
           node: node(),
-          start: :new | :existing,
+          start_type: :new | :existing,
           status: status,
           notify_pid: pid() | nil,
           chain_status: atom(),
@@ -28,7 +28,7 @@ defmodule Proxy.Chain.State do
 
   defstruct id: nil,
             node: nil,
-            start: :new,
+            start_type: :new,
             status: :initializing,
             notify_pid: nil,
             chain_status: :none,

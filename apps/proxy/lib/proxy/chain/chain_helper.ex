@@ -22,7 +22,7 @@ defmodule Proxy.Chain.ChainHelper do
   - If we started new chain and no deployment step is set - we have to do nothing and status set to `:ready`
   """
   @spec handle_evm_started(State.t(), map()) :: State.t()
-  def handle_evm_started(%State{id: id, start: :existing} = state, details) do
+  def handle_evm_started(%State{id: id, start_type: :existing} = state, details) do
     Logger.debug("#{id}: Existing chain started successfully, have no deployment to perform")
 
     state
@@ -38,7 +38,7 @@ defmodule Proxy.Chain.ChainHelper do
   end
 
   def handle_evm_started(
-        %State{id: id, start: :new, status: :initializing, deploy_step_id: 0} = state,
+        %State{id: id, start_type: :new, status: :initializing, deploy_step_id: 0} = state,
         details
       ) do
     Logger.debug("#{id}: New EVM started successfully, have no deployment to perform")
@@ -59,7 +59,7 @@ defmodule Proxy.Chain.ChainHelper do
   end
 
   def handle_evm_started(
-        %State{id: id, start: :new, status: :initializing, deploy_step_id: step_id} = state,
+        %State{id: id, start_type: :new, status: :initializing, deploy_step_id: step_id} = state,
         details
       ) do
     Logger.debug(

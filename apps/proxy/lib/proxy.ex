@@ -77,7 +77,7 @@ defmodule Proxy do
   @spec stop(binary) :: :ok
   def stop(id) do
     id
-    |> Chain.get_pid()
+    |> Chain.via_tuple()
     |> GenServer.cast(:stop)
   end
 
@@ -87,7 +87,7 @@ defmodule Proxy do
   @spec take_snapshot(Chain.evm_id(), binary()) :: :ok | {:error, term()}
   def take_snapshot(id, description \\ "") do
     id
-    |> Chain.get_pid()
+    |> Chain.via_tuple()
     |> GenServer.call({:take_snapshot, description})
   end
 
@@ -99,7 +99,7 @@ defmodule Proxy do
   @spec revert_snapshot(Chain.evm_id(), binary) :: :ok | {:error, term()}
   def revert_snapshot(id, snapshot_id) do
     id
-    |> Chain.get_pid()
+    |> Chain.via_tuple()
     |> GenServer.call({:revert_snapshot, snapshot_id})
   end
 

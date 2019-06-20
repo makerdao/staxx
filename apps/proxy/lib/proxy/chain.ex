@@ -2,9 +2,9 @@ defmodule Proxy.Chain do
   @moduledoc """
   Chain/deployment/other tasks performer.
 
-  All tasksthat will iteract with chain should go through this process.
+  All tasks that will iteract with chain should go through this process.
   """
-  use GenServer, restart: :transient
+  use GenServer, restart: :temporary
 
   require Logger
 
@@ -15,42 +15,45 @@ defmodule Proxy.Chain do
 
   @doc false
   def start_link({:existing, id, pid}) when is_binary(id) do
-    state = %State{id: id, start: :existing, notify_pid: pid}
-    GenServer.start_link(__MODULE__, {state, nil})
-  end
-
-  def start_link({:new, %{id: id} = config, pid}) when is_map(config) do
-    state = %State{
-      id: id,
-      start: :new,
-      notify_pid: pid,
-      deploy_tag: Map.get(config, :deploy_tag),
-      deploy_step_id: Map.get(config, :step_id, 0)
-    }
-
-    GenServer.start_link(__MODULE__, {state, config})
-  end
-
-  @doc false
-  def init({%State{id: id, node: nil} = state, config}) do
     case Proxy.NodeManager.node() do
       nil ->
         Logger.error("#{id}: No free ex_testchain node for starting EVM.")
         {:error, :no_free_node}
 
       node ->
-        Logger.debug("#{id}: Node to start EVM selected: #{inspect(node)}")
-
-        new_state =
-          state
-          |> State.node(node)
-
-        init({new_state, config})
+        Logger.debug("#{id}: Node to start existing EVM selected: #{inspect(node)}")
+        state = %State{id: id, start_type: :existing, notify_pid: pid, node: node}
+        GenServer.start_link(__MODULE__, {state, nil}, name: via_tuple(id))
     end
   end
 
+  def start_link({:new, %{id: id, node: nil} = config, pid}) when is_map(config) do
+    case Proxy.NodeManager.node() do
+      nil ->
+        Logger.error("#{id}: No free ex_testchain node for starting EVM.")
+        {:error, :no_free_node}
+
+      node ->
+        config = Map.put(config, :node, node)
+        start_link({:new, config, pid})
+    end
+  end
+
+  def start_link({:new, %{id: id} = config, pid}) when is_map(config) do
+    state = %State{
+      id: id,
+      start_type: :new,
+      notify_pid: pid,
+      node: Map.get(config, :node),
+      deploy_tag: Map.get(config, :deploy_tag),
+      deploy_step_id: Map.get(config, :step_id, 0)
+    }
+
+    GenServer.start_link(__MODULE__, {state, config}, name: via_tuple(id))
+  end
+
   @doc false
-  def init({%State{id: id, node: node, start: :new} = state, config}) do
+  def init({%State{id: id, node: node, start_type: :new} = state, config}) do
     Logger.debug("Starting new chain #{Map.get(config, :type)}")
 
     evm_config =
@@ -61,7 +64,6 @@ defmodule Proxy.Chain do
     {:ok, ^id} = ExChain.start(node, evm_config)
 
     Logger.debug("#{id}: Started new chain")
-    {:ok, _} = register(id)
 
     # Store new chain process details
     state
@@ -73,11 +75,10 @@ defmodule Proxy.Chain do
   end
 
   @doc false
-  def init({%State{id: id, node: node, start: :existing} = state, _}) when is_binary(id) do
+  def init({%State{id: id, node: node, start_type: :existing} = state, _}) when is_binary(id) do
     Logger.debug("#{id}: Loading chain details")
     {:ok, ^id} = ExChain.start_existing(node, id, self())
     Logger.debug("#{id}: Started existing chain")
-    {:ok, _} = register(id)
 
     Logger.debug("#{id}: existing state merged to: #{inspect(state)}")
 
@@ -222,43 +223,27 @@ defmodule Proxy.Chain do
   end
 
   @doc """
-  Get GenServer pid by id
+  Generates via cause for GenServer registration
   """
-  @spec get_pid(binary) :: nil | pid()
-  def get_pid(id) do
-    case Registry.lookup(Proxy.ChainRegistry, id) do
-      [{pid, _}] ->
-        pid
-
-      _ ->
-        nil
-    end
-  end
+  @spec via_tuple(binary) :: {:via, Registry, {Proxy.ChainRegistry, binary}}
+  def via_tuple(id),
+    do: {:via, Registry, {Proxy.ChainRegistry, id}}
 
   @doc """
   Handle deployment by chain process
   """
   @spec handle_deployment(binary, binary, term()) :: term()
-  def handle_deployment(id, request_id, data) do
-    with pid when is_pid(pid) <- get_pid(id) do
-      GenServer.cast(pid, {:deployment_finished, request_id, data})
-    end
-  end
+  def handle_deployment(id, request_id, data),
+    do: GenServer.cast(via_tuple(id), {:deployment_finished, request_id, data})
 
   @doc """
   Send deployment failure event to chain process
   """
   @spec handle_deployment_failure(binary, binary, map()) :: term()
   def handle_deployment_failure(id, request_id, %{"msg" => msg, "stderrB64" => err}) do
-    with pid when is_pid(pid) <- get_pid(id) do
-      decoded_err = Base.decode64!(err)
-      Logger.error("#{id}: Deployment failed\n #{decoded_err}")
+    decoded_err = Base.decode64!(err)
+    Logger.error("#{id}: Deployment failed\n #{decoded_err}")
 
-      GenServer.cast(pid, {:deployment_failed, request_id, msg})
-    end
+    GenServer.cast(via_tuple(id), {:deployment_failed, request_id, msg})
   end
-
-  # via tuple generation
-  defp register(id),
-    do: Registry.register(Proxy.ChainRegistry, id, nil)
 end

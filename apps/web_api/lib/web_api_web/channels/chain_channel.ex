@@ -65,7 +65,7 @@ defmodule WebApiWeb.ChainChannel do
   def handle_in("deploy", %{"step" => step}, %{topic: "chain:" <> id} = socket) do
     res =
       id
-      |> Chain.get_pid()
+      |> Chain.via_tuple()
       |> GenServer.call({:deploy, step})
 
     case res do

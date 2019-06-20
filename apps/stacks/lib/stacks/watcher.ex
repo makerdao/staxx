@@ -26,7 +26,7 @@ defmodule Stacks.Watcher do
   def start_link(id) do
     Logger.debug("Starting watcher for #{id}")
 
-    GenServer.start_link(__MODULE__, %State{id: id}, name: {:via, Registry, {Stacks.Registry, id}})
+    GenServer.start_link(__MODULE__, %State{id: id}, name: via_tuple(id))
   end
 
   @doc false
@@ -108,7 +108,7 @@ defmodule Stacks.Watcher do
   """
   @spec add_container(binary, binary, binary, [pos_integer]) :: :ok
   def add_container(id, stack_name, container_id, ports \\ []),
-    do: GenServer.cast(get_pid(id), {:add, stack_name, container_id, ports})
+    do: GenServer.cast(via_tuple(id), {:add, stack_name, container_id, ports})
 
   @doc """
   Send notification about caontainer failure
@@ -122,14 +122,14 @@ defmodule Stacks.Watcher do
   """
   @spec stop(binary) :: :ok
   def stop(id),
-    do: GenServer.cast(get_pid(id), :stop)
+    do: GenServer.cast(via_tuple(id), :stop)
 
   @doc """
   Get stack information
   """
   @spec info(binary) :: term
   def info(id),
-    do: GenServer.call(get_pid(id), :info)
+    do: GenServer.call(via_tuple(id), :info)
 
   @doc """
   Get stack id by watcher pid
@@ -143,21 +143,14 @@ defmodule Stacks.Watcher do
   """
   @spec alive?(binary) :: boolean
   def alive?(id),
-    do: get_pid(id) != nil
+    do: GenServer.whereis(via_tuple(id)) != nil
 
   @doc """
-  Get GenServer pid by id
+  Generate via tuple for GenServer naming
   """
-  @spec get_pid(binary) :: nil | pid()
-  def get_pid(id) do
-    case Registry.lookup(Stacks.Registry, id) do
-      [{pid, _}] ->
-        pid
-
-      _ ->
-        nil
-    end
-  end
+  @spec via_tuple(binary) :: {:via, Registry, {Stacks.Registry, binary}}
+  def via_tuple(id),
+    do: {:via, Registry, {Stacks.Registry, id}}
 
   # Stop list of containers
   defp stop_containers(list) do
