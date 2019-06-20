@@ -1,4 +1,4 @@
-defmodule Proxy.Chain.Worker.Notification do
+defmodule Proxy.Chain.Notification do
   @moduledoc """
   Default chain worker notification that might be sent by system
   """

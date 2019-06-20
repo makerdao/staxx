@@ -1,15 +1,15 @@
-defmodule Proxy.Chain.Worker do
+defmodule Proxy.Chain do
   @moduledoc """
   Chain/deployment/other tasks performer.
 
-  All tasksthat will iteract with chain should go through this worker.
+  All tasksthat will iteract with chain should go through this process.
   """
   use GenServer, restart: :transient
 
   require Logger
 
   alias Proxy.ExChain
-  alias Proxy.Chain.Worker.{State, ChainHelper}
+  alias Proxy.Chain.{State, ChainHelper}
   alias Proxy.Chain.Storage.Record
   alias Chain.EVM.Notification
 
@@ -63,7 +63,7 @@ defmodule Proxy.Chain.Worker do
     Logger.debug("#{id}: Started new chain")
     {:ok, _} = register(id)
 
-    # Store new chain worker
+    # Store new chain process details
     state
     |> Record.from_state()
     |> Record.config(config)
@@ -236,7 +236,7 @@ defmodule Proxy.Chain.Worker do
   end
 
   @doc """
-  Handle deployment by chain worker
+  Handle deployment by chain process
   """
   @spec handle_deployment(binary, binary, term()) :: term()
   def handle_deployment(id, request_id, data) do
@@ -246,7 +246,7 @@ defmodule Proxy.Chain.Worker do
   end
 
   @doc """
-  Send deployment failure event to worker
+  Send deployment failure event to chain process
   """
   @spec handle_deployment_failure(binary, binary, map()) :: term()
   def handle_deployment_failure(id, request_id, %{"msg" => msg, "stderrB64" => err}) do

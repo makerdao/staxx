@@ -1,4 +1,4 @@
-defmodule Proxy.Chain.Worker.ChainHelper do
+defmodule Proxy.Chain.ChainHelper do
   @moduledoc """
   Most of chani action will be here
   """
@@ -6,7 +6,7 @@ defmodule Proxy.Chain.Worker.ChainHelper do
   require Logger
 
   alias Proxy.ExChain
-  alias Proxy.Chain.Worker.State
+  alias Proxy.Chain.State
   alias Proxy.Deployment.StepsFetcher
   alias Proxy.Chain.Storage.Record
 
@@ -21,7 +21,7 @@ defmodule Proxy.Chain.Worker.ChainHelper do
   - If we started new chain and set deployment step in config - we have to perform deployment and status remain `:initializing`
   - If we started new chain and no deployment step is set - we have to do nothing and status set to `:ready`
   """
-  @spec handle_evm_started(Proxy.Chain.Worker.State.t(), map()) :: Proxy.Chain.Worker.State.t()
+  @spec handle_evm_started(State.t(), map()) :: State.t()
   def handle_evm_started(%State{id: id, start: :existing} = state, details) do
     Logger.debug("#{id}: Existing chain started successfully, have no deployment to perform")
 
@@ -111,8 +111,7 @@ defmodule Proxy.Chain.Worker.ChainHelper do
   @doc """
   handler for deployment finished
   """
-  @spec handle_deployment_finished(Proxy.Chain.Worker.State.t(), binary, map()) ::
-          Proxy.Chain.Worker.State.t()
+  @spec handle_deployment_finished(State.t(), binary, map()) :: State.t()
   def handle_deployment_finished(
         %State{id: id, status: :initializing, deploy_step_id: step_id} = state,
         request_id,
@@ -148,8 +147,7 @@ defmodule Proxy.Chain.Worker.ChainHelper do
   @doc """
   Handle chain status update
   """
-  @spec handle_chain_status_change(Proxy.Chain.Worker.State.t(), atom) ::
-          Proxy.Chain.Worker.State.t()
+  @spec handle_chain_status_change(State.t(), atom) :: State.t()
   def handle_chain_status_change(state, status)
       when status in @proxify_events do
     state

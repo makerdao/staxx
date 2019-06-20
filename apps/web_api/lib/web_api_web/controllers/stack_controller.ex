@@ -5,7 +5,7 @@ defmodule WebApiWeb.StackController do
 
   action_fallback WebApiWeb.FallbackController
 
-  alias Proxy.Chain.Worker.Notification
+  alias Proxy.Chain.Notification
 
   alias WebApiWeb.SuccessView
 

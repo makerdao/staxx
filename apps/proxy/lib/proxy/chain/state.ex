@@ -1,17 +1,17 @@
-defmodule Proxy.Chain.Worker.State do
+defmodule Proxy.Chain.State do
   @moduledoc """
-  Default Worker state
+  Default chain process state
 
-  Worker has it's own statuses a bit different to ExTestchain
+  Chain process has it's own statuses a bit different to ExTestchain
 
-  When new worker is spawning it's status is set to `:initializing` then flow is this:
+  When new chain process is spawning it's status is set to `:initializing` then flow is this:
   `:initializing` -> `:ready` -> `:terminating` -> `:terminated`
   So chain is fully ready only when status is set to `:ready`
   In case of failure status will be set to `:failed`
   """
 
   alias Proxy.Chain.Storage.Record
-  alias Proxy.Chain.Worker.Notification
+  alias Proxy.Chain.Notification
 
   @type status :: :initializing | :ready | :terminating | :terminated | :locked | :failed
 
@@ -73,7 +73,7 @@ defmodule Proxy.Chain.Worker.State do
   end
 
   @doc """
-  Store state into DB. Will call Storage to store worker
+  Store state into DB. Will call Storage to store chain details
   """
   @spec store(t()) :: t()
   def store(%__MODULE__{} = state) do

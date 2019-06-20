@@ -6,7 +6,6 @@ defmodule Docker do
   require Logger
 
   alias Docker.Struct.Container
-  alias Docker.ContainerSupervisor
 
   @doc """
   Get docker executable
@@ -15,8 +14,8 @@ defmodule Docker do
   def executable!(), do: System.find_executable("docker")
 
   # docker run --name=postgres-vdb -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres
-  @spec start_rm(Docker.Struct.Container.t()) ::
-          {:ok, Docker.Struct.Container.t()} | {:error, term}
+  @spec start_rm(Container.t()) ::
+          {:ok, Container.t()} | {:error, term}
   def start_rm(%Container{id: id}) when bit_size(id) > 0,
     do: {:error, "Could not start container with id"}
 
@@ -41,8 +40,12 @@ defmodule Docker do
         id = String.replace(id, "\n", "")
         container = %Container{container | id: id}
 
-        res = ContainerSupervisor.start_container(container)
-        Logger.debug(fn -> "New container started with #{inspect(res)}" end)
+        Logger.debug(fn ->
+          """
+          New Docker container spawned with details:
+            #{inspect(container, pretty: true)}
+          """
+        end)
 
         {:ok, container}
 

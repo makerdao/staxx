@@ -1,6 +1,8 @@
 defmodule Proxy.ExChain do
   @moduledoc """
-  Chain caller
+  ExTestchain application caller
+
+  Module makes list of calls to `ex_testhcain` application runing on another node.
   """
 
   require Logger

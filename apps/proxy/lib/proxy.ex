@@ -6,7 +6,7 @@ defmodule Proxy do
   require Logger
 
   alias Proxy.ExChain
-  alias Proxy.Chain.Worker
+  alias Proxy.Chain
   alias Proxy.Chain.Supervisor, as: ChainSupervisor
 
   @doc """
@@ -30,7 +30,7 @@ defmodule Proxy do
   end
 
   def start(config, pid) when is_map(config) do
-    with %{id: id} = config <- new_chain_config!(config, pid),
+    with %{id: id} = config <- new_chain_config!(config),
          {:ok, _} <- ChainSupervisor.start_chain(config, :new, pid) do
       {:ok, id}
     else
@@ -54,8 +54,8 @@ defmodule Proxy do
   It will generate new uniq chain ID, will bind it to config
   also it will bind node and set `:clean_on_stop` to `false`.
   """
-  @spec new_chain_config!(binary | map, pid | nil) :: map
-  def new_chain_config!(config, notify_pid \\ nil) do
+  @spec new_chain_config!(binary | map) :: map
+  def new_chain_config!(config) do
     with {:node, node} when not is_nil(node) <- {:node, Proxy.NodeManager.node()},
          {:id, id} when is_binary(id) <- {:id, Proxy.ExChain.unique_id(node)} do
       config
@@ -77,17 +77,17 @@ defmodule Proxy do
   @spec stop(binary) :: :ok
   def stop(id) do
     id
-    |> Worker.get_pid()
+    |> Chain.get_pid()
     |> GenServer.cast(:stop)
   end
 
   @doc """
-  Send take snapshot command to worker
+  Send take snapshot command to chain process
   """
   @spec take_snapshot(Chain.evm_id(), binary()) :: :ok | {:error, term()}
   def take_snapshot(id, description \\ "") do
     id
-    |> Worker.get_pid()
+    |> Chain.get_pid()
     |> GenServer.call({:take_snapshot, description})
   end
 
@@ -99,7 +99,7 @@ defmodule Proxy do
   @spec revert_snapshot(Chain.evm_id(), binary) :: :ok | {:error, term()}
   def revert_snapshot(id, snapshot_id) do
     id
-    |> Worker.get_pid()
+    |> Chain.get_pid()
     |> GenServer.call({:revert_snapshot, snapshot_id})
   end
 
