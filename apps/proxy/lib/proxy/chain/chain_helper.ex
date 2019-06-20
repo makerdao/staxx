@@ -14,6 +14,45 @@ defmodule Proxy.Chain.ChainHelper do
   @proxify_events [:active, :snapshot_taking, :snapshot_reverting]
 
   @doc """
+  Convert payload (from POST) to valid chain config
+  """
+  @spec chain_config_from_payload(map) :: map
+  def chain_config_from_payload(payload) when is_map(payload) do
+    %{
+      type: String.to_atom(Map.get(payload, "type", "ganache")),
+      # id: Map.get(payload, "id"),
+      # http_port: Map.get(payload, "http_port"),
+      # ws_port: Map.get(payload, "ws_port"),
+      # db_path: Map.get(payload, "db_path", ""),
+      network_id: Map.get(payload, "network_id", 999),
+      accounts: Map.get(payload, "accounts", 1),
+      block_mine_time: Map.get(payload, "block_mine_time", 0),
+      clean_on_stop: Map.get(payload, "clean_on_stop", false),
+      description: Map.get(payload, "description", ""),
+      snapshot_id: Map.get(payload, "snapshot_id"),
+      deploy_tag: Map.get(payload, "deploy_tag"),
+      step_id: Map.get(payload, "step_id", 0)
+    }
+  end
+
+  @doc """
+  Locks execution before message will be received from chain
+  """
+  @spec wait_chain_event(binary, atom, pos_integer) :: map | :timeout
+  def wait_chain_event(id, event, timeout \\ 30_000) do
+    receive do
+      %{id: ^id, event: ^event} = msg ->
+        msg
+
+      _ ->
+        wait_chain_event(id, event, timeout)
+    after
+      timeout ->
+        :timeout
+    end
+  end
+
+  @doc """
   Handle EVM started event.
 
   Next we have to perform set of steps.

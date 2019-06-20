@@ -17,13 +17,19 @@ defmodule DeploymentScope.Supervisor do
   end
 
   @doc """
-  Start new **supervised** chain process
+  Start new supervision tree for deployment scope.
 
-  Start process will receive configuration or chain id.
-  If chain id passed system will try to start already existing chain in system
-  and no other actions will be made.
+  System will start new supervision tree with all required modules in correct order
+  For more details see `DeploymentScope.Scope.Supervisor`
   """
-  @spec start_watcher(binary) :: DynamicSupervisor.on_start_child()
-  def start_watcher(id),
-    do: DynamicSupervisor.start_child(__MODULE__, {Stacks.Watcher, id})
+  @spec start_scope({binary, binary | map, map}) :: DynamicSupervisor.on_start_child()
+  def start_scope({_id, _chain, _stacks} = params) do
+    child_spec = %{
+      start: {DeploymentScope.Scope.Supervisor, :start_link, [params]},
+      restart: :temporary,
+      type: :supervisor
+    }
+
+    DynamicSupervisor.start_child(__MODULE__, child_spec)
+  end
 end

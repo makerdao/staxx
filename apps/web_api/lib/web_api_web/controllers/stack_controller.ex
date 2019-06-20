@@ -9,8 +9,6 @@ defmodule WebApiWeb.StackController do
 
   alias WebApiWeb.SuccessView
 
-  alias WebApi.Utils
-
   def list(conn, _params) do
     with {:ok, list} <- Stacks.list() do
       conn
@@ -20,23 +18,10 @@ defmodule WebApiWeb.StackController do
     end
   end
 
-  # Start new stack
-  def start(conn, %{"testchain" => %{"config" => %{"id" => id}}} = params) do
-    Logger.debug("#{__MODULE__}: New stack is starting using existing testchain: #{id}")
-
-    with {:ok, id} <- Stacks.start(id, params) do
-      conn
-      |> put_status(200)
-      |> put_view(SuccessView)
-      |> render("200.json", data: %{id: id})
-    end
-  end
-
-  def start(conn, %{"testchain" => %{"config" => chain_config}} = params) do
+  def start(conn, %{"testchain" => _} = params) do
     Logger.debug("#{__MODULE__}: New stack is starting")
-    config = Utils.chain_config_from_payload(chain_config)
 
-    with {:ok, id} <- Stacks.start(config, params) do
+    with {:ok, id} <- DeploymentScope.start(params) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)

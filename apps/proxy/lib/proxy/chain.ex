@@ -14,7 +14,7 @@ defmodule Proxy.Chain do
   alias Chain.EVM.Notification
 
   @doc false
-  def start_link({:existing, id, pid}) when is_binary(id) do
+  def start_link({:existing, id}) when is_binary(id) do
     case Proxy.NodeManager.node() do
       nil ->
         Logger.error("#{id}: No free ex_testchain node for starting EVM.")
@@ -22,12 +22,12 @@ defmodule Proxy.Chain do
 
       node ->
         Logger.debug("#{id}: Node to start existing EVM selected: #{inspect(node)}")
-        state = %State{id: id, start_type: :existing, notify_pid: pid, node: node}
+        state = %State{id: id, start_type: :existing, node: node}
         GenServer.start_link(__MODULE__, {state, nil}, name: via_tuple(id))
     end
   end
 
-  def start_link({:new, %{id: id, node: nil} = config, pid}) when is_map(config) do
+  def start_link({:new, %{id: id, node: nil} = config}) when is_map(config) do
     case Proxy.NodeManager.node() do
       nil ->
         Logger.error("#{id}: No free ex_testchain node for starting EVM.")
@@ -35,15 +35,14 @@ defmodule Proxy.Chain do
 
       node ->
         config = Map.put(config, :node, node)
-        start_link({:new, config, pid})
+        start_link({:new, config})
     end
   end
 
-  def start_link({:new, %{id: id} = config, pid}) when is_map(config) do
+  def start_link({:new, %{id: id} = config}) when is_map(config) do
     state = %State{
       id: id,
       start_type: :new,
-      notify_pid: pid,
       node: Map.get(config, :node),
       deploy_tag: Map.get(config, :deploy_tag),
       deploy_step_id: Map.get(config, :step_id, 0)
@@ -97,7 +96,14 @@ defmodule Proxy.Chain do
   end
 
   @doc false
-  def terminate(_, %State{id: id, node: node}), do: ExChain.stop(node, id)
+  def terminate(_, %State{id: id, node: node}) do
+    Logger.debug(fn -> "Got stop signal... Terminating" end)
+    ExChain.stop(node, id)
+
+    ChainHelper.wait_chain_event(id, :stopped)
+
+    Logger.debug(fn -> "Chain #{id} stopped." end)
+  end
 
   @doc false
   def handle_continue(:deployment_failed, state) do

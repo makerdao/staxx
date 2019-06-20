@@ -30,13 +30,13 @@ defmodule Stacks do
   @doc """
   Start new stack
   """
-  @spec start(map | binary, map, pid | module) :: {:ok, binary} | {:error, term}
-  def start(chain_config_or_id, params, notify_pid \\ nil) do
-    modules = fetch_stacks(params)
+  @spec start(map | binary, map) :: {:ok, binary} | {:error, term}
+  def start(chain_config_or_id, params) do
+    modules = get_stack_names(params)
     Logger.debug("Starting new stack with modules: #{inspect(modules)}")
 
     with :ok <- validate(modules),
-         {:ok, id} <- Proxy.start(chain_config_or_id, notify_pid),
+         {:ok, id} <- Proxy.start(chain_config_or_id),
          {:ok, _pid} <- WatcherSupervisor.start_watcher(id),
          :ok <- start_stack_list(modules, id) do
       Logger.debug("Started new chain for stack #{id}")
@@ -131,9 +131,9 @@ defmodule Stacks do
     |> Enum.each(&send_container_failed(&1, container_id))
   end
 
-  defp start_stack_list([], _id), do: :ok
+  def start_stack_list([], _id), do: :ok
 
-  defp start_stack_list([stack_name | rest], id) do
+  def start_stack_list([stack_name | rest], id) do
     stack_name
     |> ConfigLoader.get()
     |> start_stack(stack_name, id)
@@ -169,8 +169,11 @@ defmodule Stacks do
     {:error, "unknown stack #{stack_name}"}
   end
 
-  # Get list of stacks that need to be started
-  defp fetch_stacks(params) when is_map(params) do
+  @doc """
+  Get list of stack names that need to be started
+  """
+  @spec get_stack_names(map) :: [binary]
+  def get_stack_names(params) when is_map(params) do
     params
     |> Map.keys()
     |> Enum.reject(&(&1 == "testchain"))

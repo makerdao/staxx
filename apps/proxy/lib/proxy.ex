@@ -12,11 +12,9 @@ defmodule Proxy do
   @doc """
   Start new/existing chain
   """
-  @spec start(binary | map(), nil | pid) :: {:ok, binary} | {:error, term()}
-  def start(id_or_config, pid \\ nil)
-
-  def start(id, pid) when is_binary(id) do
-    case ChainSupervisor.start_chain(id, :existing, pid) do
+  @spec start(binary | map()) :: {:ok, binary} | {:error, term()}
+  def start(id) when is_binary(id) do
+    case ChainSupervisor.start_chain(id, :existing) do
       :ok ->
         {:ok, id}
 
@@ -29,9 +27,9 @@ defmodule Proxy do
     end
   end
 
-  def start(config, pid) when is_map(config) do
+  def start(config) when is_map(config) do
     with %{id: id} = config <- new_chain_config!(config),
-         {:ok, _} <- ChainSupervisor.start_chain(config, :new, pid) do
+         {:ok, _} <- ChainSupervisor.start_chain(config, :new) do
       {:ok, id}
     else
       {:node, _} ->

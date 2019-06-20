@@ -9,19 +9,41 @@ defmodule DeploymentScope.Scope.Supervisor do
   """
   use Supervisor
 
-  def start_link(params) do
-    # TODO: Need to get ID ?
-    # Supervisor.start_link(__MODULE__, params,
-    # name: {:via, Registry, {DeploymentScope.ScopeRegistry, id}}
-    # )
-    Supervisor.start_link(__MODULE__, params)
+  require Logger
+
+  @doc """
+  Start new supervision tree for newly created deployment scope
+  """
+  def start_link({id, _chain_config_or_id, _stacks} = params) when is_binary(id) do
+    Supervisor.start_link(__MODULE__, params, name: via_tuple(id))
   end
 
   @impl true
-  def init(params) do
-    children = []
+  def init({_id, chain_config_or_id, stacks}) do
+    children =
+      [
+        chain_child_spec(chain_config_or_id)
+      ] ++ stack_workers(stacks)
 
     opts = [strategy: :one_for_all, max_restarts: 0]
     Supervisor.init(children, opts)
+  end
+
+  @doc """
+  Generate naming via tuple for supervisor
+  """
+  @spec via_tuple(binary) :: {:via, Registry, {DeploymentScope.ScopeRegistry, binary}}
+  def via_tuple(id),
+    do: {:via, Registry, {DeploymentScope.ScopeRegistry, id}}
+
+  defp chain_child_spec(id) when is_binary(id),
+    do: {Proxy.Chain, {:existing, id}}
+
+  defp chain_child_spec(config) when is_map(config),
+    do: {Proxy.Chain, {:new, config}}
+
+  defp stack_workers(stacks) do
+    IO.inspect(stacks)
+    []
   end
 end
