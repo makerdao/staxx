@@ -3,7 +3,7 @@ defmodule Docker.Struct.Container do
   Default container structure and worker.
   """
 
-  use GenServer, restart: :transient
+  use GenServer, restart: :temporary
 
   alias Docker.PortMapper
 
@@ -38,13 +38,35 @@ defmodule Docker.Struct.Container do
     do: GenServer.start_link(__MODULE__, container, name: via_tuple(id))
 
   @doc false
-  def init(%__MODULE__{} = container),
-    do: {:ok, container}
+  def init(%__MODULE__{} = container) do
+    # Enabling trap exit for process
+    Process.flag(:trap_exit, true)
+    {:ok, container}
+  end
+
+  @doc false
+  def handle_info({:EXIT, _from, reason}, state) do
+    Logger.debug(fn ->
+      """
+      Exit trapped for Docker container
+        Exit reason: #{inspect(reason)}
+        Container details:
+          #{inspect(state, pretty: true)}
+      """
+    end)
+
+    {:stop, reason, state}
+  end
 
   @doc false
   def terminate(reason, %__MODULE__{id: id} = state) do
     Logger.debug(fn ->
-      "Docker container #{id} terminating with reason: #{inspect(reason)}.\n #{inspect(state)}"
+      """
+      Docker container #{id} terminating:
+        Reason: #{inspect(reason)}.
+        State:
+        #{inspect(state, pretty: true)}
+      """
     end)
 
     # Unreserve ports
@@ -72,8 +94,8 @@ defmodule Docker.Struct.Container do
   end
 
   @doc """
-  Does port reservation. 
-  It picks random ports from `Docker.PortMapper` and assign ports from container to 
+  Does port reservation.
+  It picks random ports from `Docker.PortMapper` and assign ports from container to
   this random ports.
 
   Example:

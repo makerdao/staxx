@@ -71,6 +71,9 @@ defmodule Proxy.Chain do
     |> Record.config(config)
     |> Record.store()
 
+    # Enabling trap exit for process
+    Process.flag(:trap_exit, true)
+
     {:ok, state}
   end
 
@@ -86,6 +89,9 @@ defmodule Proxy.Chain do
     state
     |> Record.from_state()
     |> Record.store()
+
+    # Enabling trap exit for process
+    Process.flag(:trap_exit, true)
 
     {:ok, state}
   end
@@ -103,6 +109,20 @@ defmodule Proxy.Chain do
       |> State.store()
 
     {:noreply, new_state}
+  end
+
+  @doc false
+  def handle_info({:EXIT, _from, reason}, state) do
+    Logger.debug(fn ->
+      """
+      Exit trapped for chain process
+        Exit reason: #{inspect(reason)}
+        Chain state:
+          #{inspect(state, pretty: true)}
+      """
+    end)
+
+    {:stop, reason, state}
   end
 
   @doc false

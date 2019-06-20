@@ -10,7 +10,7 @@ defmodule DeploymentScope.Scope.Supervisor do
   use Supervisor
 
   def start_link(params) do
-    # TODO: Need to get ID ? 
+    # TODO: Need to get ID ?
     # Supervisor.start_link(__MODULE__, params,
     # name: {:via, Registry, {DeploymentScope.ScopeRegistry, id}}
     # )

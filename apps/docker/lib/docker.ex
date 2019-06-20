@@ -40,6 +40,9 @@ defmodule Docker do
         id = String.replace(id, "\n", "")
         container = %Container{container | id: id}
 
+        # TODO: move to normal supervision tree
+        Docker.ContainerSupervisor.start_container(container)
+
         Logger.debug(fn ->
           """
           New Docker container spawned with details:
