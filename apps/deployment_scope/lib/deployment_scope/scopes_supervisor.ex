@@ -1,10 +1,12 @@
-defmodule DeploymentScope.Supervisor do
+defmodule DeploymentScope.ScopesSupervisor do
   @moduledoc """
   Supervisor that will manage all deployment scopes
   """
 
   # Automatically defines child_spec/1
   use DynamicSupervisor
+
+  alias DeploymentScope.Scope.SupervisorTree
 
   @doc false
   def start_link(arg) do
@@ -13,7 +15,7 @@ defmodule DeploymentScope.Supervisor do
 
   @impl true
   def init(_arg) do
-    DynamicSupervisor.init(strategy: :one_for_one)
+    DynamicSupervisor.init(strategy: :one_for_one, max_restarts: 0)
   end
 
   @doc """
@@ -23,13 +25,9 @@ defmodule DeploymentScope.Supervisor do
   For more details see `DeploymentScope.Scope.Supervisor`
   """
   @spec start_scope({binary, binary | map, map}) :: DynamicSupervisor.on_start_child()
-  def start_scope({_id, _chain, _stacks} = params) do
-    child_spec = %{
-      start: {DeploymentScope.Scope.Supervisor, :start_link, [params]},
-      restart: :temporary,
-      type: :supervisor
-    }
+  def start_scope({_id, _chain, _stacks} = params),
+    do: DynamicSupervisor.start_child(__MODULE__, {SupervisorTree, params})
 
-    DynamicSupervisor.start_child(__MODULE__, child_spec)
-  end
+  def stop_scope(id) when is_binary(id),
+    do: DynamicSupervisor.terminate_child(__MODULE__, SupervisorTree.via_tuple(id))
 end

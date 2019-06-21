@@ -7,7 +7,8 @@ defmodule DeploymentScope do
   require Logger
 
   alias Proxy.Chain.ChainHelper
-  alias DeploymentScope.Scope.Supervisor, as: ScopeSupervisor
+  alias DeploymentScope.ScopesSupervisor
+  alias DeploymentScope.Scope.SupervisorTree
 
   def test() do
     config = %{
@@ -42,7 +43,7 @@ defmodule DeploymentScope do
 
   def start_test() do
     test()
-    |> ScopeSupervisor.start_link()
+    |> ScopesSupervisor.start_scope()
   end
 
   @doc """
@@ -95,7 +96,7 @@ defmodule DeploymentScope do
     Logger.debug("Starting new deployment scope with modules: #{inspect(modules)}")
 
     with :ok <- Stacks.validate(modules),
-         {:ok, pid} <- ScopeSupervisor.start_link({id, chain_config, stacks}) do
+         {:ok, pid} <- ScopesSupervisor.start_scope({id, chain_config, stacks}) do
       Logger.debug("Started chain supervisor tree #{inspect(pid)} for stack #{id}")
       {:ok, id}
     else
@@ -114,7 +115,7 @@ defmodule DeploymentScope do
 
   def stop(id) do
     id
-    |> ScopeSupervisor.via_tuple()
-    |> Supervisor.which_children()
+    |> SupervisorTree.via_tuple()
+    |> Supervisor.stop(:normal)
   end
 end

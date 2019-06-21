@@ -1,4 +1,4 @@
-defmodule DeploymentScope.Scope.Supervisor do
+defmodule DeploymentScope.Scope.SupervisorTree do
   @moduledoc """
   Deployment scope supervisor.
   It controll specific scope for user.
@@ -11,10 +11,20 @@ defmodule DeploymentScope.Scope.Supervisor do
 
   require Logger
 
+  @doc false
+  def child_spec(params) do
+    %{
+      id: __MODULE__,
+      start: {__MODULE__, :start_link, [params]},
+      restart: :temporary,
+      type: :supervisor
+    }
+  end
+
   @doc """
   Start new supervision tree for newly created deployment scope
   """
-  def start_link({id, _chain_config_or_id, _stacks} = params) when is_binary(id) do
+  def start_link({id, _chain_config_or_id, _stacks} = params) do
     Supervisor.start_link(__MODULE__, params, name: via_tuple(id))
   end
 
@@ -43,6 +53,7 @@ defmodule DeploymentScope.Scope.Supervisor do
     do: {Proxy.Chain, {:new, config}}
 
   defp stack_workers(stacks) do
+    IO.inspect("--------------------")
     IO.inspect(stacks)
     []
   end

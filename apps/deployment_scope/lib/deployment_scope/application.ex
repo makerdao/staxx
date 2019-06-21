@@ -8,7 +8,8 @@ defmodule DeploymentScope.Application do
   def start(_type, _args) do
     # List all child processes to be supervised
     children = [
-      {Registry, keys: :unique, name: DeploymentScope.ScopeRegistry}
+      {Registry, keys: :unique, name: DeploymentScope.ScopeRegistry},
+      DeploymentScope.ScopesSupervisor
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

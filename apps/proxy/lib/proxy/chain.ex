@@ -98,11 +98,16 @@ defmodule Proxy.Chain do
   @doc false
   def terminate(_, %State{id: id, node: node}) do
     Logger.debug(fn -> "Got stop signal... Terminating" end)
+    # Sending termination signal
     ExChain.stop(node, id)
 
-    ChainHelper.wait_chain_event(id, :stopped)
+    case ChainHelper.wait_chain_event(id, :stopped) do
+      :timeout ->
+        Logger.error(fn -> "Timed out waiting chain to terminate..." end)
 
-    Logger.debug(fn -> "Chain #{id} stopped." end)
+      _ ->
+        Logger.debug(fn -> "Chain #{id} stopped." end)
+    end
   end
 
   @doc false

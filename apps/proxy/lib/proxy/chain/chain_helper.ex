@@ -5,6 +5,7 @@ defmodule Proxy.Chain.ChainHelper do
 
   require Logger
 
+  alias Chain.EVM.Notification
   alias Proxy.ExChain
   alias Proxy.Chain.State
   alias Proxy.Deployment.StepsFetcher
@@ -41,7 +42,7 @@ defmodule Proxy.Chain.ChainHelper do
   @spec wait_chain_event(binary, atom, pos_integer) :: map | :timeout
   def wait_chain_event(id, event, timeout \\ 30_000) do
     receive do
-      %{id: ^id, event: ^event} = msg ->
+      %Notification{id: ^id, event: ^event} = msg ->
         msg
 
       _ ->
