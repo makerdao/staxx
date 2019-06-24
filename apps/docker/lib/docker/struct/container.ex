@@ -56,6 +56,14 @@ defmodule Docker.Struct.Container do
   def handle_continue(:start_container, %__MODULE__{} = container) do
     case Docker.start_rm(container) do
       {:ok, %__MODULE__{id: id} = started_container} ->
+        Logger.debug(fn ->
+          """
+          Started new container with id: #{id}
+          Details:
+          #{inspect(started_container, pretty: true)}
+          """
+        end)
+
         {:noreply, started_container}
 
       {:error, msg} ->
@@ -66,6 +74,12 @@ defmodule Docker.Struct.Container do
         {:stop, {:shutdown, :failed_to_start}, container}
     end
   end
+
+  # Because of we will spawn new port process in `handle_continue/2`
+  # We have to handle it's termination.
+  # Otherwise system will terminate GenServer and it will send container stop signal
+  def handle_info({:EXIT, from, :normal}, state) when is_port(from),
+    do: {:noreply, state}
 
   @doc false
   def handle_info({:EXIT, _from, reason}, state) do
@@ -150,8 +164,11 @@ defmodule Docker.Struct.Container do
   """
   @spec free_ports(t()) :: t()
   def free_ports(%__MODULE__{ports: ports} = container) do
-    ports
-    |> Enum.each(&free_port/1)
+    updated =
+      ports
+      |> Enum.each(&free_port/1)
+
+    %__MODULE__{container | ports: updated}
   end
 
   # Reserve ports
