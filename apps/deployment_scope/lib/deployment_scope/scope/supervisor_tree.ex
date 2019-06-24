@@ -53,8 +53,12 @@ defmodule DeploymentScope.Scope.SupervisorTree do
     do: {Proxy.Chain, {:new, config}}
 
   defp stack_workers(stacks) do
-    IO.inspect("--------------------")
     IO.inspect(stacks)
+
+    stacks
+    |> Map.keys()
+    |> Enum.uniq()
+
     []
   end
 end

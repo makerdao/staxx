@@ -23,6 +23,8 @@ use Mix.Config
 
 # config :proxy, replace_docker_url: true
 
+config :proxy, ex_chain_adapter: Proxy.ExChain.Remote
+
 config :proxy, deployment_service_url: "http://localhost:5001/rpc"
 config :proxy, deploy_chain_front_url: "host.docker.internal"
 

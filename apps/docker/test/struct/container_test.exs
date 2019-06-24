@@ -4,39 +4,47 @@ defmodule Docker.Struct.ContainerTest do
   alias Docker.Struct.Container
 
   test "fail to start without id" do
-    assert {:error, _} = Container.start_link(%Container{id: ""})
+    assert {:error, _} = Container.start_link(%Container{})
   end
 
   test "should start new container and reserve id" do
-    id = Faker.String.base64()
+    name = Faker.String.base64()
+
+    container = %Container{
+      name: name,
+      image: Faker.String.base64(),
+      network: Faker.String.base64()
+    }
 
     assert {:ok, pid} =
-             %Container{id: id}
+             container
              |> Container.start_link()
 
     Process.monitor(pid)
 
     assert {:error, {:already_started, ^pid}} =
-             %Container{id: id}
+             container
              |> Container.start_link()
 
     assert [{^pid, nil}] =
              Docker.ContainerRegistry
-             |> Registry.lookup(id)
+             |> Registry.lookup(name)
 
-    assert :ok = Container.terminate(id)
+    assert :ok = Container.terminate(name)
 
     assert_receive {:DOWN, _, :process, ^pid, :normal}
   end
 
   test "should reserve port and release on stop" do
-    id = Faker.String.base64()
+    name = Faker.String.base64()
 
     %{ports: [{port, 3000}]} =
       container =
       %Container{
-        id: id,
-        ports: [3000]
+        name: name,
+        ports: [3000],
+        image: Faker.String.base64(),
+        network: Faker.String.base64()
       }
       |> Container.reserve_ports()
 
@@ -45,7 +53,7 @@ defmodule Docker.Struct.ContainerTest do
     Process.monitor(pid)
 
     assert Docker.PortMapper.reserved?(port)
-    assert :ok = Container.terminate(id)
+    assert :ok = Container.terminate(name)
 
     assert_receive {:DOWN, _, :process, ^pid, :normal}
 

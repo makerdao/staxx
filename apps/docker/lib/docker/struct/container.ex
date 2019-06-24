@@ -31,17 +31,40 @@ defmodule Docker.Struct.Container do
   Start new docker container PID with all it's details
   """
   @spec start_link(t()) :: {:ok, pid}
-  def start_link(%__MODULE__{id: ""}),
-    do: {:error, "No docker container ID passed"}
+  def start_link(%__MODULE__{name: ""}),
+    do: {:error, "No docker container Name passed"}
 
-  def start_link(%__MODULE__{id: id} = container) when is_binary(id),
-    do: GenServer.start_link(__MODULE__, container, name: via_tuple(id))
+  def start_link(%__MODULE__{name: name} = container) when is_binary(name),
+    do: GenServer.start_link(__MODULE__, container, name: via_tuple(name))
 
   @doc false
-  def init(%__MODULE__{} = container) do
+  def init(%__MODULE__{id: ""} = container) do
+    # Enabling trap exit for process
+    Process.flag(:trap_exit, true)
+    # In case of missing container ID
+    # it will try to start new container using `Docker.start_rm/1`
+    {:ok, container, {:continue, :start_container}}
+  end
+
+  @doc false
+  def init(%__MODULE__{id: id} = container) when is_binary(id) do
     # Enabling trap exit for process
     Process.flag(:trap_exit, true)
     {:ok, container}
+  end
+
+  def handle_continue(:start_container, %__MODULE__{} = container) do
+    case Docker.start_rm(container) do
+      {:ok, %__MODULE__{id: id} = started_container} ->
+        {:noreply, started_container}
+
+      {:error, msg} ->
+        Logger.error(fn ->
+          "Failed to start new container with err: #{inspect(msg, pretty: true)}"
+        end)
+
+        {:stop, {:shutdown, :failed_to_start}, container}
+    end
   end
 
   @doc false
@@ -68,6 +91,10 @@ defmodule Docker.Struct.Container do
         #{inspect(state, pretty: true)}
       """
     end)
+
+    # Stop container in docker daemon
+    res = Docker.stop(id)
+    Logger.debug(fn -> "Got response from stop container try: #{inspect(res, pretty: true)}" end)
 
     # Unreserve ports
     state
@@ -118,6 +145,15 @@ defmodule Docker.Struct.Container do
     %__MODULE__{container | ports: reserved}
   end
 
+  @doc """
+  Free up ports reserved by container
+  """
+  @spec free_ports(t()) :: t()
+  def free_ports(%__MODULE__{ports: ports} = container) do
+    ports
+    |> Enum.each(&free_port/1)
+  end
+
   # Reserve ports
   defp do_reserve_ports(port) when is_integer(port),
     do: {Docker.PortMapper.random(), port}
@@ -125,10 +161,12 @@ defmodule Docker.Struct.Container do
   defp do_reserve_ports(port), do: port
 
   # Unlocks reserved port
-  defp free_port({reserved_port, _port}),
-    do: PortMapper.terminate(reserved_port)
+  defp free_port({reserved_port, port}) do
+    PortMapper.terminate(reserved_port)
+    port
+  end
 
-  defp free_port(_), do: :ok
+  defp free_port(port), do: port
 
   # Generating name for registry
   defp via_tuple(id) when is_binary(id),
