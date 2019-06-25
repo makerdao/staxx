@@ -54,7 +54,7 @@ defmodule WebApiWeb.StackController do
 
   # Send notification to stack
   def notify(conn, %{"id" => id, "event" => event, "data" => data}) do
-    with true <- Stacks.alive?(id),
+    with true <- DeploymentScope.alive?(id),
          :ok <- Notification.send_to_event_bus(id, event, data) do
       conn
       |> put_status(200)
@@ -70,7 +70,7 @@ defmodule WebApiWeb.StackController do
       data: Map.get(payload, "data", %{})
     }
 
-    with true <- Stacks.alive?(id),
+    with true <- DeploymentScope.alive?(id),
          :ok <- Notification.send_to_event_bus(id, "stack:ready", data) do
       conn
       |> put_status(200)
@@ -86,7 +86,7 @@ defmodule WebApiWeb.StackController do
       data: Map.get(payload, "data", %{})
     }
 
-    with true <- Stacks.alive?(id),
+    with true <- DeploymentScope.alive?(id),
          :ok <- Notification.send_to_event_bus(id, "stack:failed", details) do
       conn
       |> put_status(200)

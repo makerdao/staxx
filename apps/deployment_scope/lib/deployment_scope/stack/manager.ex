@@ -94,14 +94,18 @@ defmodule DeploymentScope.StackManager do
 
   @impl true
   def handle_info({:EXIT, from, reason}, state) do
-    IO.inspect(from)
-    IO.inspect(reason)
-
     Logger.debug(fn ->
       "Some containers failed with non :normal reason #{inspect(from)} - #{inspect(reason)}"
     end)
 
     {:stop, :shutdown, state}
+  end
+
+  @impl true
+  def terminate(_reason, %State{scope_id: id, name: name}) do
+    Logger.debug(fn -> "#{id}: Terminating stack #{name} and it's manager process" end)
+    # TODO: send notification about terminating stack
+    :ok
   end
 
   @doc """
