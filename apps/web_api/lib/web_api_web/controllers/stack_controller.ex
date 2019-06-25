@@ -33,7 +33,7 @@ defmodule WebApiWeb.StackController do
   def stop(conn, %{"id" => id}) do
     Logger.debug("#{__MODULE__}: Stopping stack #{id}")
 
-    with :ok <- Stacks.stop(id) do
+    with :ok <- DeploymentScope.stop(id) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)

@@ -9,6 +9,7 @@ defmodule DeploymentScope.Application do
     # List all child processes to be supervised
     children = [
       {Registry, keys: :unique, name: DeploymentScope.ScopeRegistry},
+      {Registry, keys: :unique, name: DeploymentScope.StackRegistry},
       DeploymentScope.ScopesSupervisor
     ]
 

@@ -5,6 +5,7 @@ defmodule Docker.Struct.Event do
 
   @type t :: %__MODULE__{
           id: binary,
+          name: binary,
           event: binary,
           container: binary,
           attributes: map
@@ -12,6 +13,7 @@ defmodule Docker.Struct.Event do
 
   @derive Jason.Encoder
   defstruct id: "",
+            name: "",
             event: "",
             container: "",
             attributes: %{}

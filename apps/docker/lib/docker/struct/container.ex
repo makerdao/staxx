@@ -27,12 +27,22 @@ defmodule Docker.Struct.Container do
             ports: [],
             env: %{}
 
+  @doc false
+  def child_spec(%__MODULE__{name: name} = container) do
+    %{
+      id: name,
+      start: {__MODULE__, :start_link, [container]},
+      restart: :temporary,
+      type: :worker
+    }
+  end
+
   @doc """
   Start new docker container PID with all it's details
   """
   @spec start_link(t()) :: {:ok, pid}
-  def start_link(%__MODULE__{name: ""}),
-    do: {:error, "No docker container Name passed"}
+  def start_link(%__MODULE__{name: ""} = container),
+    do: start_link(%__MODULE__{container | name: Docker.random_name()})
 
   def start_link(%__MODULE__{name: name} = container) when is_binary(name),
     do: GenServer.start_link(__MODULE__, container, name: via_tuple(name))
@@ -106,9 +116,12 @@ defmodule Docker.Struct.Container do
       """
     end)
 
-    # Stop container in docker daemon
-    res = Docker.stop(id)
-    Logger.debug(fn -> "Got response from stop container try: #{inspect(res, pretty: true)}" end)
+    if id do
+      # Stop container in docker daemon
+      res = Docker.stop(id)
+
+      Logger.debug(fn -> "Got response from stop container try: #{inspect(res, pretty: true)}" end)
+    end
 
     # Unreserve ports
     state
@@ -124,14 +137,30 @@ defmodule Docker.Struct.Container do
     {:stop, :normal, state}
   end
 
+  @doc false
+  def handle_cast(:die, %__MODULE__{id: id} = state) do
+    Logger.debug(fn -> "Container died #{id} PID.\n #{inspect(state)}" end)
+    {:stop, {:shutdown, :died}, state}
+  end
+
   @doc """
-  Terminate container process by container ID
+  Terminate container process by container Name
   """
   @spec terminate(binary) :: :ok
-  def terminate(id) when is_binary(id) do
-    id
+  def terminate(name) when is_binary(name) do
+    name
     |> via_tuple()
     |> GenServer.cast(:terminate)
+  end
+
+  @doc """
+  Send die event from docker to container process by container Name
+  """
+  @spec die(binary) :: :ok
+  def die(name) when is_binary(name) do
+    name
+    |> via_tuple()
+    |> GenServer.cast(:die)
   end
 
   @doc """

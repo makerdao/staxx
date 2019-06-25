@@ -45,11 +45,12 @@ defmodule Docker.EventListener do
           id: Map.get(data, "id"),
           event: Map.get(data, "status"),
           container: Map.get(data, "from"),
+          name: Kernel.get_in(data, ["Actor", "Attributes", "name"]),
           attributes: Kernel.get_in(data, ["Actor", "Attributes"])
         }
 
-        if event.event == "die" do
-          Container.terminate(event.id)
+        if event.event == "die" and event.name do
+          Container.die(event.name)
         end
 
         :docker

@@ -58,7 +58,7 @@ defmodule Stacks do
   @spec start_container(binary, binary, Container.t()) :: :ok | {:error, term}
   def start_container(id, stack_name, %Container{image: image} = container) do
     with {:alive, true} <- {:alive, Watcher.alive?(id)},
-         {:image, true} <- {:image, ConfigLoader.has_image(stack_name, image)},
+         {:image, true} <- {:image, ConfigLoader.has_image?(stack_name, image)},
          {:ok, %{id: container_id, ports: ports} = container} <- Docker.start_rm(container),
          :ok <- Watcher.add_container(id, stack_name, container_id, ports) do
       {:ok, container}

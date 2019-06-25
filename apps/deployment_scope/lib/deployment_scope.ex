@@ -7,8 +7,11 @@ defmodule DeploymentScope do
   require Logger
 
   alias Proxy.Chain.ChainHelper
+  alias Docker.Struct.Container
   alias DeploymentScope.ScopesSupervisor
   alias DeploymentScope.Scope.SupervisorTree
+  alias DeploymentScope.StackManager
+  alias Stacks.Stack.ConfigLoader
 
   def test() do
     config = %{
@@ -113,9 +116,48 @@ defmodule DeploymentScope do
   def start(_, _),
     do: {:error, "wrong chain config"}
 
+  @doc """
+  Stop supervision tree for deployment scope with given ID
+  """
+  @spec stop(binary) :: :ok
   def stop(id) do
     id
     |> SupervisorTree.via_tuple()
     |> Supervisor.stop(:normal)
+  end
+
+  @doc """
+  Check if given deployment scope is alive
+  """
+  @spec alive?(binary) :: boolean
+  def alive?(id) do
+    id
+    |> SupervisorTree.via_tuple()
+    |> GenServer.whereis()
+    |> Process.alive?()
+  end
+
+  @doc """
+  Starting new container for given stack id
+  """
+  @spec start_container(binary, binary, Container.t()) :: :ok | {:error, term}
+  def start_container(id, stack_name, %Container{image: image} = container) do
+    with {:alive, true} <- {:alive, StackManager.alive?(id, stack_name)},
+         {:image, true} <- {:image, ConfigLoader.has_image?(stack_name, image)},
+         {:ok, _pid} <- StackManager.start_container(id, stack_name, container) do
+      {:ok, container}
+    else
+      {:alive, _} ->
+        Logger.error("Stack #{id}: No active stack found for starting new container")
+        {:error, "failed to find stack with id #{id} & name: #{stack_name}"}
+
+      {:image, _} ->
+        Logger.error("Stack #{id}: No image #{image} is allowed for stack #{stack_name}")
+        {:error, "#{image} image is not allowed for stack #{stack_name}"}
+
+      err ->
+        Logger.error("Stack #{id}: failed to start container #{image} with err: #{inspect(err)}")
+        {:error, "failed to start image"}
+    end
   end
 end

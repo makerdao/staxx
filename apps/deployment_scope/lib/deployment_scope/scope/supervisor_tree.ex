@@ -29,11 +29,11 @@ defmodule DeploymentScope.Scope.SupervisorTree do
   end
 
   @impl true
-  def init({_id, chain_config_or_id, stacks}) do
+  def init({id, chain_config_or_id, stacks}) do
     children =
       [
         chain_child_spec(chain_config_or_id)
-      ] ++ stack_workers(stacks)
+      ] ++ stack_workers(id, stacks)
 
     opts = [strategy: :one_for_all, max_restarts: 0]
     Supervisor.init(children, opts)
@@ -52,13 +52,10 @@ defmodule DeploymentScope.Scope.SupervisorTree do
   defp chain_child_spec(config) when is_map(config),
     do: {Proxy.Chain, {:new, config}}
 
-  defp stack_workers(stacks) do
-    IO.inspect(stacks)
-
+  defp stack_workers(scope_id, stacks) do
     stacks
     |> Map.keys()
     |> Enum.uniq()
-
-    []
+    |> Enum.map(&{DeploymentScope.StackManager, {scope_id, &1}})
   end
 end

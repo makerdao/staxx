@@ -3,10 +3,6 @@ defmodule Docker.Struct.ContainerTest do
 
   alias Docker.Struct.Container
 
-  test "fail to start without id" do
-    assert {:error, _} = Container.start_link(%Container{})
-  end
-
   test "should start new container and reserve id" do
     name = Faker.String.base64()
 

@@ -1,6 +1,6 @@
 defmodule Stacks.Stack.ConfigLoader do
   @moduledoc """
-  Module will load list of stack-plugin configs form folder (see: `Application.get_env(:stacks, :stacks_dir)`)
+  Module will load list of stack configs form folder (see: `Application.get_env(:stacks, :stacks_dir)`)
 
   State for config loader will consist of map in format:
   ```elixir
@@ -27,7 +27,7 @@ defmodule Stacks.Stack.ConfigLoader do
   def init(:ok) do
     # Check configuration correctness
     if is_nil(config_folder()) do
-      raise "Stack plugin config folder was not configured !"
+      raise "Stack config folder was not configured !"
     end
 
     # Validate that stack config folder exist
@@ -74,29 +74,29 @@ defmodule Stacks.Stack.ConfigLoader do
   end
 
   @doc """
-  Get list of available (registered in system) stack plugins
+  Get list of available (registered in system) stacks
   """
   @spec get() :: map()
   def get(),
     do: GenServer.call(__MODULE__, :get)
 
   @doc """
-  Get exact stack plugin details
+  Get exact stack details
   """
   @spec get(binary) :: map() | nil
-  def get(plugin_name),
-    do: GenServer.call(__MODULE__, {:get, plugin_name})
+  def get(stack_name),
+    do: GenServer.call(__MODULE__, {:get, stack_name})
 
   @doc """
-  Check if stack plugin has image in it's config.
+  Check if stack has image in it's config.
   If there is no such docker image in config listed, we couldn't start image
   """
-  @spec has_image(binary, binary) :: boolean
-  def has_image(plugin_name, image),
-    do: GenServer.call(__MODULE__, {:has_image, plugin_name, image})
+  @spec has_image?(binary, binary) :: boolean
+  def has_image?(stack_name, image),
+    do: GenServer.call(__MODULE__, {:has_image, stack_name, image})
 
   @doc """
-  Reload stack plugins configuration from disc.
+  Reload stack configuration from disc.
   """
   @spec reload() :: :ok
   def reload(),
@@ -109,7 +109,7 @@ defmodule Stacks.Stack.ConfigLoader do
   def read() do
     config_folder()
     |> File.ls!()
-    |> Enum.map(fn name -> {name, scan_plugin_config(name)} end)
+    |> Enum.map(fn name -> {name, scan_stack_config(name)} end)
     |> Map.new()
   end
 
@@ -117,21 +117,21 @@ defmodule Stacks.Stack.ConfigLoader do
   # Private functions
   #
 
-  defp scan_plugin_config(plugin_name) do
-    plugin_name
+  defp scan_stack_config(stack_name) do
+    stack_name
     |> Path.expand(config_folder())
     |> Path.join(@stack_config_filename)
-    |> parse_config_file(plugin_name)
+    |> parse_config_file(stack_name)
   end
 
   defp parse_config_file(nil, _), do: nil
   defp parse_config_file("", _), do: nil
 
-  defp parse_config_file(path, plugin_name) do
+  defp parse_config_file(path, stack_name) do
     path
     |> File.read!()
     |> Poison.decode!(as: %Config{}, keys: :atoms)
-    |> Map.put(:name, plugin_name)
+    |> Map.put(:name, stack_name)
   end
 
   # Get folder with stacks configuration
