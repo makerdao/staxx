@@ -135,6 +135,14 @@ defmodule DeploymentScope.StackManager do
   end
 
   @doc """
+  Set new status
+  """
+  @spec set_status(binary, binary, status()) :: :ok | {:error, term}
+  def set_status(scope_id, stack_name, status) when is_atom(status) do
+    :ok
+  end
+
+  @doc """
   Generate naming via tuple for stack supervisor
   """
   @spec via_tuple(binary, binary) :: {:via, Registry, {DeploymentScope.StackRegistry, binary}}

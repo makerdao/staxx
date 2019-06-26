@@ -160,4 +160,11 @@ defmodule DeploymentScope do
         {:error, "failed to start image"}
     end
   end
+
+  @doc """
+  Send notification to stack and into event bus as well
+  """
+  @spec notify_stack(binary, binary, StackManager.status(), term) :: :ok | {:error, term}
+  def notify_stack(scope_id, stack_name, event, details \\ %{}) do
+  end
 end
