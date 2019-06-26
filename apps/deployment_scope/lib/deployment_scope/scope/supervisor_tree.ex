@@ -11,6 +11,9 @@ defmodule DeploymentScope.Scope.SupervisorTree do
 
   require Logger
 
+  alias DeploymentScope.Scope.StackManager
+  alias Proxy.Chain
+
   @doc false
   def child_spec(params) do
     %{
@@ -47,15 +50,15 @@ defmodule DeploymentScope.Scope.SupervisorTree do
     do: {:via, Registry, {DeploymentScope.ScopeRegistry, id}}
 
   defp chain_child_spec(id) when is_binary(id),
-    do: {Proxy.Chain, {:existing, id}}
+    do: {Chain, {:existing, id}}
 
   defp chain_child_spec(config) when is_map(config),
-    do: {Proxy.Chain, {:new, config}}
+    do: {Chain, {:new, config}}
 
   defp stack_workers(scope_id, stacks) do
     stacks
     |> Map.keys()
     |> Enum.uniq()
-    |> Enum.map(&{DeploymentScope.StackManager, {scope_id, &1}})
+    |> Enum.map(&{StackManager, {scope_id, &1}})
   end
 end

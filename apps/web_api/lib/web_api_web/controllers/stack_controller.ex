@@ -6,11 +6,12 @@ defmodule WebApiWeb.StackController do
   action_fallback WebApiWeb.FallbackController
 
   alias Proxy.Chain.Notification
+  alias DeploymentScope.Scope.StackManager
 
   alias WebApiWeb.SuccessView
 
   def list(conn, _params) do
-    with {:ok, list} <- Stacks.list() do
+    with {:ok, list} <- {:ok, []} do
       conn
       |> put_status(200)
       |> put_view(SuccessView)
@@ -44,7 +45,7 @@ defmodule WebApiWeb.StackController do
   def info(conn, %{"id" => id}) do
     Logger.debug("#{__MODULE__}: Loading stack #{id} details")
 
-    with urls <- Stacks.info(id) do
+    with urls <- DeploymentScope.info(id) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)
@@ -64,14 +65,8 @@ defmodule WebApiWeb.StackController do
   end
 
   # Send stack ready notification
-  def stack_ready(conn, %{"id" => id, "stack_name" => stack} = payload) do
-    data = %{
-      stack_name: stack,
-      data: Map.get(payload, "data", %{})
-    }
-
-    with true <- DeploymentScope.alive?(id),
-         :ok <- Notification.send_to_event_bus(id, "stack:ready", data) do
+  def stack_ready(conn, %{"id" => id, "stack_name" => stack}) do
+    with :ok <- StackManager.set_status(id, stack, :ready) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)
@@ -80,14 +75,8 @@ defmodule WebApiWeb.StackController do
   end
 
   # Send stacl failed notification
-  def stack_failed(conn, %{"id" => id, "stack_name" => stack} = payload) do
-    details = %{
-      stack_name: stack,
-      data: Map.get(payload, "data", %{})
-    }
-
-    with true <- DeploymentScope.alive?(id),
-         :ok <- Notification.send_to_event_bus(id, "stack:failed", details) do
+  def stack_failed(conn, %{"id" => id, "stack_name" => stack}) do
+    with :ok <- StackManager.set_status(id, stack, :failed) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)

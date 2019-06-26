@@ -10,7 +10,6 @@ defmodule Docker.Application do
     children = [
       # Starts a worker by calling: Docker.Worker.start_link(arg)
       {Registry, keys: :unique, name: Docker.ContainerRegistry},
-      Docker.ContainerSupervisor,
       Docker.PortMapper,
       Docker.EventListener,
       Docker.NetworkRemover

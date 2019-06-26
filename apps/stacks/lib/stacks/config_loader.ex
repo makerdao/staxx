@@ -1,4 +1,4 @@
-defmodule Stacks.Stack.ConfigLoader do
+defmodule Stacks.ConfigLoader do
   @moduledoc """
   Module will load list of stack configs form folder (see: `Application.get_env(:stacks, :stacks_dir)`)
 

@@ -1,4 +1,4 @@
-defmodule DeploymentScope.StackManager do
+defmodule DeploymentScope.Scope.StackManager do
   @moduledoc """
   This process is an owner of list of stack containers.
   It starts with stack name and will supervise list of containers.
@@ -8,7 +8,7 @@ defmodule DeploymentScope.StackManager do
   require Logger
 
   alias Docker.Struct.Container
-  alias Stacks.Stack.ConfigLoader
+  alias Stacks.ConfigLoader
   alias Stacks.Stack.Config
 
   @typedoc """
@@ -22,7 +22,7 @@ defmodule DeploymentScope.StackManager do
     @type t :: %__MODULE__{
             scope_id: binary,
             name: binary,
-            status: DeploymentScope.StackManager.status()
+            status: DeploymentScope.Scope.StackManager.status()
           }
     defstruct scope_id: "", name: "", status: :initializing
   end
@@ -64,6 +64,13 @@ defmodule DeploymentScope.StackManager do
 
         {:error, :failed_to_start}
     end
+  end
+
+  @impl true
+  def handle_cast({:set_status, status}, %State{scope_id: id, name: name} = state) do
+    Logger.debug(fn -> "#{id}: Stack #{name} changed status to #{status}" end)
+    # TODO: Send notification to Event bus
+    {:noreply, %State{state | status: status}}
   end
 
   @impl true
@@ -139,7 +146,9 @@ defmodule DeploymentScope.StackManager do
   """
   @spec set_status(binary, binary, status()) :: :ok | {:error, term}
   def set_status(scope_id, stack_name, status) when is_atom(status) do
-    :ok
+    scope_id
+    |> via_tuple(stack_name)
+    |> GenServer.cast({:set_status, status})
   end
 
   @doc """

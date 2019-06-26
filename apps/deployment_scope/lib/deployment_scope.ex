@@ -10,44 +10,8 @@ defmodule DeploymentScope do
   alias Docker.Struct.Container
   alias DeploymentScope.ScopesSupervisor
   alias DeploymentScope.Scope.SupervisorTree
-  alias DeploymentScope.StackManager
-  alias Stacks.Stack.ConfigLoader
-
-  def test() do
-    config = %{
-      "type" => "geth",
-      "accounts" => 1,
-      "block_mine_time" => 0,
-      "clean_on_stop" => false,
-      "step_id" => 0
-    }
-
-    params = %{
-      "testchain" => %{
-        "config" => config,
-        "deps" => []
-      },
-      "helloworld" => %{
-        "config" => %{},
-        "deps" => ["testchain"]
-      }
-    }
-
-    %{id: id} =
-      chain_config =
-      config
-      |> ChainHelper.chain_config_from_payload()
-      |> Proxy.new_chain_config!()
-
-    stacks = Map.drop(params, ["testchain"])
-
-    {id, chain_config, stacks}
-  end
-
-  def start_test() do
-    test()
-    |> ScopesSupervisor.start_scope()
-  end
+  alias DeploymentScope.Scope.StackManager
+  alias Stacks.ConfigLoader
 
   @doc """
   Start new deployment scope using given configuration
@@ -162,9 +126,10 @@ defmodule DeploymentScope do
   end
 
   @doc """
-  Send notification to stack and into event bus as well
+  Get deployment scope details
   """
-  @spec notify_stack(binary, binary, StackManager.status(), term) :: :ok | {:error, term}
-  def notify_stack(scope_id, stack_name, event, details \\ %{}) do
+  @spec info(binary) :: term
+  def info(_id) do
+    %{}
   end
 end
