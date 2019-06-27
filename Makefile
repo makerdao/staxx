@@ -90,3 +90,16 @@ dc-down:
 	@echo "+ $@"
 	@docker-compose down -v
 .PHONY: dc-down
+
+run-latest:
+	@docker-compose -f ./docker-compose.yaml up -d
+.PHONY: run-latest
+
+stop-latest:
+	@docker-compose -f ./docker-compose.yaml stop
+.PHONY: stop-latest
+
+rm-latest:
+	@echo "====== Stopping and removing running containers"
+	@docker-compose -f docker-compose.yaml rm -s -f
+.PHONY: rm-latest
