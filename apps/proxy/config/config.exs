@@ -46,9 +46,6 @@ config :proxy, oracles_service_url: "http://128.199.52.29:8080/"
 # Is oracles service should be called
 config :proxy, call_oracles: false
 
-# Nats.io configuration
-config :proxy, nats: %{host: "127.0.0.1", port: 4222}
-
 # It is also possible to import configuration files, relative to this
 # directory. For example, you can emulate configuration per environment
 # by uncommenting the line below and defining dev.exs, test.exs and such.

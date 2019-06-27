@@ -1,15 +1,15 @@
-defmodule EventBus.MixProject do
+defmodule Stax.EventStream.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :event_bus,
+      app: :event_stream,
       version: "0.1.0",
       build_path: "../../_build",
       config_path: "../../config/config.exs",
       deps_path: "../../deps",
       lockfile: "../../mix.lock",
-      elixir: "~> 1.7",
+      elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
@@ -19,16 +19,18 @@ defmodule EventBus.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {EventBus.Application, []}
+      mod: {Stax.EventStream.Application, []}
     ]
   end
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:gen_stage, "~> 0.14"},
+      {:event_bus, "~> 1.6.0"},
+      {:uuid, "~> 1.1"},
       {:gnat, "~> 0.6.1"},
-      {:jason, "~> 1.1"}
+      {:jason, "~> 1.1"},
+      {:faker, "~> 0.12", only: :test}
     ]
   end
 end

@@ -12,7 +12,7 @@ defmodule Proxy.Chain.Notification do
   """
   @spec send_to_event_bus(%__MODULE__{}) :: :ok
   def send_to_event_bus(%__MODULE__{} = notification),
-    do: EventBus.dispatch(notification)
+    do: Stax.EventStream.dispatch(notification)
 
   @doc """
   Send custom notification to event bus

@@ -7,6 +7,7 @@ defmodule Docker.EventListener do
   use GenServer
 
   alias Docker.Struct.{Container, Event}
+  alias Stax.EventStream
 
   require Logger
 
@@ -53,9 +54,8 @@ defmodule Docker.EventListener do
           Container.die(event.name)
         end
 
-        :docker
-        |> Application.get_env(:nats_docker_events_topic, "Docker.Events")
-        |> EventBus.push(event)
+        # Logger send docker event to event stream
+        EventStream.dispatch({:docker, event})
 
       {:error, err} ->
         Logger.error("Failed to parse docker event #{inspect(err)}")
