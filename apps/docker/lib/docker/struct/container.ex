@@ -143,6 +143,9 @@ defmodule Docker.Struct.Container do
     {:stop, {:shutdown, :died}, state}
   end
 
+  def handle_call(:info, _from, state),
+    do: {:reply, state, state}
+
   @doc """
   Terminate container process by container Name
   """

@@ -10,11 +10,12 @@ defmodule DeploymentScope.Scope.StackManager do
   alias Docker.Struct.Container
   alias Stacks.ConfigLoader
   alias Stacks.Stack.Config
+  alias Proxy.Chain.Notification
 
   @typedoc """
   Stack status
   """
-  @type status :: :initializing | :ready | :failed
+  @type status :: :initializing | :ready | :failed | :terminate
 
   defmodule State do
     @moduledoc false
@@ -22,9 +23,10 @@ defmodule DeploymentScope.Scope.StackManager do
     @type t :: %__MODULE__{
             scope_id: binary,
             name: binary,
-            status: DeploymentScope.Scope.StackManager.status()
+            status: DeploymentScope.Scope.StackManager.status(),
+            children: [pid]
           }
-    defstruct scope_id: "", name: "", status: :initializing
+    defstruct scope_id: "", name: "", status: :initializing, children: []
   end
 
   @doc """
@@ -55,7 +57,12 @@ defmodule DeploymentScope.Scope.StackManager do
         "#{scope_id}: Loaded manager #{image} for stack #{stack_name} #{inspect(pid)}"
       end)
 
-      {:ok, %State{scope_id: scope_id, name: stack_name}}
+      state = %State{scope_id: scope_id, name: stack_name, children: [pid]}
+
+      # Send notification about stack status init
+      notify_status(state, :initializing)
+
+      {:ok, state}
     else
       err ->
         Logger.debug(fn ->
@@ -69,12 +76,18 @@ defmodule DeploymentScope.Scope.StackManager do
   @impl true
   def handle_cast({:set_status, status}, %State{scope_id: id, name: name} = state) do
     Logger.debug(fn -> "#{id}: Stack #{name} changed status to #{status}" end)
-    # TODO: Send notification to Event bus
+    # Send notification about stack status event
+    notify_status(state, status)
+
     {:noreply, %State{state | status: status}}
   end
 
   @impl true
-  def handle_call({:start_container, container}, _from, %State{scope_id: id, name: name} = state) do
+  def handle_call(
+        {:start_container, container},
+        _from,
+        %State{scope_id: id, name: name, children: children} = state
+      ) do
     case do_start_container(container, name) do
       {:ok, pid} ->
         Logger.debug(fn ->
@@ -84,7 +97,7 @@ defmodule DeploymentScope.Scope.StackManager do
           """
         end)
 
-        {:reply, {:ok, pid}, state}
+        {:reply, {:ok, pid}, %State{state | children: children ++ [pid]}}
 
       {:error, err} ->
         Logger.error(fn ->
@@ -96,11 +109,23 @@ defmodule DeploymentScope.Scope.StackManager do
   end
 
   @impl true
-  def handle_info({:EXIT, _from, :normal}, state),
-    do: {:noreply, state}
+  def handle_call(:info, _from, %State{name: name, status: status, children: children} = state) do
+    res =
+      children
+      |> Enum.map(&Task.async(GenServer, :call, [&1, :info]))
+      |> Enum.map(&Task.await/1)
+
+    {:reply, %{stack_name: name, status: status, containers: res}, state}
+  end
+
+  @impl true
+  def handle_info({:EXIT, from, :normal}, %State{children: children} = state),
+    do: {:noreply, %State{state | children: List.delete(children, from)}}
 
   @impl true
   def handle_info({:EXIT, from, reason}, state) do
+    # No need to remove container pid from children list.
+    # Manager service will terminate
     Logger.debug(fn ->
       "Some containers failed with non :normal reason #{inspect(from)} - #{inspect(reason)}"
     end)
@@ -109,9 +134,9 @@ defmodule DeploymentScope.Scope.StackManager do
   end
 
   @impl true
-  def terminate(_reason, %State{scope_id: id, name: name}) do
+  def terminate(_reason, %State{scope_id: id, name: name} = state) do
     Logger.debug(fn -> "#{id}: Terminating stack #{name} and it's manager process" end)
-    # TODO: send notification about terminating stack
+    notify_status(state, :terminate)
     :ok
   end
 
@@ -149,6 +174,23 @@ defmodule DeploymentScope.Scope.StackManager do
     scope_id
     |> via_tuple(stack_name)
     |> GenServer.cast({:set_status, status})
+  end
+
+  @doc """
+  Get information about stack by pid
+  """
+  @spec info(pid) :: list
+  def info(pid) when is_pid(pid),
+    do: GenServer.call(pid, :info)
+
+  @doc """
+  Get information about stack by id/name pair
+  """
+  @spec info(binary, binary) :: list
+  def info(scope_id, stack_name) do
+    scope_id
+    |> via_tuple(stack_name)
+    |> GenServer.call(:info)
   end
 
   @doc """
@@ -194,4 +236,12 @@ defmodule DeploymentScope.Scope.StackManager do
       "NATS_URL" => "http://host.docker.internal:4222"
     }
   end
+
+  defp notify_status(%State{scope_id: id, name: name}, status),
+    do:
+      Notification.send_to_event_bus(id, "stack:status", %{
+        scope_id: id,
+        stack_name: name,
+        status: status
+      })
 end

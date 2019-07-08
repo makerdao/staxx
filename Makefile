@@ -73,6 +73,10 @@ run-dev:
 	@docker-compose -f ./docker-compose-dev.yml up -d
 .PHONY: run-dev
 
+run-elixir-env:
+	@docker-compose -f ./docker-compose-elixir.yml up -d
+.PHONY: run-elixir-env
+
 stop-dev:
 	@docker-compose -f ./docker-compose-dev.yml stop
 .PHONY: stop-dev

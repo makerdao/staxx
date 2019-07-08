@@ -11,7 +11,7 @@ defmodule WebApiWeb.StackController do
   alias WebApiWeb.SuccessView
 
   def list(conn, _params) do
-    with {:ok, list} <- {:ok, []} do
+    with {:ok, list} <- {:ok, DeploymentScope.list()} do
       conn
       |> put_status(200)
       |> put_view(SuccessView)
@@ -45,11 +45,11 @@ defmodule WebApiWeb.StackController do
   def info(conn, %{"id" => id}) do
     Logger.debug("#{__MODULE__}: Loading stack #{id} details")
 
-    with urls <- DeploymentScope.info(id) do
+    with data <- DeploymentScope.info(id) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)
-      |> render("200.json", data: %{urls: urls})
+      |> render("200.json", data: data)
     end
   end
 

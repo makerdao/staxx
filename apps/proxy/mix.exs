@@ -29,8 +29,7 @@ defmodule Proxy.MixProject do
       {:docker, in_umbrella: true},
       {:event_stream, in_umbrella: true},
       {:httpoison, "~> 1.4"},
-      {:jason, "~> 1.1"},
-      {:gen_stage, "~> 0.14"}
+      {:jason, "~> 1.1"}
     ]
   end
 end

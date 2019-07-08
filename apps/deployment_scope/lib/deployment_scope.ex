@@ -129,7 +129,26 @@ defmodule DeploymentScope do
   Get deployment scope details
   """
   @spec info(binary) :: term
-  def info(_id) do
-    %{}
+  def info(id) do
+    id
+    |> SupervisorTree.via_tuple()
+    |> Supervisor.which_children()
+    |> Enum.filter(fn {module, _, :worker, _} -> module == StackManager end)
+    |> Enum.map(fn {_, pid, :worker, _} -> pid end)
+    |> Enum.map(&StackManager.info/1)
+    |> List.flatten()
+  end
+
+  @doc """
+  Load list of all available deployment scopes in system
+  """
+  @spec list() :: [map]
+  def list() do
+    # ScopesSupervisor
+    # |> Supervisor.which_children()
+    # |> Enum.map(fn {_, pid, :supervisor, _} -> pid end)
+    # |> IO.inspect()
+
+    []
   end
 end
