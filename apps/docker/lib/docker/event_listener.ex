@@ -40,34 +40,16 @@ defmodule Docker.EventListener do
   def handle_info({_port, {:data, msg}}, port) do
     Logger.debug("Got docker event: #{inspect(msg)}")
 
-    case Jason.decode(msg) do
-      {:ok, data} ->
-        event = %Event{
-          id: Map.get(data, "id"),
-          event: Map.get(data, "status"),
-          container: Map.get(data, "from"),
-          name: Kernel.get_in(data, ["Actor", "Attributes", "name"]),
-          attributes: Kernel.get_in(data, ["Actor", "Attributes"])
-        }
-
-        if event.event == "die" and event.name do
-          Container.die(event.name)
-        end
-
-        # Logger send docker event to event stream
-        EventStream.dispatch({:docker, event})
-
-      {:error, err} ->
-        Logger.error("Failed to parse docker event #{inspect(err)}")
-    end
+    msg
+    |> String.split("\n")
+    |> Enum.map(&String.trim/1)
+    |> Enum.each(&propagate_event/1)
 
     {:noreply, port}
   end
 
-  def handle_info(_msg, port) do
-    # IO.inspect(msg)
-    {:noreply, port}
-  end
+  def handle_info(_msg, port),
+    do: {:noreply, port}
 
   # Start new docker events executable
   defp start_executable() do
@@ -110,5 +92,30 @@ defmodule Docker.EventListener do
       "--format",
       "{{json .}}"
     ]
+  end
+
+  defp propagate_event(""), do: :ok
+
+  defp propagate_event(msg) do
+    case Jason.decode(msg) do
+      {:ok, data} ->
+        event = %Event{
+          id: Map.get(data, "id"),
+          event: Map.get(data, "status"),
+          container: Map.get(data, "from"),
+          name: Kernel.get_in(data, ["Actor", "Attributes", "name"]),
+          attributes: Kernel.get_in(data, ["Actor", "Attributes"])
+        }
+
+        if event.event == "die" and event.name do
+          Container.die(event.name)
+        end
+
+        # Logger send docker event to event stream
+        EventStream.dispatch({:docker, event})
+
+      {:error, err} ->
+        Logger.error("Failed to parse docker event #{inspect(err)}")
+    end
   end
 end
