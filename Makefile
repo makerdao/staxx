@@ -1,7 +1,7 @@
 APP_NAME ?= testchain_backendgateway
 APP_VSN ?= 0.1.0
 BUILD ?= `git rev-parse --short HEAD`
-ALPINE_VERSION ?= edge
+ALPINE_VERSION ?= 3.9
 DOCKER_ID_USER ?= makerdao
 MIX_ENV ?= prod
 TAG ?= latest
