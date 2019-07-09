@@ -1,9 +1,9 @@
 defmodule Proxy.Chain.Storage do
   @moduledoc """
-  Storage module that will store all workers that spawn on service
+  Storage module that will store all chain processes that spawn on service
   """
-
   use GenServer
+
   require Logger
 
   alias Proxy.Chain.Storage.Record
@@ -14,7 +14,7 @@ defmodule Proxy.Chain.Storage do
 
   @doc false
   def init(_) do
-    Logger.debug("#{__MODULE__}: Starting chain worker storage")
+    Logger.debug("#{__MODULE__}: Starting chain process storage")
 
     unless File.dir?(db_path()) do
       File.mkdir_p(db_path())
@@ -30,16 +30,16 @@ defmodule Proxy.Chain.Storage do
   end
 
   @doc """
-  Store new worker state in DETS
+  Store new chain process state in DETS
   """
   @spec store(Proxy.Chain.Storage.Record.t()) :: :ok | {:error, term()}
   def store(%Record{id: id} = record),
     do: :dets.insert(table(), {id, record})
 
   @doc """
-  Load all existing worker details
+  Load all existing chain process details
   """
-  @spec all() :: [Proxy.Chain.Worker.State.t()]
+  @spec all() :: [Proxy.Chain.State.t()]
   def all() do
     table()
     |> :dets.match({:_, :"$1"})
@@ -47,7 +47,7 @@ defmodule Proxy.Chain.Storage do
   end
 
   @doc """
-  Get chain worker details by it's id
+  Get chain process details by it's id
   """
   @spec get(binary | %{id: binary}) :: nil | map()
   def get(%{id: id}), do: get(id)
@@ -63,12 +63,12 @@ defmodule Proxy.Chain.Storage do
   end
 
   @doc """
-  Delete existing chain worker details
+  Delete existing chain process details
   """
   @spec delete(binary) :: :ok | {:error, term()}
   def delete(id), do: :dets.delete(table(), id)
 
-  # get path to DETS file for storage chain workers
+  # get path to DETS file for storage chain process
   defp db_path() do
     :proxy
     |> Application.get_env(:dets_db_path)

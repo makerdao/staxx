@@ -1,13 +1,13 @@
 defmodule Proxy.Chain.Storage.Record do
   @moduledoc """
-  Details for chain worker that will be stored into DB
+  Details for chain process that will be stored into DB
   """
 
-  alias Proxy.Chain.Worker.State
+  alias Proxy.Chain.State
 
   @type t :: %__MODULE__{
           id: binary,
-          status: Proxy.Chain.Worker.State.status(),
+          status: Proxy.Chain.State.status(),
           config: map(),
           chain_details: map(),
           deploy_data: map(),
@@ -26,7 +26,7 @@ defmodule Proxy.Chain.Storage.Record do
   @doc """
   Try to load existing data from DB and apply state status
   """
-  @spec from_state(Proxy.Chain.Worker.State.t()) :: t()
+  @spec from_state(Proxy.Chain.State.t()) :: t()
   def from_state(%State{id: id, status: status}) do
     case Proxy.Chain.Storage.get(id) do
       nil ->
@@ -37,7 +37,7 @@ defmodule Proxy.Chain.Storage.Record do
     end
   end
 
-  @spec status(t(), Proxy.Chain.Worker.State.status()) :: t()
+  @spec status(t(), Proxy.Chain.State.status()) :: t()
   def status(%__MODULE__{} = record, status),
     do: %__MODULE__{record | status: status}
 

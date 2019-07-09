@@ -9,7 +9,7 @@ defmodule Stacks.MixProject do
       config_path: "../../config/config.exs",
       deps_path: "../../deps",
       lockfile: "../../mix.lock",
-      elixir: "~> 1.7",
+      elixir: "~> 1.9",
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
@@ -26,11 +26,10 @@ defmodule Stacks.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:docker, in_umbrella: true},
       {:proxy, in_umbrella: true},
-      {:event_bus, in_umbrella: true},
-      {:yaml_elixir, "~> 2.1"},
-      {:poison, "~> 3.1"},
-      {:telemetry, "~> 0.4.0", override: true}
+      {:event_stream, in_umbrella: true},
+      {:poison, "~> 3.1"}
     ]
   end
 end

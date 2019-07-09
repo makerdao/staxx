@@ -7,14 +7,30 @@ defmodule WebApi.ChainMessageHandler do
   use GenServer
 
   require Logger
+  alias Stax.EventStream
 
   @doc false
   def start_link(_), do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
 
   @doc false
   def init(_) do
-    :ok = EventBus.subscribe(EventBus.global())
+    :ok = EventStream.subscribe({__MODULE__, [".*"]})
     {:ok, []}
+  end
+
+  def process({topic, id}),
+    do: GenServer.cast(__MODULE__, {topic, id})
+
+  def handle_cast({topic, id}, state) do
+    case EventStream.fetch_event_data({topic, id}) do
+      %{id: _id, event: _event, data: _data} = msg ->
+        handle_info(msg, state)
+        EventStream.mark_as_completed({__MODULE__, topic, id})
+        {:noreply, state}
+
+      _ ->
+        {:noreply, state}
+    end
   end
 
   # Handle Notification from chain

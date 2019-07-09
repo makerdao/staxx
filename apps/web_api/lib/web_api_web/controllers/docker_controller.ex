@@ -20,7 +20,7 @@ defmodule WebApiWeb.DockerController do
 
     Logger.debug("Stack #{id} Starting new docker container #{inspect(container)}")
 
-    with {:ok, container} <- Stacks.start_container(id, stack_name, container) do
+    with {:ok, container} <- DeploymentScope.start_container(id, stack_name, container) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)
@@ -29,7 +29,7 @@ defmodule WebApiWeb.DockerController do
   end
 
   def stop(conn, %{"id" => id}) do
-    case Proxy.Docker.stop(id) do
+    case Docker.stop(id) do
       {:ok, _id} ->
         conn
         |> put_status(200)
