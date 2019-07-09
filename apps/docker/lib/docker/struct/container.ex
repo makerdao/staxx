@@ -203,6 +203,16 @@ defmodule Docker.Struct.Container do
     %__MODULE__{container | ports: updated}
   end
 
+  @doc """
+  Repacks structure to be able to pass it as normal map that could be easyly encoded.
+  """
+  @spec to_json(t()) :: map
+  def to_json(%__MODULE__{ports: ports} = container) do
+    container
+    |> Map.from_struct()
+    |> Map.put(:ports, rebuild_ports(ports))
+  end
+
   # Reserve ports
   defp do_reserve_ports(port) when is_integer(port),
     do: {Docker.PortMapper.random(), port}
@@ -220,4 +230,31 @@ defmodule Docker.Struct.Container do
   # Generating name for registry
   defp via_tuple(id) when is_binary(id),
     do: {:via, Registry, {Docker.ContainerRegistry, id}}
+
+  defp rebuild_ports(ports) do
+    ports
+    |> Enum.map(&refine_port/1)
+  end
+
+  defp refine_port({binded, port}),
+    do: %{binded => port}
+
+  defp refine_port(port),
+    do: port
+end
+
+defimpl Poison.Encoder, for: Docker.Struct.Container do
+  def encode(container, opts) do
+    container
+    |> Docker.Struct.Container.to_json()
+    |> Poison.Encoder.Map.encode(opts)
+  end
+end
+
+defimpl Jason.Encoder, for: Docker.Struct.Container do
+  def encode(container, opts) do
+    container
+    |> Docker.Struct.Container.to_json()
+    |> Jason.Encode.map(opts)
+  end
 end
