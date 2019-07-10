@@ -83,4 +83,14 @@ defmodule WebApiWeb.StackController do
       |> render("200.json", data: %{})
     end
   end
+
+  # Force to reload config
+  def reload_config(conn, _) do
+    with :ok <- DeploymentScope.reload_config() do
+      conn
+      |> put_status(200)
+      |> put_view(SuccessView)
+      |> render("200.json", data: %{})
+    end
+  end
 end

@@ -43,6 +43,7 @@ defmodule WebApiWeb.Router do
 
   scope "/stack", WebApiWeb do
     pipe_through :api
+    get "/reload", StackController, :reload_config
     post "/start", StackController, :start
     get "/stop/:id", StackController, :stop
     get "/info/:id", StackController, :info
