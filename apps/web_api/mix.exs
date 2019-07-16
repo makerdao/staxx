@@ -9,7 +9,7 @@ defmodule WebApi.MixProject do
       config_path: "../../config/config.exs",
       deps_path: "../../deps",
       lockfile: "../../mix.lock",
-      elixir: "~> 1.5",
+      elixir: "~> 1.9",
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: [:phoenix, :gettext] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
@@ -38,7 +38,7 @@ defmodule WebApi.MixProject do
     [
       {:proxy, in_umbrella: true},
       {:stacks, in_umbrella: true},
-      {:event_bus, in_umbrella: true},
+      {:event_stream, in_umbrella: true},
       {:phoenix, "~> 1.4.0"},
       {:phoenix_pubsub, "~> 1.1"},
       {:gettext, "~> 0.11"},

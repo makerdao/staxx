@@ -9,7 +9,7 @@ defmodule Proxy.MixProject do
       config_path: "../../config/config.exs",
       deps_path: "../../deps",
       lockfile: "../../mix.lock",
-      elixir: "~> 1.7",
+      elixir: "~> 1.9",
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
@@ -26,10 +26,10 @@ defmodule Proxy.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:event_bus, in_umbrella: true},
+      {:docker, in_umbrella: true},
+      {:event_stream, in_umbrella: true},
       {:httpoison, "~> 1.4"},
-      {:jason, "~> 1.1"},
-      {:gen_stage, "~> 0.14"}
+      {:jason, "~> 1.1"}
     ]
   end
 end

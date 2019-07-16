@@ -5,14 +5,13 @@ defmodule WebApiWeb.StackController do
 
   action_fallback WebApiWeb.FallbackController
 
-  alias Proxy.Chain.Worker.Notification
+  alias Proxy.Chain.Notification
+  alias DeploymentScope.Scope.StackManager
 
   alias WebApiWeb.SuccessView
 
-  alias WebApi.Utils
-
   def list(conn, _params) do
-    with {:ok, list} <- Stacks.list() do
+    with {:ok, list} <- {:ok, DeploymentScope.list()} do
       conn
       |> put_status(200)
       |> put_view(SuccessView)
@@ -20,23 +19,10 @@ defmodule WebApiWeb.StackController do
     end
   end
 
-  # Start new stack
-  def start(conn, %{"testchain" => %{"config" => %{"id" => id}}} = params) do
-    Logger.debug("#{__MODULE__}: New stack is starting using existing testchain: #{id}")
-
-    with {:ok, id} <- Stacks.start(id, params) do
-      conn
-      |> put_status(200)
-      |> put_view(SuccessView)
-      |> render("200.json", data: %{id: id})
-    end
-  end
-
-  def start(conn, %{"testchain" => %{"config" => chain_config}} = params) do
+  def start(conn, %{"testchain" => _} = params) do
     Logger.debug("#{__MODULE__}: New stack is starting")
-    config = Utils.chain_config_from_payload(chain_config)
 
-    with {:ok, id} <- Stacks.start(config, params) do
+    with {:ok, id} <- DeploymentScope.start(params) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)
@@ -48,7 +34,7 @@ defmodule WebApiWeb.StackController do
   def stop(conn, %{"id" => id}) do
     Logger.debug("#{__MODULE__}: Stopping stack #{id}")
 
-    with :ok <- Stacks.stop(id) do
+    with :ok <- DeploymentScope.stop(id) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)
@@ -59,17 +45,17 @@ defmodule WebApiWeb.StackController do
   def info(conn, %{"id" => id}) do
     Logger.debug("#{__MODULE__}: Loading stack #{id} details")
 
-    with urls <- Stacks.info(id) do
+    with data <- DeploymentScope.info(id) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)
-      |> render("200.json", data: %{urls: urls})
+      |> render("200.json", data: data)
     end
   end
 
   # Send notification to stack
   def notify(conn, %{"id" => id, "event" => event, "data" => data}) do
-    with true <- Stacks.alive?(id),
+    with true <- DeploymentScope.alive?(id),
          :ok <- Notification.send_to_event_bus(id, event, data) do
       conn
       |> put_status(200)
@@ -79,14 +65,8 @@ defmodule WebApiWeb.StackController do
   end
 
   # Send stack ready notification
-  def stack_ready(conn, %{"id" => id, "stack_name" => stack} = payload) do
-    data = %{
-      stack_name: stack,
-      data: Map.get(payload, "data", %{})
-    }
-
-    with true <- Stacks.alive?(id),
-         :ok <- Notification.send_to_event_bus(id, "stack:ready", data) do
+  def stack_ready(conn, %{"id" => id, "stack_name" => stack}) do
+    with :ok <- StackManager.set_status(id, stack, :ready) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)
@@ -95,14 +75,8 @@ defmodule WebApiWeb.StackController do
   end
 
   # Send stacl failed notification
-  def stack_failed(conn, %{"id" => id, "stack_name" => stack} = payload) do
-    details = %{
-      stack_name: stack,
-      data: Map.get(payload, "data", %{})
-    }
-
-    with true <- Stacks.alive?(id),
-         :ok <- Notification.send_to_event_bus(id, "stack:failed", details) do
+  def stack_failed(conn, %{"id" => id, "stack_name" => stack}) do
+    with :ok <- StackManager.set_status(id, stack, :failed) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)

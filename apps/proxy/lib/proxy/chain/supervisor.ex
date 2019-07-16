@@ -20,12 +20,11 @@ defmodule Proxy.Chain.Supervisor do
   Start new **supervised** chain process
 
   Start process will receive configuration or chain id.
-  If chain id passed system will try to start already existing chain in system 
+  If chain id passed system will try to start already existing chain in system
   and no other actions will be made.
   """
-  @spec start_chain(map() | binary, :new | :existing, nil | pid) ::
+  @spec start_chain(map() | binary, :new | :existing) ::
           DynamicSupervisor.on_start_child()
-  def start_chain(config_or_id, action, pid \\ nil),
-    do:
-      DynamicSupervisor.start_child(__MODULE__, {Proxy.Chain.Worker, {action, config_or_id, pid}})
+  def start_chain(config_or_id, action),
+    do: DynamicSupervisor.start_child(__MODULE__, {Proxy.Chain, {action, config_or_id}})
 end

@@ -7,7 +7,7 @@ defmodule WebApiWeb.ApiChannel do
 
   require Logger
 
-  alias WebApi.Utils
+  alias Proxy.Chain.ChainHelper
 
   def join(_, _, socket), do: {:ok, %{message: "Welcome to ExTestchain !"}, socket}
 
@@ -28,7 +28,7 @@ defmodule WebApiWeb.ApiChannel do
   Start new chain handler
   """
   def handle_in("start", payload, socket) do
-    config = Utils.chain_config_from_payload(payload)
+    config = ChainHelper.chain_config_from_payload(payload)
 
     case Proxy.start(config) do
       {:ok, id} ->

@@ -10,8 +10,8 @@ before_install:
 - docker ps -a
 - mkdir -p /tmp/stacks
 elixir:
-- '1.7'
-otp_release: '21.1'
+  - '1.9'
+otp_release: 22.0
 cache:
   directories:
   - deps

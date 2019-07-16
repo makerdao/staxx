@@ -6,17 +6,15 @@ defmodule Proxy do
   require Logger
 
   alias Proxy.ExChain
-  alias Proxy.Chain.Worker
+  alias Proxy.Chain
   alias Proxy.Chain.Supervisor, as: ChainSupervisor
 
   @doc """
   Start new/existing chain
   """
-  @spec start(binary | map(), nil | pid) :: {:ok, binary} | {:error, term()}
-  def start(id_or_config, pid \\ nil)
-
-  def start(id, pid) when is_binary(id) do
-    case ChainSupervisor.start_chain(id, :existing, pid) do
+  @spec start(binary | map()) :: {:ok, binary} | {:error, term()}
+  def start(id) when is_binary(id) do
+    case ChainSupervisor.start_chain(id, :existing) do
       :ok ->
         {:ok, id}
 
@@ -29,15 +27,9 @@ defmodule Proxy do
     end
   end
 
-  def start(config, pid) when is_map(config) do
-    with {:node, node} when not is_nil(node) <- {:node, Proxy.NodeManager.node()},
-         {:id, id} when is_binary(id) <- {:id, Proxy.ExChain.unique_id(node)},
-         {:ok, _} <-
-           config
-           |> Map.put(:id, id)
-           |> Map.put(:node, node)
-           |> Map.put(:clean_on_stop, false)
-           |> ChainSupervisor.start_chain(:new, pid) do
+  def start(config) when is_map(config) do
+    with %{id: id} = config <- new_chain_config!(config),
+         {:ok, _} <- ChainSupervisor.start_chain(config, :new) do
       {:ok, id}
     else
       {:node, _} ->
@@ -56,22 +48,44 @@ defmodule Proxy do
   end
 
   @doc """
+  Create new chain configuration for given node
+  It will generate new uniq chain ID, will bind it to config
+  also it will bind node and set `:clean_on_stop` to `false`.
+  """
+  @spec new_chain_config!(binary | map) :: map
+  def new_chain_config!(config) do
+    with {:node, node} when not is_nil(node) <- {:node, Proxy.NodeManager.node()},
+         {:id, id} when is_binary(id) <- {:id, Proxy.ExChain.unique_id(node)} do
+      config
+      |> Map.put(:id, id)
+      |> Map.put(:node, node)
+      |> Map.put(:clean_on_stop, false)
+    else
+      {:node, _} ->
+        raise "No active ex_testchain node connected !"
+
+      {:id, _} ->
+        raise "Failed to generrate new id for EVM"
+    end
+  end
+
+  @doc """
   Terminate chain
   """
   @spec stop(binary) :: :ok
   def stop(id) do
     id
-    |> Worker.get_pid()
+    |> Chain.via_tuple()
     |> GenServer.cast(:stop)
   end
 
   @doc """
-  Send take snapshot command to worker
+  Send take snapshot command to chain process
   """
   @spec take_snapshot(Chain.evm_id(), binary()) :: :ok | {:error, term()}
   def take_snapshot(id, description \\ "") do
     id
-    |> Worker.get_pid()
+    |> Chain.via_tuple()
     |> GenServer.call({:take_snapshot, description})
   end
 
@@ -83,7 +97,7 @@ defmodule Proxy do
   @spec revert_snapshot(Chain.evm_id(), binary) :: :ok | {:error, term()}
   def revert_snapshot(id, snapshot_id) do
     id
-    |> Worker.get_pid()
+    |> Chain.via_tuple()
     |> GenServer.call({:revert_snapshot, snapshot_id})
   end
 

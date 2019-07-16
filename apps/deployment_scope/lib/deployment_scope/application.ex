@@ -8,8 +8,9 @@ defmodule DeploymentScope.Application do
   def start(_type, _args) do
     # List all child processes to be supervised
     children = [
-      # Starts a worker by calling: DeploymentScope.Worker.start_link(arg)
-      # {DeploymentScope.Worker, arg}
+      {Registry, keys: :unique, name: DeploymentScope.ScopeRegistry},
+      {Registry, keys: :unique, name: DeploymentScope.StackRegistry},
+      DeploymentScope.ScopesSupervisor
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
