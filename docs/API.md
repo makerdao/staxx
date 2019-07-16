@@ -278,6 +278,7 @@ Request payload:
   "stack_name": "vdb", // <-- stack name (Required)
   "image": "postgres", // <-- Docker image needs to be started (Note you have to specify it into docker-compose.yml)
   "network": "2538928139759187250", // <-- Docker network ID (Optional. Same to Stack ID)
+  "cmd": "--help", // <-- See Dockerfile CMD for more details (Optional)
   "ports": [5432], // <-- Port list needs to be open for public
   "env": { // <-- List of ENV variables needs to be set for docker container
     "POSTGRES_PASSWORD": "postgres"
@@ -299,6 +300,7 @@ Response:
     "name": "cL6dvX3sl-M9v3aIY2w6y0V1Qv1fSHAKnZN-wRsTV6soMfkS", // <-- Host name that your container is accessible in network
     "image": "postgres",
     "id": "39f2097d78495d0db552ee16c6ba6a9bbcf36ead263e198cd0f823e5e8f318d0", // <-- Container ID
+    "cmd": "--help",
     "env": {
       "POSTGRES_PASSWORD": "postgres"
     }
@@ -399,4 +401,61 @@ Response:
      accounts: [ /* ... */ ] // <-- List of created accounts with their private keys and addresses
    }
  }
+```
+
+### Reload stacks configuration
+In case of some changes in stack configuration you might need to reload stacks configurations.
+It could be done by calling `GET /stack/reload` route.
+
+```bash
+curl --request GET \
+  --url http://localhost:4000/stack/reload
+```
+It does not have any request details.
+Response:
+
+```json
+{
+  "status": 0,
+  "message": "",
+  "errors": [],
+  "data": {}
+}
+```
+
+### Get list of available stacks
+For some reason you might need list of available stacks configs.
+
+Request:
+```bash
+curl --request GET \
+  --url http://localhost:4000/stack/list
+```
+
+Response example:
+```json
+{
+  "status": 0,
+  "message": "",
+  "errors": [],
+  "data": {
+    "helloworld": {
+      "title": "Hello World Stack",
+      "scope": "global",
+      "name": "helloworld",
+      "manager": "makerdao/testchain-stack-helloworld",
+      "deps": [
+        "testchain"
+      ],
+      "containers": {
+        "display": {
+          "ports": [
+            3000
+          ],
+          "image": "makerdao/testchain-stack-helloworld-display"
+        }
+      }
+    }
+  }
+}
 ```

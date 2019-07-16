@@ -7,11 +7,13 @@ defmodule WebApiWeb.StackController do
 
   alias Proxy.Chain.Notification
   alias DeploymentScope.Scope.StackManager
+  alias Stacks.ConfigLoader
 
   alias WebApiWeb.SuccessView
 
+  # List of available stack configs
   def list(conn, _params) do
-    with {:ok, list} <- {:ok, DeploymentScope.list()} do
+    with {:ok, list} <- {:ok, ConfigLoader.get()} do
       conn
       |> put_status(200)
       |> put_view(SuccessView)
@@ -77,6 +79,16 @@ defmodule WebApiWeb.StackController do
   # Send stacl failed notification
   def stack_failed(conn, %{"id" => id, "stack_name" => stack}) do
     with :ok <- StackManager.set_status(id, stack, :failed) do
+      conn
+      |> put_status(200)
+      |> put_view(SuccessView)
+      |> render("200.json", data: %{})
+    end
+  end
+
+  # Force to reload config
+  def reload_config(conn, _) do
+    with :ok <- DeploymentScope.reload_config() do
       conn
       |> put_status(200)
       |> put_view(SuccessView)

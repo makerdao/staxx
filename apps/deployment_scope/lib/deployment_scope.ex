@@ -151,4 +151,11 @@ defmodule DeploymentScope do
 
     []
   end
+
+  @doc """
+  Force system to reload all stacks configs
+  """
+  @spec reload_config() :: :ok
+  def reload_config(),
+    do: Stacks.ConfigLoader.reload()
 end
