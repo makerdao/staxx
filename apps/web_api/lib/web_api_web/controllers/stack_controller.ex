@@ -7,11 +7,13 @@ defmodule WebApiWeb.StackController do
 
   alias Proxy.Chain.Notification
   alias DeploymentScope.Scope.StackManager
+  alias Stacks.ConfigLoader
 
   alias WebApiWeb.SuccessView
 
+  # List of available stack configs
   def list(conn, _params) do
-    with {:ok, list} <- {:ok, DeploymentScope.list()} do
+    with {:ok, list} <- {:ok, ConfigLoader.get()} do
       conn
       |> put_status(200)
       |> put_view(SuccessView)

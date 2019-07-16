@@ -14,6 +14,7 @@ defmodule WebApiWeb.DockerController do
       image: Map.get(params, "image", ""),
       name: Map.get(params, "name", ""),
       network: Map.get(params, "network", id),
+      cmd: Map.get(params, "cmd", ""),
       ports: Map.get(params, "ports", []),
       env: parse_env(Map.get(params, "env", %{}))
     }

@@ -130,7 +130,7 @@ defmodule Docker.Adapter.DockerD do
   # Get docker executable
   defp executable!(), do: System.find_executable("docker")
 
-  defp build_start_params(%Container{image: image} = container) do
+  defp build_start_params(%Container{image: image, cmd: cmd} = container) do
     [
       "run",
       "--rm",
@@ -139,7 +139,8 @@ defmodule Docker.Adapter.DockerD do
       build_name(container),
       build_ports(container),
       build_env(container),
-      image
+      image,
+      cmd
     ]
     |> List.flatten()
     |> Enum.reject(&(bit_size(&1) == 0))

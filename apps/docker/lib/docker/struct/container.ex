@@ -10,20 +10,24 @@ defmodule Docker.Struct.Container do
   require Logger
 
   @type t :: %__MODULE__{
+          permanent: boolean,
           id: binary,
           image: binary,
           name: binary,
           description: binary,
           network: binary,
+          cmd: binary,
           ports: [pos_integer | {pos_integer, pos_integer}],
           env: map()
         }
 
-  defstruct id: "",
+  defstruct permanent: true,
+            id: "",
             image: "",
             name: "",
             description: "",
             network: "",
+            cmd: "",
             ports: [],
             env: %{}
 
@@ -181,6 +185,7 @@ defmodule Docker.Struct.Container do
     image: "",
     name: "",
     network: "",
+    cmd: "",
     ports: [{64396, 3000}]
   }
   ```
