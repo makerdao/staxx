@@ -36,7 +36,7 @@ defmodule DeploymentScope.Scope.SupervisorTree do
     children =
       [
         chain_child_spec(chain_config_or_id)
-      ] ++ stack_workers(id, stacks)
+      ] ++ stack_managers(id, stacks)
 
     opts = [strategy: :one_for_all, max_restarts: 0]
     Supervisor.init(children, opts)
@@ -49,16 +49,22 @@ defmodule DeploymentScope.Scope.SupervisorTree do
   def via_tuple(id),
     do: {:via, Registry, {DeploymentScope.ScopeRegistry, id}}
 
+  def start_stack_manager(scope_id, stack_name) do
+    scope_id
+    |> via_tuple()
+    |> Supervisor.start_child(StackManager.child_spec(scope_id, stack_name))
+  end
+
   defp chain_child_spec(id) when is_binary(id),
     do: {Chain, {:existing, id}}
 
   defp chain_child_spec(config) when is_map(config),
     do: {Chain, {:new, config}}
 
-  defp stack_workers(scope_id, stacks) do
+  defp stack_managers(scope_id, stacks) do
     stacks
     |> Map.keys()
     |> Enum.uniq()
-    |> Enum.map(&{StackManager, {scope_id, &1}})
+    |> Enum.map(&StackManager.child_spec(scope_id, &1))
   end
 end
