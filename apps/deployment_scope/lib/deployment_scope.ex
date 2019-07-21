@@ -81,6 +81,14 @@ defmodule DeploymentScope do
     do: {:error, "wrong chain config"}
 
   @doc """
+  Spawn new stack manager service.
+  Helpful for dynamically starting new stacks for existing chains that are already running
+  """
+  @spec spawn_stack_manager(binary, binary) :: DynamicSupervisor.on_start_child()
+  def spawn_stack_manager(scope_id, stack_name),
+    do: SupervisorTree.start_stack_manager(scope_id, stack_name)
+
+  @doc """
   Stop supervision tree for deployment scope with given ID
   """
   @spec stop(binary) :: :ok

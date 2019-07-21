@@ -21,9 +21,14 @@ defmodule WebApiWeb.StackController do
     end
   end
 
-  # def spawn_stack_manager(conn, %{"stack_id" => id, "stack_name" => name}) do
-  #   with {:ok, _} <- DeploymentScope.
-  # end
+  def spawn_stack_manager(conn, %{"id" => id, "stack_name" => name}) do
+    with {:ok, _} <- DeploymentScope.spawn_stack_manager(id, name) do
+      conn
+      |> put_status(200)
+      |> put_view(SuccessView)
+      |> render("200.json", data: %{})
+    end
+  end
 
   def start(conn, %{"testchain" => _} = params) do
     Logger.debug("#{__MODULE__}: New stack is starting")
