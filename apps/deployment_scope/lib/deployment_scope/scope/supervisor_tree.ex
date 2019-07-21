@@ -11,6 +11,7 @@ defmodule DeploymentScope.Scope.SupervisorTree do
 
   require Logger
 
+  alias DeploymentScope.Scope.StackManagerSupervisor
   alias DeploymentScope.Scope.StackManager
   alias Proxy.Chain
 
@@ -33,13 +34,24 @@ defmodule DeploymentScope.Scope.SupervisorTree do
 
   @impl true
   def init({id, chain_config_or_id, stacks}) do
-    children =
-      [
-        chain_child_spec(chain_config_or_id)
-      ] ++ stack_managers(id, stacks)
+    children = [
+      {StackManagerSupervisor, id},
+      chain_child_spec(chain_config_or_id)
+    ]
+
+    # ++ stack_managers(id, stacks)
 
     opts = [strategy: :one_for_all, max_restarts: 0]
-    Supervisor.init(children, opts)
+    res = Supervisor.init(children, opts)
+
+    case res do
+      {:ok, _} ->
+        start_stack_managers(id, stacks)
+        res
+
+      _ ->
+        res
+    end
   end
 
   @doc """
@@ -49,10 +61,30 @@ defmodule DeploymentScope.Scope.SupervisorTree do
   def via_tuple(id),
     do: {:via, Registry, {DeploymentScope.ScopeRegistry, id}}
 
+  @doc """
+  Get StackManagerSupervisor instance binded to this stack
+  """
+  @spec get_stack_manager_supervisor(binary) :: pid | nil
+  def get_stack_manager_supervisor(scope_id) do
+    res =
+      scope_id
+      |> via_tuple()
+      |> Supervisor.which_children()
+      |> Enum.find(nil, fn {module, _pid, _, _} -> module == StackManagerSupervisor end)
+
+    case res do
+      {_, pid, _, _} ->
+        pid
+
+      _ ->
+        nil
+    end
+  end
+
   def start_stack_manager(scope_id, stack_name) do
     scope_id
-    |> via_tuple()
-    |> Supervisor.start_child(StackManager.child_spec(scope_id, stack_name))
+    |> get_stack_manager_supervisor()
+    |> StackManagerSupervisor.start_manager(scope_id, stack_name)
   end
 
   defp chain_child_spec(id) when is_binary(id),
