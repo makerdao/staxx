@@ -81,10 +81,22 @@ defmodule DeploymentScope.Scope.SupervisorTree do
     end
   end
 
+  @doc """
+  Start new stack manager for deployment scope.
+  """
+  @spec start_stack_manager(binary, binary) :: DynamicSupervisor.on_start_child()
   def start_stack_manager(scope_id, stack_name) do
     scope_id
     |> get_stack_manager_supervisor()
     |> StackManagerSupervisor.start_manager(scope_id, stack_name)
+  end
+
+  # Start list of stack managers
+  defp start_stack_managers(scope_id, stacks) do
+    stacks
+    |> Map.keys()
+    |> Enum.uniq()
+    |> Enum.map(&start_stack_manager(scope_id, &1))
   end
 
   defp chain_child_spec(id) when is_binary(id),
@@ -92,11 +104,4 @@ defmodule DeploymentScope.Scope.SupervisorTree do
 
   defp chain_child_spec(config) when is_map(config),
     do: {Chain, {:new, config}}
-
-  defp stack_managers(scope_id, stacks) do
-    stacks
-    |> Map.keys()
-    |> Enum.uniq()
-    |> Enum.map(&StackManager.child_spec(scope_id, &1))
-  end
 end
