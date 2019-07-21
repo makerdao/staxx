@@ -12,7 +12,6 @@ defmodule DeploymentScope.Scope.SupervisorTree do
   require Logger
 
   alias DeploymentScope.Scope.StackManagerSupervisor
-  alias DeploymentScope.Scope.StackManager
   alias Proxy.Chain
 
   @doc false
@@ -28,21 +27,8 @@ defmodule DeploymentScope.Scope.SupervisorTree do
   @doc """
   Start new supervision tree for newly created deployment scope
   """
-  def start_link({id, _chain_config_or_id, _stacks} = params) do
-    Supervisor.start_link(__MODULE__, params, name: via_tuple(id))
-  end
-
-  @impl true
-  def init({id, chain_config_or_id, stacks}) do
-    children = [
-      {StackManagerSupervisor, id},
-      chain_child_spec(chain_config_or_id)
-    ]
-
-    # ++ stack_managers(id, stacks)
-
-    opts = [strategy: :one_for_all, max_restarts: 0]
-    res = Supervisor.init(children, opts)
+  def start_link({id, _chain_config_or_id, stacks} = params) do
+    res = Supervisor.start_link(__MODULE__, params, name: via_tuple(id))
 
     case res do
       {:ok, _} ->
@@ -52,6 +38,19 @@ defmodule DeploymentScope.Scope.SupervisorTree do
       _ ->
         res
     end
+  end
+
+  @impl true
+  def init({id, chain_config_or_id, _stacks}) do
+    children = [
+      {StackManagerSupervisor, id},
+      chain_child_spec(chain_config_or_id)
+    ]
+
+    # ++ stack_managers(id, stacks)
+
+    opts = [strategy: :one_for_all, max_restarts: 0]
+    Supervisor.init(children, opts)
   end
 
   @doc """
