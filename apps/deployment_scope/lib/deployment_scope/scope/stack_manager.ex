@@ -74,6 +74,12 @@ defmodule DeploymentScope.Scope.StackManager do
   end
 
   @impl true
+  def handle_cast(:stop, %State{scope_id: id, name: name} = state) do
+    Logger.debug(fn -> "#{id}: Terminating Stack #{name}" end)
+    {:stop, :normal, state}
+  end
+
+  @impl true
   def handle_cast({:set_status, status}, %State{scope_id: id, name: name} = state) do
     Logger.debug(fn -> "#{id}: Stack #{name} changed status to #{status}" end)
     # Send notification about stack status event
@@ -191,6 +197,16 @@ defmodule DeploymentScope.Scope.StackManager do
     scope_id
     |> via_tuple(stack_name)
     |> GenServer.call(:info)
+  end
+
+  @doc """
+  Send stop comnmand to Stack Manager service
+  """
+  @spec stop(binary, binary) :: :ok
+  def stop(scope_id, stack_name) do
+    scope_id
+    |> via_tuple(stack_name)
+    |> GenServer.cast(:stop)
   end
 
   @doc """

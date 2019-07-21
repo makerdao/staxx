@@ -88,6 +88,10 @@ defmodule DeploymentScope do
   def spawn_stack_manager(scope_id, stack_name),
     do: SupervisorTree.start_stack_manager(scope_id, stack_name)
 
+  @spec stop_stack_manager(binary, binary) :: :ok
+  def stop_stack_manager(scope_id, stack_name),
+    do: StackManager.stop(scope_id, stack_name)
+
   @doc """
   Stop supervision tree for deployment scope with given ID
   """

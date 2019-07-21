@@ -48,7 +48,8 @@ defmodule WebApiWeb.Router do
     post "/start", StackController, :start
     get "/stop/:id", StackController, :stop
     get "/info/:id", StackController, :info
-    post "/start/manager/:id", StackController, :spawn_stack_manager
+    post "/manager/start/:id", StackController, :spawn_stack_manager
+    post "/manager/stop/:id", StackController, :stop_stack_manager
     post "/notify", StackController, :notify
     post "/notify/ready", StackController, :stack_ready
     post "/notify/failed", StackController, :stack_failed
