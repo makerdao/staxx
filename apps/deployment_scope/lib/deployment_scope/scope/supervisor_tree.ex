@@ -11,7 +11,7 @@ defmodule DeploymentScope.Scope.SupervisorTree do
 
   require Logger
 
-  alias DeploymentScope.Scope.StackManager
+  alias DeploymentScope.Scope.StackManagerSupervisor
   alias Proxy.Chain
 
   @doc false
@@ -27,16 +27,27 @@ defmodule DeploymentScope.Scope.SupervisorTree do
   @doc """
   Start new supervision tree for newly created deployment scope
   """
-  def start_link({id, _chain_config_or_id, _stacks} = params) do
-    Supervisor.start_link(__MODULE__, params, name: via_tuple(id))
+  def start_link({id, _chain_config_or_id, stacks} = params) do
+    res = Supervisor.start_link(__MODULE__, params, name: via_tuple(id))
+
+    case res do
+      {:ok, _} ->
+        start_stack_managers(id, stacks)
+        res
+
+      _ ->
+        res
+    end
   end
 
   @impl true
-  def init({id, chain_config_or_id, stacks}) do
-    children =
-      [
-        chain_child_spec(chain_config_or_id)
-      ] ++ stack_workers(id, stacks)
+  def init({id, chain_config_or_id, _stacks}) do
+    children = [
+      {StackManagerSupervisor, id},
+      chain_child_spec(chain_config_or_id)
+    ]
+
+    # ++ stack_managers(id, stacks)
 
     opts = [strategy: :one_for_all, max_restarts: 0]
     Supervisor.init(children, opts)
@@ -49,16 +60,47 @@ defmodule DeploymentScope.Scope.SupervisorTree do
   def via_tuple(id),
     do: {:via, Registry, {DeploymentScope.ScopeRegistry, id}}
 
+  @doc """
+  Get StackManagerSupervisor instance binded to this stack
+  """
+  @spec get_stack_manager_supervisor(binary) :: pid | nil
+  def get_stack_manager_supervisor(scope_id) do
+    res =
+      scope_id
+      |> via_tuple()
+      |> Supervisor.which_children()
+      |> Enum.find(nil, fn {module, _pid, _, _} -> module == StackManagerSupervisor end)
+
+    case res do
+      {_, pid, _, _} ->
+        pid
+
+      _ ->
+        nil
+    end
+  end
+
+  @doc """
+  Start new stack manager for deployment scope.
+  """
+  @spec start_stack_manager(binary, binary) :: DynamicSupervisor.on_start_child()
+  def start_stack_manager(scope_id, stack_name) do
+    scope_id
+    |> get_stack_manager_supervisor()
+    |> StackManagerSupervisor.start_manager(scope_id, stack_name)
+  end
+
+  # Start list of stack managers
+  defp start_stack_managers(scope_id, stacks) do
+    stacks
+    |> Map.keys()
+    |> Enum.uniq()
+    |> Enum.map(&start_stack_manager(scope_id, &1))
+  end
+
   defp chain_child_spec(id) when is_binary(id),
     do: {Chain, {:existing, id}}
 
   defp chain_child_spec(config) when is_map(config),
     do: {Chain, {:new, config}}
-
-  defp stack_workers(scope_id, stacks) do
-    stacks
-    |> Map.keys()
-    |> Enum.uniq()
-    |> Enum.map(&{StackManager, {scope_id, &1}})
-  end
 end

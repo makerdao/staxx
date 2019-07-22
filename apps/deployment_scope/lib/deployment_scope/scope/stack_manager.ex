@@ -29,6 +29,14 @@ defmodule DeploymentScope.Scope.StackManager do
     defstruct scope_id: "", name: "", status: :initializing, children: []
   end
 
+  def child_spec(scope_id, stack_name) do
+    %{
+      id: "#{scope_id}:stack_name",
+      start: {__MODULE__, :start_link, [{scope_id, stack_name}]},
+      restart: :temporary
+    }
+  end
+
   @doc """
   Start new stack supervisor for application
   """
@@ -50,27 +58,25 @@ defmodule DeploymentScope.Scope.StackManager do
 
     Process.flag(:trap_exit, true)
 
-    with %Config{manager: image} <- ConfigLoader.get(stack_name),
-         container <- manager_config(scope_id, stack_name, image),
-         {:ok, pid} <- do_start_container(container, stack_name) do
-      Logger.debug(fn ->
-        "#{scope_id}: Loaded manager #{image} for stack #{stack_name} #{inspect(pid)}"
-      end)
+    res =
+      stack_name
+      |> ConfigLoader.get()
+      |> do_init(scope_id, stack_name)
 
-      state = %State{scope_id: scope_id, name: stack_name, children: [pid]}
+    case res do
+      {:ok, state} ->
+        notify_status(state, :initializing)
+        {:ok, state}
 
-      # Send notification about stack status init
-      notify_status(state, :initializing)
-
-      {:ok, state}
-    else
       err ->
-        Logger.debug(fn ->
-          "#{scope_id}: Something went wrong on starting manager: #{inspect(err)}"
-        end)
-
-        {:error, :failed_to_start}
+        err
     end
+  end
+
+  @impl true
+  def handle_cast(:stop, %State{scope_id: id, name: name} = state) do
+    Logger.debug(fn -> "#{id}: Terminating Stack #{name}" end)
+    {:stop, :normal, state}
   end
 
   @impl true
@@ -194,6 +200,16 @@ defmodule DeploymentScope.Scope.StackManager do
   end
 
   @doc """
+  Send stop comnmand to Stack Manager service
+  """
+  @spec stop(binary, binary) :: :ok
+  def stop(scope_id, stack_name) do
+    scope_id
+    |> via_tuple(stack_name)
+    |> GenServer.cast(:stop)
+  end
+
+  @doc """
   Generate naming via tuple for stack supervisor
   """
   @spec via_tuple(binary, binary) :: {:via, Registry, {DeploymentScope.StackRegistry, binary}}
@@ -203,6 +219,29 @@ defmodule DeploymentScope.Scope.StackManager do
   #
   # Private functions
   #
+  defp do_init(%Config{manager: nil}, scope_id, stack_name) do
+    Logger.debug(fn -> "#{scope_id}: No manager container for stack #{stack_name}" end)
+
+    {:ok, %State{scope_id: scope_id, name: stack_name, children: []}}
+  end
+
+  defp do_init(%Config{manager: image}, scope_id, stack_name) do
+    with container <- manager_config(scope_id, stack_name, image),
+         {:ok, pid} <- do_start_container(container, stack_name) do
+      Logger.debug(fn ->
+        "#{scope_id}: Loaded manager #{image} for stack #{stack_name} #{inspect(pid)}"
+      end)
+
+      {:ok, %State{scope_id: scope_id, name: stack_name, children: [pid]}}
+    else
+      err ->
+        Logger.debug(fn ->
+          "#{scope_id}: Something went wrong on starting manager: #{inspect(err)}"
+        end)
+
+        {:error, :failed_to_start}
+    end
+  end
 
   defp do_start_container(%Container{image: image} = container, stack_name) do
     with true <- ConfigLoader.has_image?(stack_name, image),
