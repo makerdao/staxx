@@ -9,7 +9,7 @@ defmodule Docker do
   @doc """
   Start new docker container using given details
   """
-  @callback start_rm(container :: Container.t()) ::
+  @callback start(container :: Container.t()) ::
               {:ok, Container.t()} | {:error, term}
 
   @doc """
@@ -38,24 +38,24 @@ defmodule Docker do
   @callback join_network(id :: binary, container_id :: binary) :: {:ok, term} | {:error, term}
 
   # docker run --name=postgres-vdb -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres
-  @spec start_rm(Container.t()) ::
+  @spec start(Container.t()) ::
           {:ok, Container.t()} | {:error, term}
-  def start_rm(%Container{id: id}) when bit_size(id) > 0,
+  def start(%Container{id: id}) when bit_size(id) > 0,
     do: {:error, "Could not start container with id"}
 
-  def start_rm(%Container{image: ""}),
+  def start(%Container{image: ""}),
     do: {:error, "Could not start container without image"}
 
-  def start_rm(%Container{network: ""}),
+  def start(%Container{network: ""}),
     do: {:error, "Could not start container without network"}
 
-  def start_rm(%Container{name: ""} = container),
-    do: start_rm(%Container{container | name: random_name()})
+  def start(%Container{name: ""} = container),
+    do: start(%Container{container | name: random_name()})
 
-  def start_rm(%Container{} = container) do
+  def start(%Container{} = container) do
     container = Container.reserve_ports(container)
 
-    case adapter().start_rm(container) do
+    case adapter().start(container) do
       {:ok, updated} ->
         {:ok, updated}
 

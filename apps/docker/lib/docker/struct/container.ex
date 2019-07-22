@@ -18,7 +18,8 @@ defmodule Docker.Struct.Container do
           network: binary,
           cmd: binary,
           ports: [pos_integer | {pos_integer, pos_integer}],
-          env: map()
+          env: map(),
+          dev_mode: boolean()
         }
 
   defstruct permanent: true,
@@ -29,7 +30,8 @@ defmodule Docker.Struct.Container do
             network: "",
             cmd: "",
             ports: [],
-            env: %{}
+            env: %{},
+            dev_mode: false
 
   @doc false
   def child_spec(%__MODULE__{name: name} = container) do
@@ -56,7 +58,7 @@ defmodule Docker.Struct.Container do
     # Enabling trap exit for process
     Process.flag(:trap_exit, true)
     # In case of missing container ID
-    # it will try to start new container using `Docker.start_rm/1`
+    # it will try to start new container using `Docker.start/1`
     {:ok, container, {:continue, :start_container}}
   end
 
@@ -68,7 +70,7 @@ defmodule Docker.Struct.Container do
   end
 
   def handle_continue(:start_container, %__MODULE__{} = container) do
-    case Docker.start_rm(container) do
+    case Docker.start(container) do
       {:ok, %__MODULE__{id: id} = started_container} ->
         Logger.debug(fn ->
           """
@@ -217,6 +219,17 @@ defmodule Docker.Struct.Container do
     |> Map.from_struct()
     |> Map.put(:ports, rebuild_ports(ports))
   end
+
+  @doc """
+  Check if given container is allowed to be run in "Dev Mode".
+  See API docs for more details.
+  """
+  @spec is_dev_mode(t()) :: boolean
+  def is_dev_mode(%__MODULE__{dev_mode: true}),
+    do: Application.get_env(:docker, :dev_mode_allowed, false) == "true"
+
+  def is_dev_mode(_),
+    do: false
 
   # Reserve ports
   defp do_reserve_ports(port) when is_integer(port),

@@ -14,6 +14,10 @@ import Config
 #
 config :docker, wrapper_file: Path.expand("#{__DIR__}/../apps/docker/priv/wrapper.sh")
 
+# If this config is set to `false` `dev_mode` for starting new containers will be ignored !
+# Shuold be set to `false` in cloud env.
+config :docker, dev_mode_allowed: true
+
 #
 # Event bus app config
 #
