@@ -1,6 +1,6 @@
-defmodule Docker.PortMapperTest do
+defmodule Staxx.Docker.PortMapperTest do
   use ExUnit.Case
-  alias Docker.PortMapper
+  alias Staxx.Docker.PortMapper
 
   setup_all do
     PortMapper.start_link([])

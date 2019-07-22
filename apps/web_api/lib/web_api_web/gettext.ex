@@ -1,4 +1,4 @@
-defmodule WebApiWeb.Gettext do
+defmodule Staxx.WebApiWeb.Gettext do
   @moduledoc """
   A module providing Internationalization with a gettext-based API.
 

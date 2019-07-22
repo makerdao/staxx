@@ -1,15 +1,16 @@
-defmodule WebApiWeb.StackController do
-  use WebApiWeb, :controller
+defmodule Staxx.WebApiWeb.StackController do
+  use Staxx.WebApiWeb, :controller
 
   require Logger
 
-  action_fallback WebApiWeb.FallbackController
+  action_fallback Staxx.WebApiWeb.FallbackController
 
-  alias Proxy.Chain.Notification
-  alias DeploymentScope.Scope.StackManager
-  alias Stacks.ConfigLoader
+  alias Staxx.Proxy.Chain.Notification
+  alias Staxx.DeploymentScope
+  alias Staxx.DeploymentScope.Scope.StackManager
+  alias Staxx.DeploymentScope.Stack.ConfigLoader
 
-  alias WebApiWeb.SuccessView
+  alias Staxx.WebApiWeb.SuccessView
 
   # List of available stack configs
   def list(conn, _params) do

@@ -1,7 +1,8 @@
 import Config
 
-config :docker, adapter: Docker.Adapter.DockerD
-config :stacks, stacks_dir: "/tmp/stacks"
+config :docker, adapter: Staxx.Docker.Adapter.DockerD
+
+config :deployment_scope, stacks_dir: "/tmp/stacks"
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
@@ -9,7 +10,7 @@ config :stacks, stacks_dir: "/tmp/stacks"
 # The watchers configuration can be used to run external
 # watchers to your application. For example, we use it
 # with webpack to recompile .js and .css sources.
-config :web_api, WebApiWeb.Endpoint,
+config :web_api, Staxx.WebApiWeb.Endpoint,
   http: [port: 4000],
   debug_errors: false,
   code_reloader: false,

@@ -1,4 +1,4 @@
-defmodule DeploymentScopeTest do
+defmodule Staxx.DeploymentScopeTest do
   use ExUnit.Case
-  doctest DeploymentScope
+  doctest Staxx.DeploymentScope
 end

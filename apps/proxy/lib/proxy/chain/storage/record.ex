@@ -1,13 +1,14 @@
-defmodule Proxy.Chain.Storage.Record do
+defmodule Staxx.Proxy.Chain.Storage.Record do
   @moduledoc """
   Details for chain process that will be stored into DB
   """
 
-  alias Proxy.Chain.State
+  alias Staxx.Proxy.Chain.State
+  alias Staxx.Proxy.Chain.Storage
 
   @type t :: %__MODULE__{
           id: binary,
-          status: Proxy.Chain.State.status(),
+          status: State.status(),
           config: map(),
           chain_details: map(),
           deploy_data: map(),
@@ -26,9 +27,9 @@ defmodule Proxy.Chain.Storage.Record do
   @doc """
   Try to load existing data from DB and apply state status
   """
-  @spec from_state(Proxy.Chain.State.t()) :: t()
+  @spec from_state(State.t()) :: t()
   def from_state(%State{id: id, status: status}) do
-    case Proxy.Chain.Storage.get(id) do
+    case Storage.get(id) do
       nil ->
         %__MODULE__{id: id, status: status}
 
@@ -37,7 +38,7 @@ defmodule Proxy.Chain.Storage.Record do
     end
   end
 
-  @spec status(t(), Proxy.Chain.State.status()) :: t()
+  @spec status(t(), State.status()) :: t()
   def status(%__MODULE__{} = record, status),
     do: %__MODULE__{record | status: status}
 
@@ -80,7 +81,7 @@ defmodule Proxy.Chain.Storage.Record do
 
   @spec store(t()) :: t()
   def store(%__MODULE__{} = rec) do
-    Proxy.Chain.Storage.store(rec)
+    Storage.store(rec)
     rec
   end
 end

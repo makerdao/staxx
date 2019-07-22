@@ -1,11 +1,13 @@
-defmodule Docker.Struct.Container do
+defmodule Staxx.Docker.Struct.Container do
   @moduledoc """
   Default container structure and worker.
   """
 
   use GenServer, restart: :temporary
 
-  alias Docker.PortMapper
+  alias Staxx.Docker
+  alias Staxx.Docker.PortMapper
+  alias Staxx.Docker.ContainerRegistry
 
   require Logger
 
@@ -58,7 +60,7 @@ defmodule Docker.Struct.Container do
     # Enabling trap exit for process
     Process.flag(:trap_exit, true)
     # In case of missing container ID
-    # it will try to start new container using `Docker.start/1`
+    # it will try to start new container using `Staxx.Docker.start/1`
     {:ok, container, {:continue, :start_container}}
   end
 
@@ -174,13 +176,13 @@ defmodule Docker.Struct.Container do
 
   @doc """
   Does port reservation.
-  It picks random ports from `Docker.PortMapper` and assign ports from container to
+  It picks random ports from `Staxx.Docker.PortMapper` and assign ports from container to
   this random ports.
 
   Example:
   ```elixir
-  iex(1)> %Docker.Struct.Container{ports: [3000]} |> Docker.Struct.Container.reserve_ports()
-  %Docker.Struct.Container{
+  iex(1)> %Staxx.Docker.Struct.Container{ports: [3000]} |> Staxx.Docker.Struct.Container.reserve_ports()
+  %Staxx.Docker.Struct.Container{
     description: "",
     env: %{},
     id: "",
@@ -233,7 +235,7 @@ defmodule Docker.Struct.Container do
 
   # Reserve ports
   defp do_reserve_ports(port) when is_integer(port),
-    do: {Docker.PortMapper.random(), port}
+    do: {PortMapper.random(), port}
 
   defp do_reserve_ports(port), do: port
 
@@ -247,7 +249,7 @@ defmodule Docker.Struct.Container do
 
   # Generating name for registry
   defp via_tuple(id) when is_binary(id),
-    do: {:via, Registry, {Docker.ContainerRegistry, id}}
+    do: {:via, Registry, {ContainerRegistry, id}}
 
   defp rebuild_ports(ports) do
     ports
@@ -261,18 +263,18 @@ defmodule Docker.Struct.Container do
     do: port
 end
 
-defimpl Poison.Encoder, for: Docker.Struct.Container do
+defimpl Poison.Encoder, for: Staxx.Docker.Struct.Container do
   def encode(container, opts) do
     container
-    |> Docker.Struct.Container.to_json()
+    |> Staxx.Docker.Struct.Container.to_json()
     |> Poison.Encoder.Map.encode(opts)
   end
 end
 
-defimpl Jason.Encoder, for: Docker.Struct.Container do
+defimpl Jason.Encoder, for: Staxx.Docker.Struct.Container do
   def encode(container, opts) do
     container
-    |> Docker.Struct.Container.to_json()
+    |> Staxx.Docker.Struct.Container.to_json()
     |> Jason.Encode.map(opts)
   end
 end

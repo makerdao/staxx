@@ -14,7 +14,7 @@ Web API for working with QA Dashboard backend
 
 ## STACKS API
 
-### Stacks configuration
+### Staxx configuration
 Stack configuration should be placed to `:stacks_dir` configured.
 By default it's configured to `/tmp/stacks`.
 

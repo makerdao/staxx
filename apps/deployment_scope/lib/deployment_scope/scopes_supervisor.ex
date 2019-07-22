@@ -1,4 +1,4 @@
-defmodule DeploymentScope.ScopesSupervisor do
+defmodule Staxx.DeploymentScope.ScopesSupervisor do
   @moduledoc """
   Supervisor that will manage all deployment scopes
   """
@@ -6,7 +6,7 @@ defmodule DeploymentScope.ScopesSupervisor do
   # Automatically defines child_spec/1
   use DynamicSupervisor
 
-  alias DeploymentScope.Scope.SupervisorTree
+  alias Staxx.DeploymentScope.Scope.SupervisorTree
 
   @doc false
   def start_link(arg) do
@@ -22,7 +22,7 @@ defmodule DeploymentScope.ScopesSupervisor do
   Start new supervision tree for deployment scope.
 
   System will start new supervision tree with all required modules in correct order
-  For more details see `DeploymentScope.Scope.Supervisor`
+  For more details see `Staxx.DeploymentScope.Scope.Supervisor`
   """
   @spec start_scope({binary, binary | map, map}) :: DynamicSupervisor.on_start_child()
   def start_scope({_id, _chain, _stacks} = params),

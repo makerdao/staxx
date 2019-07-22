@@ -1,10 +1,10 @@
-defmodule Docker do
+defmodule Staxx.Docker do
   @moduledoc """
   Set of docker commands
   """
   require Logger
 
-  alias Docker.Struct.Container
+  alias Staxx.Docker.Struct.Container
 
   @doc """
   Start new docker container using given details

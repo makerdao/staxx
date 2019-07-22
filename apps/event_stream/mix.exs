@@ -1,4 +1,4 @@
-defmodule Stax.EventStream.MixProject do
+defmodule Staxx.EventStream.MixProject do
   use Mix.Project
 
   def project do
@@ -19,7 +19,7 @@ defmodule Stax.EventStream.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {Stax.EventStream.Application, []}
+      mod: {Staxx.EventStream.Application, []}
     ]
   end
 

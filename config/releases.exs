@@ -10,5 +10,4 @@ config :proxy, deployment_steps_fetch_timeout: 30_000
 
 config :event_stream, nats: %{host: System.fetch_env!("NATS_URL"), port: 4222}
 
-config :stacks, stacks_dir: System.fetch_env!("STACKS_DIR")
-config :stacks, front_url: System.fetch_env!("STACKS_FRONT_URL")
+config :deployment_scope, stacks_dir: System.fetch_env!("STACKS_DIR")

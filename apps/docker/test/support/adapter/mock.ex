@@ -1,12 +1,12 @@
-defmodule Docker.Adapter.Mock do
+defmodule Staxx.Docker.Adapter.Mock do
   @moduledoc """
   Set of docker commands that will be running on read docker daemon
   """
-  @behaviour Docker
+  @behaviour Staxx.Docker
 
   require Logger
 
-  alias Docker.Struct.Container
+  alias Staxx.Docker.Struct.Container
 
   @impl true
   def start(%Container{name: name} = container),

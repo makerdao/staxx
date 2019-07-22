@@ -1,4 +1,4 @@
-defmodule Docker.MixProject do
+defmodule Staxx.Docker.MixProject do
   use Mix.Project
 
   def project do
@@ -20,7 +20,7 @@ defmodule Docker.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {Docker.Application, []}
+      mod: {Staxx.Docker.Application, []}
     ]
   end
 

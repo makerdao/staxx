@@ -10,6 +10,11 @@
 import Config
 
 #
+# Deployemnt Scope configs
+#
+config :deployment_scope, stacks_dir: "/tmp/stacks"
+
+#
 # Docker configs
 #
 config :docker, wrapper_file: Path.expand("#{__DIR__}/../apps/docker/priv/wrapper.sh")
@@ -35,7 +40,7 @@ config :event_stream, nats_docker_events_topic: "Prefix.Docker.Events"
 # Proxy application config
 #
 # config :proxy, replace_docker_url: true
-config :proxy, ex_chain_adapter: Proxy.ExChain.Remote
+config :proxy, ex_chain_adapter: Staxx.Proxy.ExChain.Remote
 config :proxy, deployment_service_url: "http://localhost:5001/rpc"
 config :proxy, deploy_chain_front_url: "host.docker.internal"
 config :proxy, deployment_steps_fetch_timeout: 30_000
@@ -47,22 +52,16 @@ config :proxy, snapshot_path: "/tmp/snapshots"
 config :proxy, deployment_timeout: 1_800_000
 config :proxy, action_timeout: 600_000
 
-#
-# Stacks configs
-#
-config :stacks, ecto_repos: [Stacks.Repo]
-config :stacks, docker_events_topic: "Prefix.Docker.Events"
-config :stacks, front_url: "http://localhost"
 
 #
 # WebAPI configs
 #
 # Configures the endpoint
-config :web_api, WebApiWeb.Endpoint,
+config :web_api, Staxx.WebApiWeb.Endpoint,
   url: [host: "localhost"],
   secret_key_base: "JVM+w2YiFWxOCzzCpZFhyDTygERfvFXEWMqAThkzfBnRqcsw/mskVPOJ9hCP8pcu",
-  render_errors: [view: WebApiWeb.ErrorView, accepts: ~w(json)],
-  pubsub: [name: WebApi.PubSub, adapter: Phoenix.PubSub.PG2]
+  render_errors: [view: Staxx.WebApiWeb.ErrorView, accepts: ~w(json)],
+  pubsub: [name: Staxx.WebApi.PubSub, adapter: Phoenix.PubSub.PG2]
 
 # Use Jason for JSON parsing in Phoenix
 # config :phoenix, :json_library, Jason

@@ -1,16 +1,16 @@
-defmodule WebApiWeb.Router do
-  use WebApiWeb, :router
+defmodule Staxx.WebApiWeb.Router do
+  use Staxx.WebApiWeb, :router
 
   pipeline :api do
     plug :accepts, ["json"]
   end
 
-  scope "/", WebApiWeb do
+  scope "/", Staxx.WebApiWeb do
     match :*, "/", IndexController, :index
     match :*, "/version", ChainController, :version
   end
 
-  scope "/", WebApiWeb do
+  scope "/", Staxx.WebApiWeb do
     pipe_through :api
     post "/rpc", InternalController, :rpc
     get "/chains", ChainController, :chain_list
@@ -20,7 +20,7 @@ defmodule WebApiWeb.Router do
     delete "/snapshot/:id", ChainController, :remove_snapshot
   end
 
-  scope "/deployment", WebApiWeb do
+  scope "/deployment", Staxx.WebApiWeb do
     pipe_through :api
     get "/steps", DeploymentController, :steps
     # This is tmp route for testing only !
@@ -28,20 +28,20 @@ defmodule WebApiWeb.Router do
     get "/commits", DeploymentController, :commit_list
   end
 
-  scope "/chain", WebApiWeb do
+  scope "/chain", Staxx.WebApiWeb do
     pipe_through :api
     delete "/:id", ChainController, :remove_chain
     get "/:id", ChainController, :details
     get "/stop/:id", ChainController, :stop
   end
 
-  scope "/docker", WebApiWeb do
+  scope "/docker", Staxx.WebApiWeb do
     pipe_through :api
     post "/start", DockerController, :start
     get "/stop/:id", DockerController, :stop
   end
 
-  scope "/stack", WebApiWeb do
+  scope "/stack", Staxx.WebApiWeb do
     pipe_through :api
     get "/list", StackController, :list
     get "/reload", StackController, :reload_config

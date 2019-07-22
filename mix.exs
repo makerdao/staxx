@@ -1,4 +1,4 @@
-defmodule TestchainBackend.MixProject do
+defmodule Staxx.MixProject do
   use Mix.Project
 
   def project do
@@ -13,7 +13,7 @@ defmodule TestchainBackend.MixProject do
 
   defp releases() do
     [
-      testchain_backendgateway: [
+      staxx: [
         include_executables_for: [:unix],
         applications: [
           runtime_tools: :permanent,
@@ -21,7 +21,6 @@ defmodule TestchainBackend.MixProject do
           docker: :permanent,
           event_bus: :permanent,
           proxy: :permanent,
-          stacks: :permanent,
           web_api: :permanent
         ]
       ]

@@ -1,5 +1,5 @@
-defmodule WebApiWeb.IndexController do
-  use WebApiWeb, :controller
+defmodule Staxx.WebApiWeb.IndexController do
+  use Staxx.WebApiWeb, :controller
 
   # Welcome action
   def index(conn, _params) do

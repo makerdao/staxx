@@ -1,4 +1,4 @@
-defmodule DockerTest do
+defmodule Staxx.DockerTest do
   use ExUnit.Case
-  doctest Docker
+  doctest Staxx.Docker
 end

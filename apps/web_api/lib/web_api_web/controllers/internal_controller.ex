@@ -1,8 +1,9 @@
-defmodule WebApiWeb.InternalController do
-  use WebApiWeb, :controller
+defmodule Staxx.WebApiWeb.InternalController do
+  use Staxx.WebApiWeb, :controller
   require Logger
 
-  alias Proxy.Deployment.ServiceList
+  alias Staxx.Proxy.Chain
+  alias Staxx.Proxy.Deployment.{Deployer, ProcessWatcher, ServiceList}
 
   @doc false
   def rpc(conn, %{"id" => id, "method" => "RegisterDeployment", "data" => data}) do
@@ -42,7 +43,7 @@ defmodule WebApiWeb.InternalController do
   def rpc(conn, %{"method" => "CheckoutResult", "data" => data}) do
     id = Map.get(data, "id")
     Logger.info("Request id #{id}, checkout successfull, data: #{inspect(data)}")
-    Proxy.Deployment.Deployer.handle(id, {:checkout, data})
+    Deployer.handle(id, {:checkout, data})
 
     conn
     |> json(%{type: "ok"})
@@ -57,13 +58,13 @@ defmodule WebApiWeb.InternalController do
   end
 
   defp process_deployment_result(%{"id" => id, "type" => "error", "result" => result}) do
-    case Proxy.Deployment.ProcessWatcher.pop(id) do
+    case ProcessWatcher.pop(id) do
       nil ->
         Logger.debug("No process found that want to handle deployment request with id: #{id}")
 
       chain_id when is_binary(chain_id) ->
         Logger.debug("Chain #{chain_id} need to handle deployment request")
-        Proxy.Chain.handle_deployment_failure(chain_id, id, result)
+        Chain.handle_deployment_failure(chain_id, id, result)
 
       _ ->
         Logger.error("Something wrong with fetching deployemnt result #{id}")
@@ -71,13 +72,13 @@ defmodule WebApiWeb.InternalController do
   end
 
   defp process_deployment_result(%{"id" => id, "type" => "ok", "result" => %{"data" => data}}) do
-    case Proxy.Deployment.ProcessWatcher.pop(id) do
+    case ProcessWatcher.pop(id) do
       nil ->
         Logger.debug("No process found that want to handle deployment request with id: #{id}")
 
       chain_id when is_binary(chain_id) ->
         Logger.debug("Chain #{chain_id} need to handle deployment request")
-        Proxy.Chain.handle_deployment(chain_id, id, data)
+        Chain.handle_deployment(chain_id, id, data)
 
       _ ->
         Logger.error("Something wrong with fetching deployemnt result #{id}")

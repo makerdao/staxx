@@ -1,13 +1,14 @@
-defmodule Proxy.Deployment.Deployer do
+defmodule Staxx.Proxy.Deployment.Deployer do
   @moduledoc """
   Module is responsible for deployment processes
   """
 
   require Logger
 
-  alias Proxy.Deployment.BaseApi
-  alias Proxy.Deployment.StepsFetcher
-  alias Proxy.Deployment.TaskSupervisor
+  alias Staxx.Proxy.DeploymentRegistry
+  alias Staxx.Proxy.Deployment.BaseApi
+  alias Staxx.Proxy.Deployment.StepsFetcher
+  alias Staxx.Proxy.Deployment.TaskSupervisor
 
   @timeout Application.get_env(:proxy, :action_timeout)
 
@@ -24,7 +25,7 @@ defmodule Proxy.Deployment.Deployer do
   """
   @spec handle(binary, term) :: :ok
   def handle(request_id, data) do
-    Registry.dispatch(Proxy.Deployment.Registry, request_id, fn entries ->
+    Registry.dispatch(DeploymentRegistry, request_id, fn entries ->
       for {pid, _} <- entries, do: send(pid, data)
     end)
   end
@@ -40,7 +41,7 @@ defmodule Proxy.Deployment.Deployer do
 
     TaskSupervisor
     |> Task.Supervisor.async(fn ->
-      {:ok, _} = Registry.register(Proxy.Deployment.Registry, req_id, [])
+      {:ok, _} = Registry.register(DeploymentRegistry, req_id, [])
       {:ok, _} = BaseApi.checkout(req_id, commit)
 
       receive do
@@ -73,7 +74,7 @@ defmodule Proxy.Deployment.Deployer do
 
     TaskSupervisor
     |> Task.Supervisor.async(fn ->
-      {:ok, _} = Registry.register(Proxy.Deployment.Registry, request_id, [])
+      {:ok, _} = Registry.register(DeploymentRegistry, request_id, [])
       {:ok, _} = BaseApi.run(request_id, step_id, env)
 
       # receive do

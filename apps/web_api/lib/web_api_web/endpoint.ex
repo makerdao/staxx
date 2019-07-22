@@ -1,7 +1,7 @@
-defmodule WebApiWeb.Endpoint do
+defmodule Staxx.WebApiWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :web_api
 
-  socket "/socket", WebApiWeb.UserSocket,
+  socket "/socket", Staxx.WebApiWeb.UserSocket,
     websocket: true,
     longpoll: false
 
@@ -45,5 +45,5 @@ defmodule WebApiWeb.Endpoint do
     allow_headers: :all,
     log: [rejected: :error, invalid: :warn, accepted: :debug]
 
-  plug WebApiWeb.Router
+  plug Staxx.WebApiWeb.Router
 end

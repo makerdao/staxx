@@ -1,10 +1,10 @@
-defmodule DeploymentScope.Scope.StackManagerSupervisor do
+defmodule Staxx.DeploymentScope.Scope.StackManagerSupervisor do
   @moduledoc """
   This supervisor will take care of list of available stacks
   """
   use DynamicSupervisor
 
-  alias DeploymentScope.Scope.StackManager
+  alias Staxx.DeploymentScope.Scope.StackManager
 
   @doc """
   Start a new supervisor for manage StackManagers

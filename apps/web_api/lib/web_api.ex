@@ -1,4 +1,4 @@
-defmodule WebApi do
+defmodule Staxx.WebApi do
   @moduledoc """
   WebApi keeps the contexts that define your domain
   and business logic.

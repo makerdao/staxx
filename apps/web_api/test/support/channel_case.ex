@@ -1,4 +1,4 @@
-defmodule WebApiWeb.ChannelCase do
+defmodule Staxx.WebApiWeb.ChannelCase do
   @moduledoc """
   This module defines the test case to be used by
   channel tests.
@@ -21,7 +21,7 @@ defmodule WebApiWeb.ChannelCase do
       use Phoenix.ChannelTest
 
       # The default endpoint for testing
-      @endpoint WebApiWeb.Endpoint
+      @endpoint Staxx.WebApiWeb.Endpoint
     end
   end
 

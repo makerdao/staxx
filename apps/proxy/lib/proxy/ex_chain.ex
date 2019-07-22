@@ -1,4 +1,4 @@
-defmodule Proxy.ExChain do
+defmodule Staxx.Proxy.ExChain do
   @moduledoc """
   ExTestchain application caller
 

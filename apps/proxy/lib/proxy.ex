@@ -1,13 +1,15 @@
-defmodule Proxy do
+defmodule Staxx.Proxy do
   @moduledoc """
   Proxy service functions
   """
 
   require Logger
 
-  alias Proxy.ExChain
-  alias Proxy.Chain
-  alias Proxy.Chain.Supervisor, as: ChainSupervisor
+  alias Staxx.Proxy.ExChain
+  alias Staxx.Proxy.Chain
+  alias Staxx.Proxy.NodeManager
+  alias Staxx.Proxy.Chain.Storage
+  alias Staxx.Proxy.Chain.Supervisor, as: ChainSupervisor
 
   @doc """
   Start new/existing chain
@@ -54,8 +56,8 @@ defmodule Proxy do
   """
   @spec new_chain_config!(binary | map) :: map
   def new_chain_config!(config) do
-    with {:node, node} when not is_nil(node) <- {:node, Proxy.NodeManager.node()},
-         {:id, id} when is_binary(id) <- {:id, Proxy.ExChain.unique_id(node)} do
+    with {:node, node} when not is_nil(node) <- {:node, NodeManager.node()},
+         {:id, id} when is_binary(id) <- {:id, ExChain.unique_id(node)} do
       config
       |> Map.put(:id, id)
       |> Map.put(:node, node)
@@ -106,7 +108,7 @@ defmodule Proxy do
   """
   @spec get_snapshot(binary) :: map() | ExChain.ex_response()
   def get_snapshot(snapshot_id) do
-    Proxy.NodeManager.node()
+    NodeManager.node()
     |> ExChain.get_snapshot(snapshot_id)
   end
 
@@ -115,7 +117,7 @@ defmodule Proxy do
   """
   @spec remove_snapshot(binary) :: :ok | ExChain.ex_response()
   def remove_snapshot(snapshot_id) do
-    Proxy.NodeManager.node()
+    NodeManager.node()
     |> ExChain.remove_snapshot(snapshot_id)
   end
 
@@ -125,7 +127,7 @@ defmodule Proxy do
   """
   @spec upload_snapshot(binary, Chain.evm_type(), binary) :: {:ok, term} | ExChain.ex_response()
   def upload_snapshot(snapshot_id, chain_type, description \\ "") do
-    Proxy.NodeManager.node()
+    NodeManager.node()
     |> ExChain.upload_snapshot(snapshot_id, chain_type, description)
   end
 
@@ -134,9 +136,9 @@ defmodule Proxy do
   """
   @spec clean(binary) :: :ok | {:error, binary}
   def clean(id) do
-    with {:node, node} when not is_nil(node) <- {:node, Proxy.NodeManager.node()},
+    with {:node, node} when not is_nil(node) <- {:node, NodeManager.node()},
          :ok <- ExChain.clean(node, id),
-         _ <- Proxy.Chain.Storage.delete(id) do
+         _ <- Storage.delete(id) do
       :ok
     else
       {:node, _} ->
@@ -153,7 +155,7 @@ defmodule Proxy do
   """
   @spec snapshot_list(Chain.evm_type()) :: [map()]
   def snapshot_list(chain_type) do
-    with {:node, node} when not is_nil(node) <- {:node, Proxy.NodeManager.node()},
+    with {:node, node} when not is_nil(node) <- {:node, NodeManager.node()},
          list <- ExChain.snapshot_list(node, chain_type),
          list <- Enum.map(list, &Map.from_struct/1) do
       list
@@ -169,20 +171,20 @@ defmodule Proxy do
   Get details about chain by it's id
   """
   @spec details(binary) :: nil | map()
-  def details(id), do: Proxy.Chain.Storage.get(id)
+  def details(id), do: Storage.get(id)
 
   @doc """
   List of all avaialbe chains
   """
   @spec chain_list() :: [map()]
-  def chain_list(), do: Proxy.Chain.Storage.all()
+  def chain_list(), do: Storage.all()
 
   @doc """
   Get chains version
   """
   @spec version() :: binary | {:error, term()}
   def version() do
-    Proxy.NodeManager.node()
+    NodeManager.node()
     |> ExChain.version()
   end
 end

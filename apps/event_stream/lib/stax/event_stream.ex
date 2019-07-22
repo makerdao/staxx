@@ -1,6 +1,6 @@
-defmodule Stax.EventStream do
+defmodule Staxx.EventStream do
   @moduledoc """
-  Documentation for Stax.EventStream.
+  Documentation for Staxx.EventStream.
   """
 
   alias EventBus.Model.Event

@@ -1,13 +1,15 @@
-defmodule WebApiWeb.DockerController do
-  use WebApiWeb, :controller
+defmodule Staxx.WebApiWeb.DockerController do
+  use Staxx.WebApiWeb, :controller
 
   require Logger
 
-  action_fallback WebApiWeb.FallbackController
+  action_fallback Staxx.WebApiWeb.FallbackController
 
-  alias WebApiWeb.SuccessView
-  alias WebApiWeb.ErrorView
-  alias Docker.Struct.Container
+  alias Staxx.WebApiWeb.SuccessView
+  alias Staxx.WebApiWeb.ErrorView
+  alias Staxx.Docker
+  alias Staxx.Docker.Struct.Container
+  alias Staxx.DeploymentScope
 
   def start(conn, %{"stack_id" => id, "stack_name" => stack_name} = params) do
     container = %Container{

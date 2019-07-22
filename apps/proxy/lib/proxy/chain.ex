@@ -1,4 +1,4 @@
-defmodule Proxy.Chain do
+defmodule Staxx.Proxy.Chain do
   @moduledoc """
   Chain/deployment/other tasks performer.
 
@@ -8,14 +8,16 @@ defmodule Proxy.Chain do
 
   require Logger
 
-  alias Proxy.ExChain
-  alias Proxy.Chain.{State, ChainHelper}
-  alias Proxy.Chain.Storage.Record
+  alias Staxx.Proxy.ChainRegistry
+  alias Staxx.Proxy.ExChain
+  alias Staxx.Proxy.NodeManager
+  alias Staxx.Proxy.Chain.{State, ChainHelper}
+  alias Staxx.Proxy.Chain.Storage.Record
   alias Chain.EVM.Notification
 
   @doc false
   def start_link({:existing, id}) when is_binary(id) do
-    case Proxy.NodeManager.node() do
+    case NodeManager.node() do
       nil ->
         Logger.error("#{id}: No free ex_testchain node for starting EVM.")
         {:error, :no_free_node}
@@ -28,7 +30,7 @@ defmodule Proxy.Chain do
   end
 
   def start_link({:new, %{id: id, node: nil} = config}) when is_map(config) do
-    case Proxy.NodeManager.node() do
+    case NodeManager.node() do
       nil ->
         Logger.error("#{id}: No free ex_testchain node for starting EVM.")
         {:error, :no_free_node}
@@ -256,9 +258,9 @@ defmodule Proxy.Chain do
   @doc """
   Generates via cause for GenServer registration
   """
-  @spec via_tuple(binary) :: {:via, Registry, {Proxy.ChainRegistry, binary}}
+  @spec via_tuple(binary) :: {:via, Registry, {ChainRegistry, binary}}
   def via_tuple(id),
-    do: {:via, Registry, {Proxy.ChainRegistry, id}}
+    do: {:via, Registry, {ChainRegistry, id}}
 
   @doc """
   Handle deployment by chain process

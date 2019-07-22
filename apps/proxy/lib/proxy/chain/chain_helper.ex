@@ -1,4 +1,4 @@
-defmodule Proxy.Chain.ChainHelper do
+defmodule Staxx.Proxy.Chain.ChainHelper do
   @moduledoc """
   Most of chani action will be here
   """
@@ -6,10 +6,12 @@ defmodule Proxy.Chain.ChainHelper do
   require Logger
 
   alias Chain.EVM.Notification
-  alias Proxy.ExChain
-  alias Proxy.Chain.State
-  alias Proxy.Deployment.StepsFetcher
-  alias Proxy.Chain.Storage.Record
+  alias Staxx.Proxy.ExChain
+  alias Staxx.Proxy.Chain.State
+  alias Staxx.Proxy.Deployment.StepsFetcher
+  alias Staxx.Proxy.Chain.Storage.Record
+  alias Staxx.Proxy.Deployment.ProcessWatcher
+  alias Staxx.Proxy.Deployment.Deployer
 
   # List of events that should be resend to event bus
   @proxify_events [:active, :snapshot_taking, :snapshot_reverting]
@@ -112,7 +114,7 @@ defmodule Proxy.Chain.ChainHelper do
          {:ok, request_id} <- run_deployment(state, step_id, details) do
       Logger.debug("Deployment process scheduled with request_id #{request_id} !")
       # Save deployment request association with current chain
-      Proxy.Deployment.ProcessWatcher.put(request_id, id)
+      ProcessWatcher.put(request_id, id)
 
       state
       |> Record.from_state()
@@ -207,7 +209,7 @@ defmodule Proxy.Chain.ChainHelper do
         rpc_url: rpc_url,
         coinbase: coinbase
       }),
-      do: Proxy.Deployment.Deployer.deploy(id, step_id, rpc_url, coinbase, tag)
+      do: Deployer.deploy(id, step_id, rpc_url, coinbase, tag)
 
   def run_deployment(_state, _step_id, _details),
     do: {:error, "No chain details exist"}

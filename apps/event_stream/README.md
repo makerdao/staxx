@@ -1,4 +1,4 @@
-# Stax.EventStream
+# Staxx.EventStream
 
 **TODO: Add description**
 
