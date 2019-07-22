@@ -225,7 +225,7 @@ defmodule Docker.Struct.Container do
   See API docs for more details.
   """
   @spec is_dev_mode(t()) :: boolean
-  def is_dev_mode(%Container{dev_mode: true}),
+  def is_dev_mode(%__MODULE__{dev_mode: true}),
     do: Application.get_env(:docker, :dev_mode_allowed, false) == "true"
 
   def is_dev_mode(_),
