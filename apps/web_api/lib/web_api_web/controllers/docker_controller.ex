@@ -16,7 +16,8 @@ defmodule WebApiWeb.DockerController do
       network: Map.get(params, "network", id),
       cmd: Map.get(params, "cmd", ""),
       ports: Map.get(params, "ports", []),
-      env: parse_env(Map.get(params, "env", %{}))
+      env: parse_env(Map.get(params, "env", %{})),
+      dev_mode: Map.get(params, "dev_mode", false)
     }
 
     Logger.debug("Stack #{id} Starting new docker container #{inspect(container)}")

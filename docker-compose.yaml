@@ -30,6 +30,7 @@ services:
       - "4000:4000"
     environment:
       NATS_URL: nats.local
+      DOCKER_DEV_MODE_ALLOWED: "false"
     volumes:
       - "/tmp/chains:/opt/chains"
       - "/tmp/snapshots:/opt/snapshots"

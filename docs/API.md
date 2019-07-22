@@ -280,6 +280,7 @@ Request payload:
   "network": "2538928139759187250", // <-- Docker network ID (Optional. Same to Stack ID)
   "cmd": "--help", // <-- See Dockerfile CMD for more details (Optional)
   "ports": [5432], // <-- Port list needs to be open for public
+  "dev_mode": false, // <-- ONLY FOR TESTING ! it will run container without removing it after container stop.
   "env": { // <-- List of ENV variables needs to be set for docker container
     "POSTGRES_PASSWORD": "postgres"
   }
@@ -314,9 +315,39 @@ curl --request POST \
   --header 'content-type: application/json' \
   --data '{
 	"stack_id": "2538928139759187250",
+  "stack_name": "vdb",
 	"image": "postgres",
 	"network": "2538928139759187250",
 	"ports": [5432],
+	"env": {
+		"POSTGRES_PASSWORD": "postgres"
+	}
+}'
+```
+
+**Dev mode**
+By default all containers are running with `--rm` flag.
+This means that as soon as container stops, system will remove it and all it's logs from system.
+
+In case you need logs for debugging purposes you might start new container with `dev_mode: true`.
+It will let Staxx know that container should not be removed from system after stop.
+
+**Danger**
+You wouldn't be able to do that in production system. `dev_mode` flag will be ignored there.
+On your machine you will be responsible for removing useless containers !
+
+Example:
+```bash
+curl --request POST \
+  --url http://localhost:4000/docker/start \
+  --header 'content-type: application/json' \
+  --data '{
+	"stack_id": "2538928139759187250",
+  "stack_name": "vdb",
+	"image": "postgres",
+	"network": "2538928139759187250",
+	"ports": [5432],
+  "dev_mode": true,
 	"env": {
 		"POSTGRES_PASSWORD": "postgres"
 	}

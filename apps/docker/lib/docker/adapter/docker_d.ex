@@ -9,7 +9,7 @@ defmodule Docker.Adapter.DockerD do
   alias Docker.Struct.Container
 
   # docker run --name=postgres-vdb -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres
-  def start_rm(%Container{network: network} = container) do
+  def start(%Container{network: network} = container) do
     Logger.debug("Try to start new container #{inspect(container)}")
 
     if network != "" do
@@ -133,8 +133,8 @@ defmodule Docker.Adapter.DockerD do
   defp build_start_params(%Container{image: image, cmd: cmd} = container) do
     [
       "run",
-      "--rm",
       "-d",
+      build_rm(container),
       build_network(container),
       build_name(container),
       build_ports(container),
@@ -144,6 +144,18 @@ defmodule Docker.Adapter.DockerD do
     ]
     |> List.flatten()
     |> Enum.reject(&(bit_size(&1) == 0))
+  end
+
+  # If container is in `dev_mode` we don't need to run it with `--rm` falgs.
+  # We might need some logs from container
+  defp build_rm(container) do
+    case Container.is_dev_mode(container) do
+      true ->
+        ""
+
+      _ ->
+        "--rm"
+    end
   end
 
   defp build_name(%Container{name: ""}), do: ""
