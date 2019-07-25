@@ -1,5 +1,5 @@
 # STAXX
-[![Build Status](https://travis-ci.org/makerdao/testchain-backendgateway.svg?branch=master)](https://travis-ci.org/makerdao/testchain-backendgateway)
+[![Build Status](https://travis-ci.org/makerdao/staxx.svg?branch=master)](https://travis-ci.org/makerdao/staxx)
 
 
 ## Prerequisite Installations
@@ -24,14 +24,14 @@ Before starting, you should confirm that you have docker compose up and running.
 ## Getting Started
 
 1. Open a fresh new terminal window
-2. `git clone git@github.com:makerdao/testchain-backendgateway.git`
-3. `cd testchain-backendgateway`
+2. `git clone git@github.com:makerdao/staxx.git`
+3. `cd staxx`
     1. Check to make sure it is up to date by running `git pull`
 
 
 **Note to help mitigate issues early testers may run into when getting the testchain running:**
 
-1. Run `docker images` (make sure you see `testchain_backendgateway` present)
+1. Run `docker images` (make sure you see `staxx` present)
 2. In the case that you have used docker in the past for other projects and your images are scattered, you may want to refresh the service.
     1. To do so, run `make upgrade-dev`
     2. `make rm-dev` (This commands checks if the containers have stopped)
@@ -46,7 +46,7 @@ Next, the following command ensures you do not have any lingering chains left ov
 4. Next, we will pull everything from the docker container and will be ready to get the testchain up and running:
     1. Run `make run-dev`
         1. This step pulls all the images from docker down and will start the QA portal in docker images and then will set `localhost:4001` - for UI and `localhost:4000` - for WS/Web API.
-        2. You will see that it will immediately start pulling from the testchain-backendgateway.
+        2. You will see that it will immediately start pulling from the staxx.
 
 5. Once everything has been pulled down, the next step is to check the logs:
     1. Run `make logs-dev`
@@ -60,8 +60,8 @@ The first block will appear in your terminal window as follows:
 
 master ✓ make logs-deploy
 Attaching to testchain-deployment.local
-testchain-deployment.local  | time="2019-04-11T07:56:14Z" level=info msg="Config loaded" app=TCD
-testchain-deployment.local  | time="2019-04-11T07:56:14Z" level=debug msg="Config: &{Server:HTTP Host:testchain-deployment Port:5001 Deploy:{DeploymentDirPath:/deployment DeploymentSubPath:./ ResultSubPath:out/addresses.json} Gateway:{Host:testchain-backendgateway.local Port:4000 ClientTimeoutInSecond:5 RegisterPeriodInSec:10} Github:{RepoOwner:makerdao RepoName:testchain-dss-deployment-scripts DefaultCheckoutTarget:tags/qa-deploy} NATS:{ErrorTopic:error GroupName:testchain-deployment TopicPrefix:Prefix Servers:nats://nats.local:4222 MaxReconnect:3 ReconnectWaitSec:1} LogLevel:debug}" app=TCD
+staxx.local  | time="2019-04-11T07:56:14Z" level=info msg="Config loaded" app=TCD
+testchain-deployment.local  | time="2019-04-11T07:56:14Z" level=debug msg="Config: &{Server:HTTP Host:testchain-deployment Port:5001 Deploy:{DeploymentDirPath:/deployment DeploymentSubPath:./ ResultSubPath:out/addresses.json} Gateway:{Host:staxx.local Port:4000 ClientTimeoutInSecond:5 RegisterPeriodInSec:10} Github:{RepoOwner:makerdao RepoName:testchain-dss-deployment-scripts DefaultCheckoutTarget:tags/qa-deploy} NATS:{ErrorTopic:error GroupName:testchain-deployment TopicPrefix:Prefix Servers:nats://nats.local:4222 MaxReconnect:3 ReconnectWaitSec:1} LogLevel:debug}" app=TCD
 testchain-deployment.local  | time="2019-04-11T07:56:14Z" level=info msg="Start service with host: testchain-deployment, port: 5001" app=TCD
 testchain-deployment.local  | time="2019-04-11T07:56:14Z" level=info msg="First update src started, it takes a few minutes" app=TCD
 
@@ -125,7 +125,7 @@ For now we support only `vdb` stack available
 
 **Example:** Testchain Vulcanize DB Stack Manager Service
 
-**Note:** If you are using `docker-compose` for starting QA Dashboard from https://github.com/makerdao/testchain-backendgateway, you will have to put the 3 above files from stack_config into the `/tmp/stacks/vdb` folder on your local machine before starting the local environment.The following three files will be:
+**Note:** If you are using `docker-compose` for starting QA Dashboard from https://github.com/makerdao/staxx, you will have to put the 3 above files from stack_config into the `/tmp/stacks/vdb` folder on your local machine before starting the local environment.The following three files will be:
 
 1. Docker-compose.yml
 2. Icon.png

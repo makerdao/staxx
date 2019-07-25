@@ -1,4 +1,4 @@
-APP_NAME ?= testchain_backendgateway
+APP_NAME ?= staxx
 APP_VSN ?= 0.1.0
 BUILD ?= `git rev-parse --short HEAD`
 ALPINE_VERSION ?= 3.9
@@ -41,8 +41,7 @@ upgrade-dev:
 	@echo "====== Removing local images"
 	@docker rmi -f makerdao/testchain-deployment:dev \
 								 makerdao/ex_testchain:dev \
-								 makerdao/testchain_dockerservice:dev \
-								 makerdao/testchain_backendgateway:dev \
+								 makerdao/$(APP_NAME):dev \
 								 makerdao/testchain-dashboard
 .PHONY: upgrade-dev
 
@@ -56,7 +55,7 @@ logs-deploy:
 .PHONY: logs-deploy
 
 logs-dev:
-	@docker-compose logs -f ex_testchain testchain-backendgateway testchain-deployment
+	@docker-compose logs -f ex_testchain $(APP_NAME) testchain-deployment
 .PHONY: logs-dev
 
 run: ## Run the app in Docker
@@ -82,7 +81,7 @@ stop-dev:
 .PHONY: stop-dev
 
 dev: ## Run local node with correct values
-	@iex --name testchain_backendgateway@127.0.0.1 -S mix phx.server
+	@iex --name $(APP_NAME)@127.0.0.1 -S mix phx.server
 .PHONY: dev
 
 dc-up:
@@ -107,3 +106,4 @@ rm-latest:
 	@echo "====== Stopping and removing running containers"
 	@docker-compose -f docker-compose.yaml rm -s -f
 .PHONY: rm-latest
+

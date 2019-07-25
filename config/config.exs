@@ -52,7 +52,6 @@ config :proxy, snapshot_path: "/tmp/snapshots"
 config :proxy, deployment_timeout: 1_800_000
 config :proxy, action_timeout: 600_000
 
-
 #
 # WebAPI configs
 #

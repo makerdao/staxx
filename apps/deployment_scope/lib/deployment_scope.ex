@@ -172,7 +172,6 @@ defmodule Staxx.DeploymentScope do
   def reload_config(),
     do: ConfigLoader.reload()
 
-
   # Validate if all stacks are allowed to start
   defp validate_stacks([]), do: :ok
 

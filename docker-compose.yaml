@@ -18,9 +18,9 @@ services:
       # CONSUL_BIND_INTERFACE: eth0
     # networks:
       # - net1
-  testchain-backendgateway:
-    image: makerdao/testchain_backendgateway:latest
-    container_name: testchain-backendgateway.local
+  staxx:
+    image: makerdao/staxx:latest
+    container_name: staxx.local
     depends_on:
       - nats
     expose:
@@ -60,8 +60,7 @@ services:
     ports:
       - "5001:5001"
     environment:
-      # TCD_GATEWAY: host=testchain-backendgateway.local
-      TCD_GATEWAY: host=host.docker.internal
+      TCD_GATEWAY: host=staxx.local
       GITHUB_DEFAULT_CHECKOUT_TARGET: master
     volumes:
       - nix-db:/nix
@@ -93,7 +92,7 @@ services:
     ports:
       - "4001:3000"
     depends_on:
-      - testchain-backendgateway
+      - staxx
     environment:
       TESTCHAIN_SERVICE_URL: http://localhost
       TESTCHAIN_SERVICE_PORT: 4000
