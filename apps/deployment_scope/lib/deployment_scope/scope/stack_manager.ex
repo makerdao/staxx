@@ -169,7 +169,13 @@ defmodule Staxx.DeploymentScope.Scope.StackManager do
     scope_id
     |> via_tuple(stack_name)
     |> GenServer.whereis()
-    |> Process.alive?()
+    |> case do
+      nil ->
+        false
+
+      pid ->
+        Process.alive?(pid)
+    end
   end
 
   @doc """

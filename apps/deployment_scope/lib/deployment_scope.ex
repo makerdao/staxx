@@ -8,6 +8,7 @@ defmodule Staxx.DeploymentScope do
 
   alias Staxx.Proxy
   alias Staxx.Proxy.Chain.ChainHelper
+  alias Staxx.Docker
   alias Staxx.Docker.Struct.Container
   alias Staxx.DeploymentScope.ScopesSupervisor
   alias Staxx.DeploymentScope.Scope.SupervisorTree
@@ -89,6 +90,10 @@ defmodule Staxx.DeploymentScope do
   def spawn_stack_manager(scope_id, stack_name),
     do: SupervisorTree.start_stack_manager(scope_id, stack_name)
 
+  @doc """
+  Stop stack manager service
+  Will terminate all containers/resources binded to stack
+  """
   @spec stop_stack_manager(binary, binary) :: :ok
   def stop_stack_manager(scope_id, stack_name),
     do: StackManager.stop(scope_id, stack_name)
@@ -118,6 +123,9 @@ defmodule Staxx.DeploymentScope do
   Starting new container for given stack id
   """
   @spec start_container(binary, binary, Container.t()) :: :ok | {:error, term}
+  def start_container(id, stack_name, %Container{name: ""} = container),
+    do: start_container(id, stack_name, %Container{container | name: Docker.random_name()})
+
   def start_container(id, stack_name, %Container{image: image} = container) do
     with {:alive, true} <- {:alive, StackManager.alive?(id, stack_name)},
          {:image, true} <- {:image, ConfigLoader.has_image?(stack_name, image)},

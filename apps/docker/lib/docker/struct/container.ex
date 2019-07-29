@@ -228,7 +228,7 @@ defmodule Staxx.Docker.Struct.Container do
   """
   @spec is_dev_mode(t()) :: boolean
   def is_dev_mode(%__MODULE__{dev_mode: true}),
-    do: Application.get_env(:docker, :dev_mode_allowed, false) == "true"
+    do: Docker.dev_mode_allowed?()
 
   def is_dev_mode(_),
     do: false

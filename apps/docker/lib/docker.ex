@@ -37,6 +37,13 @@ defmodule Staxx.Docker do
   """
   @callback join_network(id :: binary, container_id :: binary) :: {:ok, term} | {:error, term}
 
+  @doc """
+  Check if dev mode is allowed for starting docker containers
+  """
+  @spec dev_mode_allowed?() :: boolean
+  def dev_mode_allowed?(),
+    do: Application.get_env(:docker, :dev_mode_allowed) == "true"
+
   # docker run --name=postgres-vdb -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres
   @spec start(Container.t()) ::
           {:ok, Container.t()} | {:error, term}
