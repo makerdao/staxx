@@ -1,4 +1,4 @@
-defmodule Proxy.Deployment.ProcessWatcher do
+defmodule Staxx.Proxy.Deployment.ProcessWatcher do
   @moduledoc """
   This is special process that will store deployment requestId with chainId
   Sort of simple key => value storage.
@@ -30,7 +30,7 @@ defmodule Proxy.Deployment.ProcessWatcher do
   def put(request_id, chain_id), do: GenServer.cast(__MODULE__, {:add, request_id, chain_id})
 
   @doc """
-  Pops chain_id by request_id. 
+  Pops chain_id by request_id.
   If no such request_id exist - `nil` will be returned
   """
   @spec pop(binary) :: nil | binary | {:error, term()}

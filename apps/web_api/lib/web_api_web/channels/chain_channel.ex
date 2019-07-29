@@ -1,11 +1,12 @@
-defmodule WebApiWeb.ChainChannel do
+defmodule Staxx.WebApiWeb.ChainChannel do
   @moduledoc """
   Controlling functions for specified chains
   """
 
   require Logger
 
-  alias Proxy.Chain
+  alias Staxx.Proxy
+  alias Staxx.Proxy.Chain
 
   use Phoenix.Channel, log_join: false, log_handle_in: :debug
   # alias Chain.Snapshot.Details, as: SnapshotDetails

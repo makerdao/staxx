@@ -1,9 +1,11 @@
-defmodule WebApiWeb.ChainController do
-  use WebApiWeb, :controller
+defmodule Staxx.WebApiWeb.ChainController do
+  use Staxx.WebApiWeb, :controller
 
-  action_fallback WebApiWeb.FallbackController
+  action_fallback Staxx.WebApiWeb.FallbackController
 
-  alias WebApiWeb.SuccessView
+  alias Staxx.Proxy
+  alias Staxx.WebApiWeb.SuccessView
+  alias Staxx.WebApiWeb.ErrorView
   # alias Chain.SnapshotManager
 
   # content type of snapshot that will be uploaded
@@ -77,7 +79,7 @@ defmodule WebApiWeb.ChainController do
       _ ->
         conn
         |> put_status(404)
-        |> put_view(WebApiWeb.ErrorView)
+        |> put_view(ErrorView)
         |> render("404.json")
     end
   end

@@ -1,12 +1,12 @@
-defmodule Docker.Adapter.DockerD do
+defmodule Staxx.Docker.Adapter.DockerD do
   @moduledoc """
   Set of docker commands that will be running on read docker daemon
   """
-  @behaviour Docker
+  @behaviour Staxx.Docker
 
   require Logger
 
-  alias Docker.Struct.Container
+  alias Staxx.Docker.Struct.Container
 
   # docker run --name=postgres-vdb -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres
   def start(%Container{network: network} = container) do

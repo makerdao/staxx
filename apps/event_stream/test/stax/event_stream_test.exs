@@ -1,4 +1,4 @@
-defmodule Stax.EventStreamTest do
+defmodule Staxx.EventStreamTest do
   use ExUnit.Case
-  doctest Stax.EventStream
+  doctest Staxx.EventStream
 end

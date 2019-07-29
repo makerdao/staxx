@@ -1,4 +1,4 @@
-defmodule Docker.EventListener do
+defmodule Staxx.Docker.EventListener do
   @moduledoc """
   This pid is listening for all docker events from docker daemon and handles them.
   Main events that are handled are: `start`, `stop`, `kill` and `die`
@@ -6,8 +6,8 @@ defmodule Docker.EventListener do
   """
   use GenServer
 
-  alias Docker.Struct.{Container, Event}
-  alias Stax.EventStream
+  alias Staxx.Docker.Struct.{Container, Event}
+  alias Staxx.EventStream
 
   require Logger
 

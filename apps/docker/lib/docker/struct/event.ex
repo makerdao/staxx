@@ -1,4 +1,4 @@
-defmodule Docker.Struct.Event do
+defmodule Staxx.Docker.Struct.Event do
   @moduledoc """
   Default docker event representation
   """

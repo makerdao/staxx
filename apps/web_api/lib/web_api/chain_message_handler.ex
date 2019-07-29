@@ -1,4 +1,4 @@
-defmodule WebApi.ChainMessageHandler do
+defmodule Staxx.WebApi.ChainMessageHandler do
   @moduledoc """
   Main process that will handle all messages from different chains.
   Because this process will have name all communication to it should be
@@ -7,7 +7,8 @@ defmodule WebApi.ChainMessageHandler do
   use GenServer
 
   require Logger
-  alias Stax.EventStream
+  alias Staxx.EventStream
+  alias Staxx.WebApiWeb.Endpoint
 
   @doc false
   def start_link(_), do: GenServer.start_link(__MODULE__, [], name: __MODULE__)
@@ -46,10 +47,10 @@ defmodule WebApi.ChainMessageHandler do
       end
 
     if event in [:started, :error] do
-      WebApiWeb.Endpoint.broadcast("api", to_string(event), response)
+      Endpoint.broadcast("api", to_string(event), response)
     end
 
-    WebApiWeb.Endpoint.broadcast("chain:#{id}", to_string(event), response)
+    Endpoint.broadcast("chain:#{id}", to_string(event), response)
     {:noreply, state}
   end
 

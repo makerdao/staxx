@@ -5,7 +5,7 @@ FROM elixir:1.9.0-alpine as builder
 
 # The following are build arguments used to change variable parts of the image.
 # The name of your application/release (required)
-ARG APP_NAME=testchain_backendgateway
+ARG APP_NAME=staxx
 # The version of the application we are building (required)
 ARG APP_VSN=0.1.0
 # The environment to build with
@@ -34,7 +34,6 @@ COPY apps/deployment_scope/mix.* ./apps/deployment_scope/
 COPY apps/docker/mix.* ./apps/docker/
 COPY apps/event_stream/mix.* ./apps/event_stream/
 COPY apps/proxy/mix.* ./apps/proxy/
-COPY apps/stacks/mix.* ./apps/stacks/
 COPY apps/web_api/mix.* ./apps/web_api/
 
 RUN mix do deps.get, deps.compile

@@ -1,4 +1,4 @@
-defmodule Proxy.Chain.Notification do
+defmodule Staxx.Proxy.Chain.Notification do
   @moduledoc """
   Default chain worker notification that might be sent by system
   """
@@ -12,7 +12,7 @@ defmodule Proxy.Chain.Notification do
   """
   @spec send_to_event_bus(%__MODULE__{}) :: :ok
   def send_to_event_bus(%__MODULE__{} = notification),
-    do: Stax.EventStream.dispatch(notification)
+    do: Staxx.EventStream.dispatch(notification)
 
   @doc """
   Send custom notification to event bus

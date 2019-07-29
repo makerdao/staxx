@@ -1,4 +1,4 @@
-defmodule DeploymentScope.Scope.StackManager do
+defmodule Staxx.DeploymentScope.Scope.StackManager do
   @moduledoc """
   This process is an owner of list of stack containers.
   It starts with stack name and will supervise list of containers.
@@ -7,10 +7,10 @@ defmodule DeploymentScope.Scope.StackManager do
 
   require Logger
 
-  alias Docker.Struct.Container
-  alias Stacks.ConfigLoader
-  alias Stacks.Stack.Config
-  alias Proxy.Chain.Notification
+  alias Staxx.Docker.Struct.Container
+  alias Staxx.Proxy.Chain.Notification
+  alias Staxx.DeploymentScope.StackRegistry
+  alias Staxx.DeploymentScope.Stack.{ConfigLoader, Config}
 
   @typedoc """
   Stack status
@@ -23,7 +23,7 @@ defmodule DeploymentScope.Scope.StackManager do
     @type t :: %__MODULE__{
             scope_id: binary,
             name: binary,
-            status: DeploymentScope.Scope.StackManager.status(),
+            status: Staxx.DeploymentScope.Scope.StackManager.status(),
             children: [pid]
           }
     defstruct scope_id: "", name: "", status: :initializing, children: []
@@ -169,7 +169,13 @@ defmodule DeploymentScope.Scope.StackManager do
     scope_id
     |> via_tuple(stack_name)
     |> GenServer.whereis()
-    |> Process.alive?()
+    |> case do
+      nil ->
+        false
+
+      pid ->
+        Process.alive?(pid)
+    end
   end
 
   @doc """
@@ -212,9 +218,9 @@ defmodule DeploymentScope.Scope.StackManager do
   @doc """
   Generate naming via tuple for stack supervisor
   """
-  @spec via_tuple(binary, binary) :: {:via, Registry, {DeploymentScope.StackRegistry, binary}}
+  @spec via_tuple(binary, binary) :: {:via, Registry, {StackRegistry, binary}}
   def via_tuple(scope_id, stack_name),
-    do: {:via, Registry, {DeploymentScope.StackRegistry, "#{scope_id}:#{stack_name}"}}
+    do: {:via, Registry, {StackRegistry, "#{scope_id}:#{stack_name}"}}
 
   #
   # Private functions

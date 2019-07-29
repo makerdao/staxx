@@ -1,4 +1,4 @@
-defmodule Docker.NetworkRemover do
+defmodule Staxx.Docker.NetworkRemover do
   @moduledoc """
   Module removes unused networks for docker env
 
@@ -6,6 +6,8 @@ defmodule Docker.NetworkRemover do
   Some sort of a cron job. But way more simple, lightweight and OTP based
   """
   use GenServer
+
+  alias Staxx.Docker
 
   require Logger
 

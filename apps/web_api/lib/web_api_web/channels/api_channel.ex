@@ -1,4 +1,4 @@
-defmodule WebApiWeb.ApiChannel do
+defmodule Staxx.WebApiWeb.ApiChannel do
   @moduledoc """
   Default channel for API manipulation
   """
@@ -7,7 +7,9 @@ defmodule WebApiWeb.ApiChannel do
 
   require Logger
 
-  alias Proxy.Chain.ChainHelper
+  alias Staxx.Proxy
+  alias Staxx.Proxy.Chain.Storage
+  alias Staxx.Proxy.Chain.ChainHelper
 
   def join(_, _, socket), do: {:ok, %{message: "Welcome to ExTestchain !"}, socket}
 
@@ -64,7 +66,7 @@ defmodule WebApiWeb.ApiChannel do
 
   def handle_in("remove_chain", %{"id" => id}, socket) do
     with :ok <- Proxy.clean(id),
-         _ <- Proxy.Chain.Storage.delete(id) do
+         _ <- Storage.delete(id) do
       {:reply, {:ok, %{message: "Chain removed"}}, socket}
     else
       _ ->

@@ -1,4 +1,4 @@
-defmodule Proxy.NodeManager do
+defmodule Staxx.Proxy.NodeManager do
   @moduledoc """
   Node connection manager.
   It handles new nodes connecting/disconnedting and selects right node to make a call to

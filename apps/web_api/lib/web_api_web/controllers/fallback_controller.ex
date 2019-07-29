@@ -1,8 +1,8 @@
-defmodule WebApiWeb.FallbackController do
+defmodule Staxx.WebApiWeb.FallbackController do
   use Phoenix.Controller
   require Logger
 
-  alias WebApiWeb.ErrorView
+  alias Staxx.WebApiWeb.ErrorView
 
   def call(conn, {:error, :no_chain_connected}) do
     Logger.error(fn -> "No connectivity to ex_testchain !" end)

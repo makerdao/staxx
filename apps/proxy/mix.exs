@@ -1,4 +1,4 @@
-defmodule Proxy.MixProject do
+defmodule Staxx.Proxy.MixProject do
   use Mix.Project
 
   def project do
@@ -19,7 +19,7 @@ defmodule Proxy.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {Proxy.Application, []}
+      mod: {Staxx.Proxy.Application, []}
     ]
   end
 

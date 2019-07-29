@@ -1,4 +1,4 @@
-defmodule Stacks.Stack.Config do
+defmodule Staxx.DeploymentScope.Stack.Config do
   @moduledoc """
   Default stack-plugin config structure.
   Stack-plugin configs should be stored into `plugin_name/stack.json` file.

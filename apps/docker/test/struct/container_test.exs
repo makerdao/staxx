@@ -1,7 +1,9 @@
-defmodule Docker.Struct.ContainerTest do
+defmodule Staxx.Docker.Struct.ContainerTest do
   use ExUnit.Case
 
-  alias Docker.Struct.Container
+  alias Staxx.Docker.ContainerRegistry
+  alias Staxx.Docker.PortMapper
+  alias Staxx.Docker.Struct.Container
 
   test "should start new container and reserve id" do
     name = Faker.String.base64()
@@ -23,7 +25,7 @@ defmodule Docker.Struct.ContainerTest do
              |> Container.start_link()
 
     assert [{^pid, nil}] =
-             Docker.ContainerRegistry
+             ContainerRegistry
              |> Registry.lookup(name)
 
     assert :ok = Container.terminate(name)
@@ -48,11 +50,11 @@ defmodule Docker.Struct.ContainerTest do
 
     Process.monitor(pid)
 
-    assert Docker.PortMapper.reserved?(port)
+    assert PortMapper.reserved?(port)
     assert :ok = Container.terminate(name)
 
     assert_receive {:DOWN, _, :process, ^pid, :normal}
 
-    refute Docker.PortMapper.reserved?(port)
+    refute PortMapper.reserved?(port)
   end
 end

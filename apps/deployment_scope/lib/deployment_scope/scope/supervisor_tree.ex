@@ -1,4 +1,4 @@
-defmodule DeploymentScope.Scope.SupervisorTree do
+defmodule Staxx.DeploymentScope.Scope.SupervisorTree do
   @moduledoc """
   Deployment scope supervisor.
   It controll specific scope for user.
@@ -11,8 +11,9 @@ defmodule DeploymentScope.Scope.SupervisorTree do
 
   require Logger
 
-  alias DeploymentScope.Scope.StackManagerSupervisor
-  alias Proxy.Chain
+  alias Staxx.DeploymentScope.Scope.StackManagerSupervisor
+  alias Staxx.DeploymentScope.ScopeRegistry
+  alias Staxx.Proxy.Chain
 
   @doc false
   def child_spec(params) do
@@ -56,9 +57,9 @@ defmodule DeploymentScope.Scope.SupervisorTree do
   @doc """
   Generate naming via tuple for supervisor
   """
-  @spec via_tuple(binary) :: {:via, Registry, {DeploymentScope.ScopeRegistry, binary}}
+  @spec via_tuple(binary) :: {:via, Registry, {ScopeRegistry, binary}}
   def via_tuple(id),
-    do: {:via, Registry, {DeploymentScope.ScopeRegistry, id}}
+    do: {:via, Registry, {ScopeRegistry, id}}
 
   @doc """
   Get StackManagerSupervisor instance binded to this stack

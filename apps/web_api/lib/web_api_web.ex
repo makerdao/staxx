@@ -1,4 +1,4 @@
-defmodule WebApiWeb do
+defmodule Staxx.WebApiWeb do
   @moduledoc """
   The entrypoint for defining your web interface, such
   as controllers, views, channels and so on.
@@ -22,8 +22,8 @@ defmodule WebApiWeb do
       use Phoenix.Controller, namespace: WebApiWeb
 
       import Plug.Conn
-      import WebApiWeb.Gettext
-      alias WebApiWeb.Router.Helpers, as: Routes
+      import Staxx.WebApiWeb.Gettext
+      alias Staxx.WebApiWeb.Router.Helpers, as: Routes
     end
   end
 
@@ -31,14 +31,14 @@ defmodule WebApiWeb do
     quote do
       use Phoenix.View,
         root: "lib/web_api_web/templates",
-        namespace: WebApiWeb
+        namespace: Staxx.WebApiWeb
 
       # Import convenience functions from controllers
       import Phoenix.Controller, only: [get_flash: 1, get_flash: 2, view_module: 1]
 
-      import WebApiWeb.ErrorHelpers
-      import WebApiWeb.Gettext
-      alias WebApiWeb.Router.Helpers, as: Routes
+      import Staxx.WebApiWeb.ErrorHelpers
+      import Staxx.WebApiWeb.Gettext
+      alias Staxx.WebApiWeb.Router.Helpers, as: Routes
     end
   end
 
@@ -53,7 +53,7 @@ defmodule WebApiWeb do
   def channel do
     quote do
       use Phoenix.Channel
-      import WebApiWeb.Gettext
+      import Staxx.WebApiWeb.Gettext
     end
   end
 

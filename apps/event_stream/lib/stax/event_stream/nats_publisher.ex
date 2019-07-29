@@ -1,11 +1,11 @@
-defmodule Stax.EventStream.NatsPublisher do
+defmodule Staxx.EventStream.NatsPublisher do
   @moduledoc """
   Nats handler.
   """
   use GenServer
 
   require Logger
-  alias Stax.EventStream
+  alias Staxx.EventStream
 
   @doc false
   def start_link(_) do

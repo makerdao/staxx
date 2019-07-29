@@ -1,4 +1,4 @@
-defmodule WebApi.MixProject do
+defmodule Staxx.WebApi.MixProject do
   use Mix.Project
 
   def project do
@@ -22,7 +22,7 @@ defmodule WebApi.MixProject do
   # Type `mix help compile.app` for more information.
   def application do
     [
-      mod: {WebApi.Application, []},
+      mod: {Staxx.WebApi.Application, []},
       extra_applications: [:logger, :runtime_tools]
     ]
   end
@@ -36,8 +36,8 @@ defmodule WebApi.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:deployment_scope, in_umbrella: true},
       {:proxy, in_umbrella: true},
-      {:stacks, in_umbrella: true},
       {:event_stream, in_umbrella: true},
       {:phoenix, "~> 1.4.0"},
       {:phoenix_pubsub, "~> 1.1"},

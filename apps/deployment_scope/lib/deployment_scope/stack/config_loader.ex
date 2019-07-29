@@ -1,12 +1,12 @@
-defmodule Stacks.ConfigLoader do
+defmodule Staxx.DeploymentScope.Stack.ConfigLoader do
   @moduledoc """
-  Module will load list of stack configs form folder (see: `Application.get_env(:stacks, :stacks_dir)`)
+  Module will load list of stack configs form folder (see: `Application.get_env(:deployment_scope, :stacks_dir)`)
 
   State for config loader will consist of map in format:
   ```elixir
   %{
-    "stack_name" => %Stacks.Stack.Config{},
-    "another_stack_name" => %Stacks.Stack.Config{},
+    "stack_name" => %Staxx.DeploymentScope.Stack.Config{},
+    "another_stack_name" => %Staxx.DeploymentScope.Stack.Config{},
   }
   ```
   """
@@ -14,7 +14,7 @@ defmodule Stacks.ConfigLoader do
 
   require Logger
 
-  alias Stacks.Stack.Config
+  alias Staxx.DeploymentScope.Stack.Config
 
   @stack_config_filename "stack.json"
 
@@ -136,5 +136,5 @@ defmodule Stacks.ConfigLoader do
 
   # Get folder with stacks configuration
   defp config_folder(),
-    do: Application.get_env(:stacks, :stacks_dir)
+    do: Application.get_env(:deployment_scope, :stacks_dir)
 end

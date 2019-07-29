@@ -1,11 +1,13 @@
-defmodule Proxy.ExChain.Remote do
+defmodule Staxx.Proxy.ExChain.Remote do
   @moduledoc """
   ExTestchain application caller
 
   Module makes list of calls to `ex_testhcain` application runing on another node.
   """
 
-  @behaviour Proxy.ExChain
+  @behaviour Staxx.Proxy.ExChain
+
+  alias Staxx.Proxy.ExChain
 
   require Logger
 
@@ -38,7 +40,7 @@ defmodule Proxy.ExChain.Remote do
 
   @impl true
   def start(node, config) when is_map(config),
-    do: call(node, Chain, :start, [Proxy.ExChain.to_config(config)])
+    do: call(node, Chain, :start, [ExChain.to_config(config)])
 
   @impl true
   def new_notify_pid(node, id, pid),

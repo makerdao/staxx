@@ -1,4 +1,4 @@
-defmodule DeploymentScope do
+defmodule Staxx.DeploymentScope do
   @moduledoc """
   DeploymentScope is responsible for  aggregation of chain + stacks in one scope
   It handle and manage starting chain/stacks in correct order and validation
@@ -6,12 +6,14 @@ defmodule DeploymentScope do
 
   require Logger
 
-  alias Proxy.Chain.ChainHelper
-  alias Docker.Struct.Container
-  alias DeploymentScope.ScopesSupervisor
-  alias DeploymentScope.Scope.SupervisorTree
-  alias DeploymentScope.Scope.StackManager
-  alias Stacks.ConfigLoader
+  alias Staxx.Proxy
+  alias Staxx.Proxy.Chain.ChainHelper
+  alias Staxx.Docker
+  alias Staxx.Docker.Struct.Container
+  alias Staxx.DeploymentScope.ScopesSupervisor
+  alias Staxx.DeploymentScope.Scope.SupervisorTree
+  alias Staxx.DeploymentScope.Scope.StackManager
+  alias Staxx.DeploymentScope.Stack.ConfigLoader
 
   @doc """
   Start new deployment scope using given configuration
@@ -59,10 +61,10 @@ defmodule DeploymentScope do
   """
   @spec start(binary, binary | map, map) :: {:ok, binary} | {:error, term}
   def start(id, chain_config, stacks) when is_binary(id) do
-    modules = Stacks.get_stack_names(stacks)
+    modules = get_stack_names(stacks)
     Logger.debug("Starting new deployment scope with modules: #{inspect(modules)}")
 
-    with :ok <- Stacks.validate(modules),
+    with :ok <- validate_stacks(modules),
          {:ok, pid} <- ScopesSupervisor.start_scope({id, chain_config, stacks}) do
       Logger.debug("Started chain supervisor tree #{inspect(pid)} for stack #{id}")
       {:ok, id}
@@ -88,6 +90,10 @@ defmodule DeploymentScope do
   def spawn_stack_manager(scope_id, stack_name),
     do: SupervisorTree.start_stack_manager(scope_id, stack_name)
 
+  @doc """
+  Stop stack manager service
+  Will terminate all containers/resources binded to stack
+  """
   @spec stop_stack_manager(binary, binary) :: :ok
   def stop_stack_manager(scope_id, stack_name),
     do: StackManager.stop(scope_id, stack_name)
@@ -117,6 +123,9 @@ defmodule DeploymentScope do
   Starting new container for given stack id
   """
   @spec start_container(binary, binary, Container.t()) :: :ok | {:error, term}
+  def start_container(id, stack_name, %Container{name: ""} = container),
+    do: start_container(id, stack_name, %Container{container | name: Docker.random_name()})
+
   def start_container(id, stack_name, %Container{image: image} = container) do
     with {:alive, true} <- {:alive, StackManager.alive?(id, stack_name)},
          {:image, true} <- {:image, ConfigLoader.has_image?(stack_name, image)},
@@ -169,5 +178,30 @@ defmodule DeploymentScope do
   """
   @spec reload_config() :: :ok
   def reload_config(),
-    do: Stacks.ConfigLoader.reload()
+    do: ConfigLoader.reload()
+
+  # Validate if all stacks are allowed to start
+  defp validate_stacks([]), do: :ok
+
+  defp validate_stacks(list) do
+    result =
+      list
+      |> Enum.reject(&(&1 == "testchain"))
+      |> Enum.filter(fn stack_name -> ConfigLoader.get(stack_name) == nil end)
+
+    case result do
+      [] ->
+        :ok
+
+      list ->
+        {:error, "Not all stacks are allowed to be started ! #{inspect(list)}"}
+    end
+  end
+
+  # Get list of stack names that need to be started
+  defp get_stack_names(params) when is_map(params) do
+    params
+    |> Map.keys()
+    |> Enum.reject(&(&1 == "testchain"))
+  end
 end

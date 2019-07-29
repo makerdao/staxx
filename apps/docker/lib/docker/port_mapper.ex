@@ -1,4 +1,4 @@
-defmodule Docker.PortMapper do
+defmodule Staxx.Docker.PortMapper do
   @moduledoc """
   Module will store all ports that were mapped for docker containers
   And in case of request it will pick random port number for new container

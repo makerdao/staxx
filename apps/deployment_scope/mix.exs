@@ -1,4 +1,4 @@
-defmodule DeploymentScope.MixProject do
+defmodule Staxx.DeploymentScope.MixProject do
   use Mix.Project
 
   def project do
@@ -19,15 +19,14 @@ defmodule DeploymentScope.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {DeploymentScope.Application, []}
+      mod: {Staxx.DeploymentScope.Application, []}
     ]
   end
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:proxy, in_umbrella: true},
-      {:stacks, in_umbrella: true}
+      {:proxy, in_umbrella: true}
     ]
   end
 end
