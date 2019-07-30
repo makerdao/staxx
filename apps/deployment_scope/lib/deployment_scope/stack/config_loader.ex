@@ -109,7 +109,7 @@ defmodule Staxx.DeploymentScope.Stack.ConfigLoader do
   def read() do
     config_folder()
     |> File.ls!()
-    |> Enum.map(fn name -> {name, scan_stack_config(name)} end)
+    |> Enum.map(&scan_stack_config/1)
     |> Map.new()
   end
 
@@ -117,21 +117,23 @@ defmodule Staxx.DeploymentScope.Stack.ConfigLoader do
   # Private functions
   #
 
-  defp scan_stack_config(stack_name) do
-    stack_name
+  defp scan_stack_config(dir) do
+    dir
     |> Path.expand(config_folder())
     |> Path.join(@stack_config_filename)
-    |> parse_config_file(stack_name)
+    |> parse_config_file()
   end
 
-  defp parse_config_file(nil, _), do: nil
-  defp parse_config_file("", _), do: nil
+  defp parse_config_file(nil), do: nil
+  defp parse_config_file(""), do: nil
 
-  defp parse_config_file(path, stack_name) do
-    path
-    |> File.read!()
-    |> Poison.decode!(as: %Config{}, keys: :atoms)
-    |> Map.put(:name, stack_name)
+  defp parse_config_file(path) do
+    config =
+      path
+      |> File.read!()
+      |> Poison.decode!(as: %Config{}, keys: :atoms)
+
+    {Map.get(config, :name), config}
   end
 
   # Get folder with stacks configuration
