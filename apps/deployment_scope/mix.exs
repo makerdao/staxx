@@ -26,7 +26,9 @@ defmodule Staxx.DeploymentScope.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:proxy, in_umbrella: true}
+      {:proxy, in_umbrella: true},
+      {:poison, "~> 3.1.0"},
+      {:faker, "~> 0.12", only: :test}
     ]
   end
 end

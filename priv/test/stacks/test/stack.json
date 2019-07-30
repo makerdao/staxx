@@ -1,0 +1,15 @@
+{
+  "title": "Test Stack",
+  "name": "test",
+  "scope": "global",
+  "deps": [
+    "testchain"
+  ],
+  "containers": {
+    "display": {
+      "image": "some/container",
+      "ports": [3000]
+    }
+  }
+}
+
