@@ -33,6 +33,7 @@ config :event_bus,
   ]
 
 # Nats.io configuration
+config :event_stream, disable_nats: false
 config :event_stream, nats: %{host: "127.0.0.1", port: 4222}
 config :event_stream, nats_docker_events_topic: "Prefix.Docker.Events"
 

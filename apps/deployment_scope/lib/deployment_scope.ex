@@ -56,6 +56,9 @@ defmodule Staxx.DeploymentScope do
     start(id, chain_config, stacks)
   end
 
+  def start(_),
+    do: {:error, "wrong chain config"}
+
   @doc """
   Start supervision tree for new deployment scope
   """
@@ -78,9 +81,6 @@ defmodule Staxx.DeploymentScope do
         {:error, err}
     end
   end
-
-  def start(_, _),
-    do: {:error, "wrong chain config"}
 
   @doc """
   Spawn new stack manager service.
