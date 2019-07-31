@@ -152,9 +152,9 @@ defmodule Staxx.DeploymentScope do
   @spec info(binary) :: term
   def info(id) do
     id
-    |> SupervisorTree.via_tuple()
+    |> SupervisorTree.get_stack_manager_supervisor()
     |> Supervisor.which_children()
-    |> Enum.filter(fn {module, _, :worker, _} -> module == StackManager end)
+    |> Enum.filter(fn {_, _, _, mods} -> mods == [StackManager] end)
     |> Enum.map(fn {_, pid, :worker, _} -> pid end)
     |> Enum.map(&StackManager.info/1)
     |> List.flatten()

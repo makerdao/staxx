@@ -16,10 +16,18 @@ defmodule Staxx.Docker.Adapter.DockerD do
       create_network(network)
     end
 
-    case System.cmd(executable!(), build_start_params(container)) do
-      {id, 0} ->
-        id = String.replace(id, "\n", "")
-        container = %Container{container | id: id}
+    id_or_err =
+      container
+      |> build_start_params()
+      |> Enum.join(" ")
+      |> String.to_charlist()
+      |> :os.cmd()
+      |> to_string()
+      |> String.trim()
+
+    case String.match?(id_or_err, ~r/[a-z0-9]{64}/) do
+      true ->
+        container = %Container{container | id: id_or_err}
 
         Logger.debug(fn ->
           """
@@ -30,9 +38,9 @@ defmodule Staxx.Docker.Adapter.DockerD do
 
         {:ok, container}
 
-      {err, exit_status} ->
-        Logger.error("Failed to start container with code: #{exit_status} - #{inspect(err)}")
-        {:error, err}
+      false ->
+        Logger.error("Failed to start container with code: #{id_or_err}")
+        {:error, id_or_err}
     end
   end
 
@@ -132,6 +140,7 @@ defmodule Staxx.Docker.Adapter.DockerD do
 
   defp build_start_params(%Container{image: image, cmd: cmd} = container) do
     [
+      executable!(),
       "run",
       "-d",
       build_rm(container),
@@ -184,7 +193,7 @@ defmodule Staxx.Docker.Adapter.DockerD do
 
   defp build_env(%Container{env: env}) do
     env
-    |> Enum.map(fn {key, val} -> ["--env", "#{key}=#{val}"] end)
+    |> Enum.map(fn {key, val} -> ["-e", "#{key}=#{val}"] end)
     |> List.flatten()
   end
 end
