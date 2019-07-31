@@ -1,5 +1,5 @@
 # TestchainBackend
-[![Build Status](https://travis-ci.org/makerdao/testchain-backendgateway.svg?branch=master)](https://travis-ci.org/makerdao/testchain-backendgateway)
+[![Build Status](https://travis-ci.org/makerdao/staxx.svg?branch=master)](https://travis-ci.org/makerdao/staxx)
 
 
 ## Prerequisite Installations
