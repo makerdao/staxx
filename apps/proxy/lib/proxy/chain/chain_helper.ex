@@ -113,6 +113,14 @@ defmodule Staxx.Proxy.Chain.ChainHelper do
          hash when byte_size(hash) > 0 <- StepsFetcher.hash(),
          {:ok, request_id} <- run_deployment(state, step_id, details) do
       Logger.debug("Deployment process scheduled with request_id #{request_id} !")
+
+      # Collecting telemetry
+      :telemetry.execute(
+        [:staxx, :chain, :deployment, :started],
+        %{request_id: request_id},
+        %{id: id, step_id: step_id}
+      )
+
       # Save deployment request association with current chain
       ProcessWatcher.put(request_id, id)
 
