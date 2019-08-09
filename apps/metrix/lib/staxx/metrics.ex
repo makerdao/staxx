@@ -55,7 +55,7 @@ defmodule Staxx.Metrix do
       # Deployments
       counter("staxx.chain.deployment.started", event_name: "staxx.chain.deployment.started"),
       counter("staxx.chain.deployment.success", event_name: "staxx.chain.deployment.success"),
-      counter("staxx.chain.deployment.failure", event_name: "staxx.chain.deployment.failure")
+      counter("staxx.chain.deployment.failed", event_name: "staxx.chain.deployment.failed")
     ]
   end
 
