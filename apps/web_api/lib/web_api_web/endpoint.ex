@@ -24,6 +24,8 @@ defmodule Staxx.WebApiWeb.Endpoint do
   plug Plug.RequestId
   plug Plug.Logger, log: :debug
 
+  plug Plug.Telemetry, event_prefix: [:staxx, :http]
+
   plug Plug.Parsers,
     parsers: [:urlencoded, :multipart, :json],
     pass: ["*/*"],

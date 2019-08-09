@@ -58,6 +58,10 @@ config :proxy, action_timeout: 600_000
 #
 config :metrix, run_prometheus: true
 
+config :telemetry_poller, :default,
+  # this is the default
+  vm_measurements: :default
+
 #
 # WebAPI configs
 #

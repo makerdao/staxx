@@ -28,14 +28,14 @@ defmodule Staxx.Metrix do
   # List of HTTP layer metrics
   defp http_metrics() do
     [
-      counter("http.requests.count", event_name: "staxx.rpc.start"),
+      counter("http.requests.count", event_name: "staxx.http.start"),
       counter("http.responses.count",
-        event_name: "staxx.rpc.stop",
+        event_name: "staxx.http.stop",
         tags: [:status],
         tag_values: &http_reponse_tags/1
       ),
       distribution("http.responses.duration",
-        event_name: "staxx.rpc.stop",
+        event_name: "staxx.http.stop",
         buckets: [100, 200, 300],
         tags: [:status],
         tag_values: &http_reponse_tags/1,
@@ -47,13 +47,13 @@ defmodule Staxx.Metrix do
   # List of DB metrics
   defp chain_metrics() do
     [
-      counter("staxx.docker.container.start", event_name: "staxx.docker.start"),
-      counter("staxx.docker.container.stop", event_name: "staxx.docker.stop"),
+      counter("staxx.docker.container.start", event_name: "staxx.docker.container.start"),
+      counter("staxx.docker.container.stop", event_name: "staxx.docker.container.stop"),
       # Chain events
       counter("staxx.chain.start", event_name: "staxx.chain.start"),
       counter("staxx.chain.stop", event_name: "staxx.chain.stop"),
-      counter("staxx.chain.deployment.success", event_name: "staxx.chain.deploy.success"),
-      counter("staxx.chain.deployment.failure", event_name: "staxx.chain.deploy.failure")
+      counter("staxx.chain.deployment.success", event_name: "staxx.chain.deployment.success"),
+      counter("staxx.chain.deployment.failure", event_name: "staxx.chain.deployment.success")
     ]
   end
 
