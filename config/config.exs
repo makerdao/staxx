@@ -54,6 +54,15 @@ config :proxy, deployment_timeout: 1_800_000
 config :proxy, action_timeout: 600_000
 
 #
+# Metrics
+#
+config :metrix, run_prometheus: true
+
+config :telemetry_poller, :default,
+  # this is the default
+  vm_measurements: :default
+
+#
 # WebAPI configs
 #
 # Configures the endpoint

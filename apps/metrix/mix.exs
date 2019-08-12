@@ -1,9 +1,9 @@
-defmodule Staxx.Proxy.MixProject do
+defmodule Staxx.Metrix.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :proxy,
+      app: :metrix,
       version: "0.1.0",
       build_path: "../../_build",
       config_path: "../../config/config.exs",
@@ -11,7 +11,6 @@ defmodule Staxx.Proxy.MixProject do
       lockfile: "../../mix.lock",
       elixir: "~> 1.9",
       start_permanent: Mix.env() == :prod,
-      elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps()
     ]
   end
@@ -20,20 +19,15 @@ defmodule Staxx.Proxy.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {Staxx.Proxy.Application, []}
+      mod: {Staxx.Metrix.Application, []}
     ]
   end
-
-  defp elixirc_paths(:test), do: ["test/support", "lib"]
-  defp elixirc_paths(_), do: ["lib"]
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:docker, in_umbrella: true},
-      {:event_stream, in_umbrella: true},
-      {:httpoison, "~> 1.5"},
-      {:jason, "~> 1.1"}
+      {:telemetry_poller, "~> 0.4"},
+      {:telemetry_metrics_prometheus, "~> 0.3.1"}
     ]
   end
 end

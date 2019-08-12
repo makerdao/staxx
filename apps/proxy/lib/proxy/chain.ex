@@ -66,6 +66,20 @@ defmodule Staxx.Proxy.Chain do
 
     Logger.debug("#{id}: Started new chain")
 
+    # Collecting telemetry
+    :telemetry.execute(
+      [:staxx, :chain, :start],
+      %{type: Map.get(config, :type)},
+      %{
+        id: id,
+        node: node,
+        accounts: Map.get(config, :accounts),
+        deploy_tag: Map.get(config, :deploy_tag),
+        step_id: Map.get(config, :step_id),
+        clean_on_stop: Map.get(config, :clean_on_stop)
+      }
+    )
+
     # Store new chain process details
     state
     |> Record.from_state()
@@ -102,6 +116,16 @@ defmodule Staxx.Proxy.Chain do
     Logger.debug(fn -> "Got stop signal... Terminating" end)
     # Sending termination signal
     ExChain.stop(node, id)
+
+    # Collecting telemetry
+    :telemetry.execute(
+      [:staxx, :chain, :stop],
+      %{},
+      %{
+        id: id,
+        node: node
+      }
+    )
 
     case ChainHelper.wait_chain_event(id, :stopped) do
       :timeout ->
@@ -242,6 +266,17 @@ defmodule Staxx.Proxy.Chain do
   @doc false
   def handle_cast({:deployment_finished, request_id, data}, state) do
     new_state = ChainHelper.handle_deployment_finished(state, request_id, data)
+
+    # Collecting telemetry
+    :telemetry.execute(
+      [:staxx, :chain, :deployment, :success],
+      %{request_id: request_id},
+      %{
+        id: Map.get(state, :id),
+        step_id: Map.get(state, :deploy_step_id)
+      }
+    )
+
     {:noreply, new_state}
   end
 
@@ -251,6 +286,16 @@ defmodule Staxx.Proxy.Chain do
         %State{id: id, status: :initializing} = state
       ) do
     Logger.debug("#{id}: Handling deployment failure #{request_id}: #{inspect(msg)}")
+
+    # Collecting telemetry
+    :telemetry.execute(
+      [:staxx, :chain, :deployment, :failed],
+      %{request_id: request_id},
+      %{
+        id: Map.get(state, :id),
+        step_id: Map.get(state, :deploy_step_id)
+      }
+    )
 
     {:noreply, state, {:continue, :deployment_failed}}
   end

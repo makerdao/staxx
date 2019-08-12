@@ -59,6 +59,14 @@ defmodule Staxx.Docker.Struct.Container do
   def init(%__MODULE__{id: ""} = container) do
     # Enabling trap exit for process
     Process.flag(:trap_exit, true)
+
+    # Collecting telemetry
+    :telemetry.execute(
+      [:staxx, :docker, :container, :start],
+      %{image: Map.get(container, :image)},
+      %{id: Map.get(container, :id), dev_mode: Map.get(container, :dev_mode, false)}
+    )
+
     # In case of missing container ID
     # it will try to start new container using `Staxx.Docker.start/1`
     {:ok, container, {:continue, :start_container}}
@@ -123,6 +131,13 @@ defmodule Staxx.Docker.Struct.Container do
         #{inspect(state, pretty: true)}
       """
     end)
+
+    # Collecting telemetry
+    :telemetry.execute(
+      [:staxx, :docker, :container, :stop],
+      %{image: Map.get(state, :image)},
+      %{id: Map.get(state, :id), dev_mode: Map.get(state, :dev_mode, false)}
+    )
 
     if id do
       # Stop container in docker daemon

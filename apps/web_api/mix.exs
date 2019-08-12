@@ -39,7 +39,7 @@ defmodule Staxx.WebApi.MixProject do
       {:deployment_scope, in_umbrella: true},
       {:proxy, in_umbrella: true},
       {:event_stream, in_umbrella: true},
-      {:phoenix, "~> 1.4.0"},
+      {:phoenix, "~> 1.4"},
       {:phoenix_pubsub, "~> 1.1"},
       {:gettext, "~> 0.11"},
       {:jason, "~> 1.0"},
