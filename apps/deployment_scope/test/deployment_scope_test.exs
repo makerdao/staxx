@@ -2,12 +2,21 @@ defmodule Staxx.DeploymentScopeTest do
   use ExUnit.Case
   doctest Staxx.DeploymentScope
 
+  import Staxx.DeploymentScope.ChainFactory
   alias Staxx.DeploymentScope
 
   describe "start/1 :: " do
-    test "fail to start without 'testchain' stack"
+    test "fail to start without 'testchain' stack" do
+      assert {:error, "wrong chain config"} == DeploymentScope.start(%{})
+      assert {:error, _} = DeploymentScope.start(%{"vdb" => %{"config" => %{}}})
+    end
 
-    test "start new testchain if no 'id' passed"
+    test "start new testchain if no 'id' passed" do
+      {:ok, id} = DeploymentScope.start(build(:chain_valid))
+      assert is_binary(id)
+
+      DeploymentScope.stop(id)
+    end
 
     test "start existing chain if 'id' passed"
   end
