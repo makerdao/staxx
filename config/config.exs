@@ -52,6 +52,8 @@ config :proxy, snapshot_path: "/tmp/snapshots"
 # deployment timeout
 config :proxy, deployment_timeout: 1_800_000
 config :proxy, action_timeout: 600_000
+# Node manager
+config :proxy, node_manager_adapter: Staxx.Proxy.NodeManager.Real
 
 #
 # Metrics

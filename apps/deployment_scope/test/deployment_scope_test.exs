@@ -14,23 +14,49 @@ defmodule Staxx.DeploymentScopeTest do
     test "start new testchain if no 'id' passed" do
       {:ok, id} = DeploymentScope.start(build(:chain_valid))
       assert is_binary(id)
+      assert DeploymentScope.alive?(id)
 
       DeploymentScope.stop(id)
     end
 
-    test "start existing chain if 'id' passed"
+    test "start existing chain if 'id' passed" do
+      {:ok, id} = DeploymentScope.start(build(:chain_valid))
+      assert is_binary(id)
+      assert DeploymentScope.alive?(id)
+      DeploymentScope.stop(id)
+
+      {:ok, id} = DeploymentScope.start(%{"testchain" => %{"config" => %{"id" => id}}})
+      assert DeploymentScope.alive?(id)
+      DeploymentScope.stop(id)
+    end
   end
 
   describe "start/3 :: " do
-    test "failes with non allowed stacks"
+    test "failes with non allowed stacks" do
+      {:error, _} = DeploymentScope.start(build(:not_allowed_stack))
+    end
 
-    test "start new scope with supervisors"
+    test "start new scope with supervisors" do
+      {:ok, id} =
+        :chain_valid
+        |> build()
+        |> Map.merge(build(:helloworld_valid))
+        |> DeploymentScope.start()
+    end
   end
 
   describe "stop/1 :: " do
-    test "fails for stop non existing scope"
+    test "not fail for stop non existing scope" do
+      :ok = DeploymentScope.stop(Faker.String.base64())
+    end
 
-    test "stops running scope and terminates all resources"
+    test "stops running scope and terminates all resources" do
+      {:ok, id} = DeploymentScope.start(build(:chain_valid))
+      assert is_binary(id)
+      assert DeploymentScope.alive?(id)
+      DeploymentScope.stop(id)
+      refute DeploymentScope.alive?(id)
+    end
   end
 
   describe "alive?/1 :: " do

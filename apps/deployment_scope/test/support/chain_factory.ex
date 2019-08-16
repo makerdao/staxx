@@ -25,4 +25,13 @@ defmodule Staxx.DeploymentScope.ChainFactory do
       }
     }
   end
+
+  def not_allowed_stack_factory do
+    %{
+      "some_other" => %{
+        "config" => %{},
+        "deps" => ["testchain"]
+      }
+    }
+  end
 end

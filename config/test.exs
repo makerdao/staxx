@@ -13,6 +13,9 @@ config :docker, adapter: Staxx.Docker.Adapter.Mock
 
 config :deployment_scope, stacks_dir: "#{__DIR__}/../priv/test/stacks"
 
+config :proxy, ex_chain_adapter: Staxx.Proxy.ExChain.FakeExChain
+config :proxy, node_manager_adapter: Staxx.Proxy.NodeManager.FakeNodeManager
+
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
 config :web_api, Staxx.WebApiWeb.Endpoint,

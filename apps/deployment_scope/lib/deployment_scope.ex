@@ -103,9 +103,15 @@ defmodule Staxx.DeploymentScope do
   """
   @spec stop(binary) :: :ok
   def stop(id) do
-    id
-    |> SupervisorTree.via_tuple()
-    |> Supervisor.stop(:normal)
+    case alive?(id) do
+      true ->
+        id
+        |> SupervisorTree.via_tuple()
+        |> Supervisor.stop(:normal)
+
+      false ->
+        :ok
+    end
   end
 
   @doc """
@@ -116,7 +122,13 @@ defmodule Staxx.DeploymentScope do
     id
     |> SupervisorTree.via_tuple()
     |> GenServer.whereis()
-    |> Process.alive?()
+    |> case do
+      nil ->
+        false
+
+      pid ->
+        Process.alive?(pid)
+    end
   end
 
   @doc """
