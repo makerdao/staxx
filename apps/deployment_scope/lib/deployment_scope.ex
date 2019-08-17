@@ -134,9 +134,12 @@ defmodule Staxx.DeploymentScope do
   @doc """
   Starting new container for given stack id
   """
-  @spec start_container(binary, binary, Container.t()) :: :ok | {:error, term}
+  @spec start_container(binary, binary, Container.t()) :: {:ok, Container.t()} | {:error, term}
   def start_container(id, stack_name, %Container{name: ""} = container),
     do: start_container(id, stack_name, %Container{container | name: Docker.random_name()})
+
+  def start_container(id, stack_name, %Container{network: ""} = container),
+    do: start_container(id, stack_name, %Container{container | network: id})
 
   def start_container(id, stack_name, %Container{image: image} = container) do
     with {:alive, true} <- {:alive, StackManager.alive?(id, stack_name)},
@@ -163,13 +166,19 @@ defmodule Staxx.DeploymentScope do
   """
   @spec info(binary) :: term
   def info(id) do
-    id
-    |> SupervisorTree.get_stack_manager_supervisor()
-    |> Supervisor.which_children()
-    |> Enum.filter(fn {_, _, _, mods} -> mods == [StackManager] end)
-    |> Enum.map(fn {_, pid, :worker, _} -> pid end)
-    |> Enum.map(&StackManager.info/1)
-    |> List.flatten()
+    case alive?(id) do
+      false ->
+        []
+
+      true ->
+        id
+        |> SupervisorTree.get_stack_manager_supervisor()
+        |> Supervisor.which_children()
+        |> Enum.filter(fn {_, _, _, mods} -> mods == [StackManager] end)
+        |> Enum.map(fn {_, pid, :worker, _} -> pid end)
+        |> Enum.map(&StackManager.info/1)
+        |> List.flatten()
+    end
   end
 
   @doc """

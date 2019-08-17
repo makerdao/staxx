@@ -1,6 +1,8 @@
 defmodule Staxx.DeploymentScope.ChainFactory do
   use ExMachina
 
+  alias Staxx.Docker.Struct.Container
+
   def chain_valid_factory do
     %{
       "testchain" => %{
@@ -17,9 +19,9 @@ defmodule Staxx.DeploymentScope.ChainFactory do
     }
   end
 
-  def helloworld_valid_factory do
+  def stack_valid_factory do
     %{
-      "helloworld" => %{
+      "test" => %{
         "config" => %{},
         "deps" => ["testchain"]
       }
@@ -32,6 +34,21 @@ defmodule Staxx.DeploymentScope.ChainFactory do
         "config" => %{},
         "deps" => ["testchain"]
       }
+    }
+  end
+
+  def container_valid_factory do
+    %Container{
+      # see /priv/test/stack/test/stack.json
+      image: "some/container",
+      ports: [3000]
+    }
+  end
+
+  def container_invalid_factory do
+    %Container{
+      # see /priv/test/stack/test/stack.json
+      image: "some/other-container"
     }
   end
 end

@@ -27,13 +27,22 @@ defmodule Staxx.Proxy.ExChain.FakeExChain do
     end
   end
 
-  def handle_call({:start_existring, id}, _, %{chains: chains} = state) do
+  def handle_call({:start_existring, id, pid}, _, %{chains: chains} = state) do
     case Map.get(chains, id) do
       nil ->
         {:reply, {:error, :not_exist}, state}
 
-      %{status: :stopped} = chain ->
-        {:reply, {:ok, id}, %{state | chains: Map.put(chains, id, %{chain | status: :started})}}
+      %{status: :stopped, config: config} = chain ->
+        {:reply, {:ok, id},
+         %{
+           state
+           | chains:
+               Map.put(chains, id, %{
+                 chain
+                 | status: :started,
+                   config: %{config | notify_pid: pid}
+               })
+         }}
     end
   end
 
@@ -42,7 +51,11 @@ defmodule Staxx.Proxy.ExChain.FakeExChain do
       nil ->
         {:reply, {:error, :not_exist}, state}
 
-      chain ->
+      %{config: config} = chain ->
+        if pid = Map.get(config, :notify_pid) do
+          send(pid, %Chain.EVM.Notification{id: id, event: :stopped})
+        end
+
         {:reply, :ok, %{state | chains: Map.put(chains, id, %{chain | status: :stopped})}}
     end
   end
@@ -66,7 +79,7 @@ defmodule Staxx.Proxy.ExChain.FakeExChain do
 
   @impl true
   def start_existing(node, id, pid),
-    do: GenServer.call(__MODULE__, {:start_existring, id})
+    do: GenServer.call(__MODULE__, {:start_existring, id, pid})
 
   @impl true
   def start(node, config),
