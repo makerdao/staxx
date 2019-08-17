@@ -24,6 +24,12 @@ defmodule Staxx.Proxy.ExChain do
   @type ex_response :: term() | :ok | {:error, term()} | {:badrpc, term()}
 
   @doc """
+  Child specs for adapter.
+  If something needed to be started on app start - this is good place to do it.
+  """
+  @callback child_spec() :: Supervisor.child_spec()
+
+  @doc """
   New unique id for chain
   """
   @callback unique_id(node :: node()) :: ex_response()
@@ -130,6 +136,13 @@ defmodule Staxx.Proxy.ExChain do
   Versions for chains
   """
   @callback version(node :: node()) :: ex_response()
+
+  @doc """
+  Child specification for adapter
+  """
+  @spec child_spec() :: Supervisor.child_spec()
+  def child_spec(),
+    do: adapter().child_spec()
 
   @doc """
   New unique id for chain

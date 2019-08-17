@@ -11,6 +11,7 @@ defmodule Staxx.DeploymentScope.Scope.SupervisorTree do
 
   require Logger
 
+  alias Staxx.DeploymentScope
   alias Staxx.DeploymentScope.Scope.StackManagerSupervisor
   alias Staxx.DeploymentScope.ScopeRegistry
   alias Staxx.Proxy.Chain
@@ -86,9 +87,15 @@ defmodule Staxx.DeploymentScope.Scope.SupervisorTree do
   """
   @spec start_stack_manager(binary, binary) :: DynamicSupervisor.on_start_child()
   def start_stack_manager(scope_id, stack_name) do
-    scope_id
-    |> get_stack_manager_supervisor()
-    |> StackManagerSupervisor.start_manager(scope_id, stack_name)
+    case DeploymentScope.alive?(scope_id) do
+      false ->
+        {:error, "No working stack with such id"}
+
+      true ->
+        scope_id
+        |> get_stack_manager_supervisor()
+        |> StackManagerSupervisor.start_manager(scope_id, stack_name)
+    end
   end
 
   # Start list of stack managers
