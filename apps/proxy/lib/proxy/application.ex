@@ -13,7 +13,9 @@ defmodule Staxx.Proxy.Application do
         Staxx.Proxy.Chain.Storage,
         {Registry, keys: :unique, name: Staxx.Proxy.ChainRegistry},
         Staxx.Proxy.Deployment.Supervisor
-      ] ++ Staxx.Proxy.NodeManager.child_spec()
+      ] ++
+        Staxx.Proxy.NodeManager.child_spec() ++
+        Staxx.Proxy.ExChain.child_spec()
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options

@@ -12,6 +12,9 @@ defmodule Staxx.Proxy.ExChain.Remote do
   require Logger
 
   @impl true
+  def child_spec(), do: []
+
+  @impl true
   def unique_id(node),
     do: call(node, Chain, :unique_id)
 
