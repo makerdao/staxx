@@ -1,4 +1,4 @@
-defmodule Proxy.MixProject do
+defmodule Staxx.Proxy.MixProject do
   use Mix.Project
 
   def project do
@@ -9,8 +9,9 @@ defmodule Proxy.MixProject do
       config_path: "../../config/config.exs",
       deps_path: "../../deps",
       lockfile: "../../mix.lock",
-      elixir: "~> 1.7",
+      elixir: "~> 1.9",
       start_permanent: Mix.env() == :prod,
+      elixirc_paths: elixirc_paths(Mix.env()),
       deps: deps()
     ]
   end
@@ -19,17 +20,20 @@ defmodule Proxy.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {Proxy.Application, []}
+      mod: {Staxx.Proxy.Application, []}
     ]
   end
+
+  defp elixirc_paths(:test), do: ["test/support", "lib"]
+  defp elixirc_paths(_), do: ["lib"]
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:event_bus, in_umbrella: true},
-      {:httpoison, "~> 1.4"},
-      {:jason, "~> 1.1"},
-      {:gen_stage, "~> 0.14"}
+      {:docker, in_umbrella: true},
+      {:event_stream, in_umbrella: true},
+      {:httpoison, "~> 1.5"},
+      {:jason, "~> 1.1"}
     ]
   end
 end

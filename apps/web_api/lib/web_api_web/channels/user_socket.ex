@@ -1,9 +1,9 @@
-defmodule WebApiWeb.UserSocket do
+defmodule Staxx.WebApiWeb.UserSocket do
   use Phoenix.Socket, log: :debug
 
   ## Channels
-  channel "*", WebApiWeb.ApiChannel
-  channel "chain:*", WebApiWeb.ChainChannel
+  channel "*", Staxx.WebApiWeb.ApiChannel
+  channel "chain:*", Staxx.WebApiWeb.ChainChannel
 
   # Socket params are passed from the client and can
   # be used to verify and authenticate a user. After
@@ -27,7 +27,7 @@ defmodule WebApiWeb.UserSocket do
   # Would allow you to broadcast a "disconnect" event and terminate
   # all active sockets and channels for a given user:
   #
-  #     WebApiWeb.Endpoint.broadcast("user_socket:#{user.id}", "disconnect", %{})
+  #     Staxx.WebApiWeb.Endpoint.broadcast("user_socket:#{user.id}", "disconnect", %{})
   #
   # Returning `nil` makes this socket anonymous.
   def id(_socket), do: nil

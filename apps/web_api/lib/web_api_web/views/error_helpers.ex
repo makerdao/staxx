@@ -1,4 +1,4 @@
-defmodule WebApiWeb.ErrorHelpers do
+defmodule Staxx.WebApiWeb.ErrorHelpers do
   @moduledoc """
   Conveniences for translating and building error messages.
   """
@@ -25,9 +25,9 @@ defmodule WebApiWeb.ErrorHelpers do
     # should be written to the errors.po file. The :count option is
     # set by Ecto and indicates we should also apply plural rules.
     if count = opts[:count] do
-      Gettext.dngettext(WebApiWeb.Gettext, "errors", msg, msg, count, opts)
+      Gettext.dngettext(Staxx.WebApiWeb.Gettext, "errors", msg, msg, count, opts)
     else
-      Gettext.dgettext(WebApiWeb.Gettext, "errors", msg, opts)
+      Gettext.dgettext(Staxx.WebApiWeb.Gettext, "errors", msg, opts)
     end
   end
 end

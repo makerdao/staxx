@@ -1,4 +1,4 @@
-defmodule WebApi.MixProject do
+defmodule Staxx.WebApi.MixProject do
   use Mix.Project
 
   def project do
@@ -9,7 +9,7 @@ defmodule WebApi.MixProject do
       config_path: "../../config/config.exs",
       deps_path: "../../deps",
       lockfile: "../../mix.lock",
-      elixir: "~> 1.5",
+      elixir: "~> 1.9",
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: [:phoenix, :gettext] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
@@ -22,7 +22,7 @@ defmodule WebApi.MixProject do
   # Type `mix help compile.app` for more information.
   def application do
     [
-      mod: {WebApi.Application, []},
+      mod: {Staxx.WebApi.Application, []},
       extra_applications: [:logger, :runtime_tools]
     ]
   end
@@ -36,10 +36,10 @@ defmodule WebApi.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:deployment_scope, in_umbrella: true},
       {:proxy, in_umbrella: true},
-      {:stacks, in_umbrella: true},
-      {:event_bus, in_umbrella: true},
-      {:phoenix, "~> 1.4.0"},
+      {:event_stream, in_umbrella: true},
+      {:phoenix, "~> 1.4"},
       {:phoenix_pubsub, "~> 1.1"},
       {:gettext, "~> 0.11"},
       {:jason, "~> 1.0"},

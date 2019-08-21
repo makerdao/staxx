@@ -1,26 +1,30 @@
-defmodule WebApiWeb.DockerController do
-  use WebApiWeb, :controller
+defmodule Staxx.WebApiWeb.DockerController do
+  use Staxx.WebApiWeb, :controller
 
   require Logger
 
-  action_fallback WebApiWeb.FallbackController
+  action_fallback Staxx.WebApiWeb.FallbackController
 
-  alias WebApiWeb.SuccessView
-  alias WebApiWeb.ErrorView
-  alias Docker.Struct.Container
+  alias Staxx.WebApiWeb.SuccessView
+  alias Staxx.WebApiWeb.ErrorView
+  alias Staxx.Docker
+  alias Staxx.Docker.Struct.Container
+  alias Staxx.DeploymentScope
 
   def start(conn, %{"stack_id" => id, "stack_name" => stack_name} = params) do
     container = %Container{
       image: Map.get(params, "image", ""),
       name: Map.get(params, "name", ""),
       network: Map.get(params, "network", id),
+      cmd: Map.get(params, "cmd", ""),
       ports: Map.get(params, "ports", []),
-      env: parse_env(Map.get(params, "env", %{}))
+      env: parse_env(Map.get(params, "env", %{})),
+      dev_mode: Map.get(params, "dev_mode", false)
     }
 
     Logger.debug("Stack #{id} Starting new docker container #{inspect(container)}")
 
-    with {:ok, container} <- Stacks.start_container(id, stack_name, container) do
+    with {:ok, container} <- DeploymentScope.start_container(id, stack_name, container) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)
@@ -29,7 +33,7 @@ defmodule WebApiWeb.DockerController do
   end
 
   def stop(conn, %{"id" => id}) do
-    case Proxy.Docker.stop(id) do
+    case Docker.stop(id) do
       {:ok, _id} ->
         conn
         |> put_status(200)

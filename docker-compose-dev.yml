@@ -18,9 +18,9 @@ services:
       # CONSUL_BIND_INTERFACE: eth0
     # networks:
       # - net1
-  testchain-backendgateway:
-    image: makerdao/testchain_backendgateway:dev
-    container_name: testchain-backendgateway.local
+  staxx:
+    image: makerdao/staxx:dev
+    container_name: staxx.local
     depends_on:
       - nats
     expose:
@@ -30,7 +30,9 @@ services:
       - "4000:4000"
     environment:
       NATS_URL: nats.local
+      DOCKER_DEV_MODE_ALLOWED: "true"
     volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
       - "/tmp/chains:/opt/chains"
       - "/tmp/snapshots:/opt/snapshots"
       - "/tmp/stacks:/opt/stacks"
@@ -50,7 +52,6 @@ services:
     volumes:
       - "/tmp/chains:/opt/chains"
       - "/tmp/snapshots:/opt/snapshots"
-      - "/tmp/stacks:/opt/stacks"
     networks:
      - net1
   testchain-deployment:
@@ -59,8 +60,7 @@ services:
     ports:
       - "5001:5001"
     environment:
-      TCD_GATEWAY: host=testchain-backendgateway.local
-      # TCD_GATEWAY: host=host.docker.internal
+      TCD_GATEWAY: host=staxx.local
       GITHUB_DEFAULT_CHECKOUT_TARGET: master
     volumes:
       - nix-db:/nix
@@ -68,20 +68,6 @@ services:
       - /tmp
     depends_on:
       - nats
-    networks:
-     - net1
-  testchain-dockerservice:
-    image: makerdao/testchain_dockerservice:dev
-    container_name: testchain-dockerservice.local
-    expose:
-      - "9100-9105"
-    depends_on:
-      - nats
-    environment:
-      NATS_HOST: nats.local
-      NATS_PORT: 4222
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
     networks:
      - net1
   testchain-dashboard:
@@ -92,13 +78,36 @@ services:
     ports:
       - "4001:3000"
     depends_on:
-      - testchain-backendgateway
+      - staxx
     environment:
       TESTCHAIN_SERVICE_URL: http://localhost
       TESTCHAIN_SERVICE_PORT: 4000
       TESTCHAIN_SERVICE_WS_URL: ws://localhost:4000/socket
     networks:
      - net1
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+        - ./metrics_config/prometheus.yml:/etc/prometheus/prometheus.yml
+    # command:
+        # - '-config.file=/etc/prometheus/prometheus.yml'
+    ports:
+        - '9090:9090'
+    networks:
+      - net1
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    depends_on:
+      - prometheus
+    ports:
+      - "3000:3000"
+    volumes:
+      # - ./grafana/grafana.ini:/etc/grafana/grafana.ini
+      - ./metrics_config/grafana/datasource.yaml:/etc/grafana/provisioning/datasources/datasource.yaml
+    networks:
+      - net1
 
 # We're using custom network setup, as it ships with a DNS
 # system which allows containers to communicate by hostnames.

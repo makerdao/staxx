@@ -103,3 +103,18 @@ Deployed example:
    "id":"15511618343318382659"
 }
 ```
+
+## Stack status event
+This event will be fired every time stack changes it's status
+
+```js
+{
+  id: "15511618343318382659",
+  event: "stack:status",
+  data: {
+    "scope_id": "15511618343318382659",
+    "stack_name": "some_stack_name",
+    "status": "ready" // "failed", "initializing", "terminate"
+  }
+}
+```

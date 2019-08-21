@@ -1,4 +1,4 @@
-defmodule ProxyTest do
+defmodule Staxx.ProxyTest do
   use ExUnit.Case
-  doctest Proxy
+  doctest Staxx.Proxy
 end

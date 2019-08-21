@@ -1,11 +1,12 @@
-defmodule WebApiWeb.ChainChannel do
+defmodule Staxx.WebApiWeb.ChainChannel do
   @moduledoc """
   Controlling functions for specified chains
   """
 
   require Logger
 
-  alias Proxy.Chain.Worker
+  alias Staxx.Proxy
+  alias Staxx.Proxy.Chain
 
   use Phoenix.Channel, log_join: false, log_handle_in: :debug
   # alias Chain.Snapshot.Details, as: SnapshotDetails
@@ -65,7 +66,7 @@ defmodule WebApiWeb.ChainChannel do
   def handle_in("deploy", %{"step" => step}, %{topic: "chain:" <> id} = socket) do
     res =
       id
-      |> Worker.get_pid()
+      |> Chain.via_tuple()
       |> GenServer.call({:deploy, step})
 
     case res do
