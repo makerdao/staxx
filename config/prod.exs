@@ -1,13 +1,18 @@
 import Config
 
 config :logger,
-  backends: [:console],
-  # ,
+  backends: [:console, Gelfx],
   level: :debug
 
 # compile_time_purge_matching: [
 #   [level_lower_than: :warn]
 # ]
+
+config :logger, Gelfx,
+  host: "localhost",
+  port: 12201,
+  # protocol: :tcp,
+  hostname: "Staxx"
 
 config :docker, adapter: Staxx.Docker.Adapter.DockerD
 

@@ -35,6 +35,7 @@ defmodule Staxx.MixProject do
   defp deps do
     [
       {:telemetry, "~> 0.4"},
+      {:gelfx, "~> 0.4.1"},
       # {:credo, "~> 1.0.0", only: [:dev, :test], runtime: false},
       # {:dialyxir, "~> 1.0.0-rc.4", only: [:dev], runtime: false},
       {:ex_testchain, github: "makerdao/ex_testchain", branch: "master", runtime: false}

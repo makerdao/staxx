@@ -1,5 +1,8 @@
 import Config
 
+config :logger, Gelfx, 
+  host: System.fetch_env!("GRAYLOG_HOST")
+
 # To set it to true, pass `DOCKER_DEV_MODE_ALLOWED=true`, all other variables will be interpritated as false
 config :docker, dev_mode_allowed: System.fetch_env!("DOCKER_DEV_MODE_ALLOWED")
 

@@ -8,6 +8,8 @@
   "ex_machina": {:hex, :ex_machina, "2.3.0", "92a5ad0a8b10ea6314b876a99c8c9e3f25f4dde71a2a835845b136b9adaf199a", [:mix], [{:ecto, "~> 2.2 or ~> 3.0", [hex: :ecto, repo: "hexpm", optional: true]}, {:ecto_sql, "~> 3.0", [hex: :ecto_sql, repo: "hexpm", optional: true]}], "hexpm"},
   "ex_testchain": {:git, "https://github.com/makerdao/ex_testchain.git", "ac68c80285b9c5a2c987b581fac014835a6061bf", [branch: "master"]},
   "faker": {:hex, :faker, "0.12.0", "796cbac868c86c2df6f273ea4cdf2e271860863820e479e04a374b7ee6c376b6", [:mix], [], "hexpm"},
+  "gelf_logger": {:hex, :gelf_logger, "0.9.0", "47eb967ba4bc384d82e9b86da953433a01b3b3244e2d9ea90fec158290573097", [:mix], [], "hexpm"},
+  "gelfx": {:hex, :gelfx, "0.4.1", "af0355112d7edafa0eaa089644687cc02a576ea9d1315e6e72963de790b63154", [:mix], [], "hexpm"},
   "gettext": {:hex, :gettext, "0.17.0", "abe21542c831887a2b16f4c94556db9c421ab301aee417b7c4fbde7fbdbe01ec", [:mix], [], "hexpm"},
   "gnat": {:hex, :gnat, "0.6.1", "bf845324458d6b14367dc5a977ab59521f0c2e433f8fe64988095feef5baf352", [:mix], [{:jason, "~> 1.1", [hex: :jason, repo: "hexpm", optional: false]}, {:nimble_parsec, "~> 0.5", [hex: :nimble_parsec, repo: "hexpm", optional: false]}, {:telemetry, "~> 0.4", [hex: :telemetry, repo: "hexpm", optional: false]}], "hexpm"},
   "hackney": {:hex, :hackney, "1.15.1", "9f8f471c844b8ce395f7b6d8398139e26ddca9ebc171a8b91342ee15a19963f4", [:rebar3], [{:certifi, "2.5.1", [hex: :certifi, repo: "hexpm", optional: false]}, {:idna, "6.0.0", [hex: :idna, repo: "hexpm", optional: false]}, {:metrics, "1.0.1", [hex: :metrics, repo: "hexpm", optional: false]}, {:mimerl, "~>1.1", [hex: :mimerl, repo: "hexpm", optional: false]}, {:ssl_verify_fun, "1.1.4", [hex: :ssl_verify_fun, repo: "hexpm", optional: false]}], "hexpm"},

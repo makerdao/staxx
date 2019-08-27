@@ -79,6 +79,7 @@ ENV APP_NAME=${APP_NAME} \
     CHAINS_FRONT_URL=host.docker.internal \
     CHAINS_DB_PATH=/opt/chains \
     NATS_URL=nats.local \
+    GRAYLOG_HOST=graylog.local \
     STACKS_DIR=/opt/stacks \
     STACKS_FRONT_URL=http://localhost \
     RELEASE_COOKIE="W_cC]7^rUeVZc|}$UL{@&1sQwT3}p507mFlh<E=/f!cxWI}4gpQx7Yu{ZUaD0cuK" \
