@@ -50,5 +50,14 @@ config :phoenix, :plug_init_mode, :runtime
 
 # Do not include metadata nor timestamps in development logs
 config :logger,
-  backends: [:console],
+  backends: [:console, {LoggerLogstashBackend, :debug}],
   format: "[$level] $message\n"
+
+config :logger, :debug,
+  host: "localhost",
+  port: 10001,
+  level: :debug,
+  type: "default_log_type",
+  metadata: [
+    # extra_fields: "go here"
+  ]

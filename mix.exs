@@ -11,6 +11,11 @@ defmodule Staxx.MixProject do
     ]
   end
 
+  # Run "mix help compile.app" to learn about applications.
+  def application do
+    [applications: [:logger, :timex]]
+  end
+
   defp releases() do
     [
       staxx: [
@@ -21,7 +26,9 @@ defmodule Staxx.MixProject do
           docker: :permanent,
           event_bus: :permanent,
           proxy: :permanent,
-          web_api: :permanent
+          web_api: :permanent,
+          timex: :permanent,
+          logger_logstash_backend: :load
         ]
       ]
     ]
@@ -35,7 +42,7 @@ defmodule Staxx.MixProject do
   defp deps do
     [
       {:telemetry, "~> 0.4"},
-      {:gelfx, "~> 0.4.1"},
+      {:logger_logstash_backend, "~> 3.0.0"},
       # {:credo, "~> 1.0.0", only: [:dev, :test], runtime: false},
       # {:dialyxir, "~> 1.0.0-rc.4", only: [:dev], runtime: false},
       {:ex_testchain, github: "makerdao/ex_testchain", branch: "master", runtime: false}

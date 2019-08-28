@@ -12,7 +12,8 @@ config :logger, Gelfx,
   host: "localhost",
   port: 12201,
   # protocol: :tcp,
-  hostname: "Staxx"
+  hostname: "Staxx",
+  json_library: Jason
 
 config :docker, adapter: Staxx.Docker.Adapter.DockerD
 

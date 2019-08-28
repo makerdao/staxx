@@ -23,7 +23,7 @@ defmodule Staxx.WebApi.MixProject do
   def application do
     [
       mod: {Staxx.WebApi.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :timex]
     ]
   end
 
