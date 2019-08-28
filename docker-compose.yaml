@@ -9,6 +9,12 @@ services:
       - "4222:4222"
     networks:
      - net1
+  db:
+    image: postgres:11-alpine
+    environment:
+      POSTGRES_PASSWORD: postgres
+    ports:
+    - "5432:5432"
   # consul:
     # image: 'consul:latest'
     # ports:

@@ -4,6 +4,13 @@ config :docker, adapter: Staxx.Docker.Adapter.DockerD
 
 config :deployment_scope, stacks_dir: "/tmp/stacks"
 
+config :domains, ecto_repos: [Staxx.Domains.Repo]
+config :domains, Staxx.Domains.Repo,
+  database: "staxx_dev",
+  username: "postgres",
+  password: "postgres",
+  hostname: "localhost"
+
 # For development, we disable any cache and enable
 # debugging and code reloading.
 #

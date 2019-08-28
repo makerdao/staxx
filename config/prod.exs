@@ -15,6 +15,13 @@ config :proxy, node_manager_adapter: Staxx.Proxy.NodeManager.Remote
 
 config :docker, adapter: Staxx.Docker.Adapter.DockerD
 
+config :domains, ecto_repos: [Staxx.Domains.Repo]
+config :domains, Staxx.Domains.Repo,
+  database: "staxx",
+  username: "postgres",
+  password: "postgres",
+  hostname: "localhost"
+
 config :deployment_scope, stacks_dir: "/tmp/stacks"
 
 # For production, don't forget to configure the url host
