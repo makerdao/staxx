@@ -24,6 +24,7 @@ node_modules
 priv/presets/ganache/node_modules
 
 # DETS databases
+user_deployment_scope
 snapshots
 chains
 .idea
