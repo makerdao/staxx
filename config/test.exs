@@ -8,6 +8,16 @@ config :logger,
   ]
 
 config :metrix, run_prometheus: false
+
+config :domains, ecto_repos: [Staxx.Domains.Repo]
+
+config :domains, Staxx.Domains.Repo,
+  database: "staxx_test",
+  username: "postgres",
+  password: "postgres",
+  hostname: "localhost",
+  pool: Ecto.Adapters.SQL.Sandbox
+
 config :event_stream, disable_nats: true
 
 config :docker, adapter: Staxx.Docker.Adapter.Mock
