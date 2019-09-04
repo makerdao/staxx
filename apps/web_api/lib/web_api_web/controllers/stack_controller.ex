@@ -114,15 +114,4 @@ defmodule Staxx.WebApiWeb.StackController do
       |> render("200.json", data: %{})
     end
   end
-
-  # Fetch user email from request
-  defp get_user_email(conn) do
-    case get_req_header(conn, "x-user-email") do
-      [email] when is_binary(email) ->
-        email
-
-      _ ->
-        nil
-    end
-  end
 end

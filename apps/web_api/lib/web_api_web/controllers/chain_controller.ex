@@ -50,6 +50,18 @@ defmodule Staxx.WebApiWeb.ChainController do
 
   def chain_list(conn, _) do
     with list when is_list(list) <- Proxy.chain_list() do
+      list =
+        case get_user_email(conn) do
+          email when is_binary(email) and email != "" ->
+            user_list = UserScope.list_by_email(email)
+
+            list
+            |> Enum.filter(fn %{id: id} -> Enum.member?(user_list, id) end)
+
+          _ ->
+            list
+        end
+
       conn
       |> put_status(200)
       |> put_view(SuccessView)

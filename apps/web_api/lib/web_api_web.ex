@@ -24,6 +24,17 @@ defmodule Staxx.WebApiWeb do
       import Plug.Conn
       import Staxx.WebApiWeb.Gettext
       alias Staxx.WebApiWeb.Router.Helpers, as: Routes
+
+      # Fetch user email from request
+      def get_user_email(conn) do
+        case get_req_header(conn, "x-user-email") do
+          [email] when is_binary(email) ->
+            email
+
+          _ ->
+            nil
+        end
+      end
     end
   end
 
