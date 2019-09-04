@@ -10,6 +10,7 @@ defmodule Staxx.DeploymentScope do
   alias Staxx.Proxy.Chain.ChainHelper
   alias Staxx.Docker
   alias Staxx.Docker.Struct.Container
+  alias Staxx.DeploymentScope.UserScope
   alias Staxx.DeploymentScope.ScopesSupervisor
   alias Staxx.DeploymentScope.Scope.SupervisorTree
   alias Staxx.DeploymentScope.Scope.StackManager
@@ -18,8 +19,10 @@ defmodule Staxx.DeploymentScope do
   @doc """
   Start new deployment scope using given configuration
   """
-  @spec start(map) :: {:ok, binary} | {:error, term}
-  def start(%{"testchain" => %{"config" => %{"id" => id}}} = params) do
+  @spec start(map, binary) :: {:ok, binary} | {:error, term}
+  def start(params, email \\ "")
+
+  def start(%{"testchain" => %{"config" => %{"id" => id}}} = params, email) do
     stacks = Map.drop(params, ["testchain"])
 
     Logger.debug(fn ->
@@ -30,10 +33,10 @@ defmodule Staxx.DeploymentScope do
       """
     end)
 
-    start(id, id, stacks)
+    start(id, id, stacks, email)
   end
 
-  def start(%{"testchain" => %{"config" => config}} = params) do
+  def start(%{"testchain" => %{"config" => config}} = params, email) do
     %{id: id} =
       chain_config =
       config
@@ -53,23 +56,29 @@ defmodule Staxx.DeploymentScope do
       """
     end)
 
-    start(id, chain_config, stacks)
+    start(id, chain_config, stacks, email)
   end
 
-  def start(_),
+  def start(_, _),
     do: {:error, "wrong chain config"}
 
   @doc """
   Start supervision tree for new deployment scope
   """
-  @spec start(binary, binary | map, map) :: {:ok, binary} | {:error, term}
-  def start(id, chain_config, stacks) when is_binary(id) do
+  @spec start(binary, binary | map, map, binary) :: {:ok, binary} | {:error, term}
+  def start(id, chain_config, stacks, email \\ "") when is_binary(id) do
     modules = get_stack_names(stacks)
     Logger.debug("Starting new deployment scope with modules: #{inspect(modules)}")
 
     with :ok <- validate_stacks(modules),
          {:ok, pid} <- ScopesSupervisor.start_scope({id, chain_config, stacks}) do
       Logger.debug("Started chain supervisor tree #{inspect(pid)} for stack #{id}")
+
+      unless email == "" do
+        Logger.debug(fn -> "Mapping deployment scope #{id} to email #{email}" end)
+        UserScope.map(id, email)
+      end
+
       {:ok, id}
     else
       {:error, err} ->

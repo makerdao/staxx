@@ -13,6 +13,11 @@ config :docker, adapter: Staxx.Docker.Adapter.Mock
 
 config :deployment_scope, stacks_dir: "#{__DIR__}/../priv/test/stacks"
 
+#
+# Metrics
+#
+config :metrix, run_prometheus: false
+
 config :proxy, ex_chain_adapter: Staxx.Proxy.ExChain.FakeExChain
 config :proxy, node_manager_adapter: Staxx.Proxy.NodeManager.FakeNodeManager
 

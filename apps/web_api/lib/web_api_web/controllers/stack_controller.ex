@@ -43,7 +43,7 @@ defmodule Staxx.WebApiWeb.StackController do
   def start(conn, %{"testchain" => _} = params) do
     Logger.debug("#{__MODULE__}: New stack is starting")
 
-    with {:ok, id} <- DeploymentScope.start(params) do
+    with {:ok, id} <- DeploymentScope.start(params, get_user_email(conn)) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)
@@ -112,6 +112,17 @@ defmodule Staxx.WebApiWeb.StackController do
       |> put_status(200)
       |> put_view(SuccessView)
       |> render("200.json", data: %{})
+    end
+  end
+
+  # Fetch user email from request
+  defp get_user_email(conn) do
+    case get_req_header(conn, "x-user-email") do
+      [email] when is_binary(email) ->
+        email
+
+      _ ->
+        nil
     end
   end
 end

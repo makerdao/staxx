@@ -4,6 +4,7 @@ defmodule Staxx.WebApiWeb.ChainController do
   action_fallback Staxx.WebApiWeb.FallbackController
 
   alias Staxx.Proxy
+  alias Staxx.DeploymentScope.UserScope
   alias Staxx.WebApiWeb.SuccessView
   alias Staxx.WebApiWeb.ErrorView
   # alias Chain.SnapshotManager
@@ -96,6 +97,8 @@ defmodule Staxx.WebApiWeb.ChainController do
   # Remove chain details from internal storage
   def remove_chain(conn, %{"id" => id}) do
     with :ok <- Proxy.clean(id) do
+      UserScope.unmap(id)
+
       conn
       |> put_status(200)
       |> json(%{status: 0, message: "Chain data will be deleted"})

@@ -56,6 +56,15 @@ defmodule Staxx.DeploymentScope.UserScope do
     {:noreply, state}
   end
 
+  @doc false
+  def handle_cast({:unmap, scope_id}, state) do
+    table()
+    |> :dets.match_object({:"$1", scope_id})
+    |> Enum.map(fn obj -> :dets.delete_object(table(), obj) end)
+
+    {:noreply, state}
+  end
+
   @doc """
   Maps given deployment scope with emial address
   """
@@ -72,12 +81,19 @@ defmodule Staxx.DeploymentScope.UserScope do
     do: GenServer.cast(__MODULE__, {:unmap, scope_id, email})
 
   @doc """
+  Remove mapping between given deployment scope and user
+  This function ignores any error if no mapping is found
+  """
+  @spec unmap(binary) :: :ok
+  def unmap(scope_id),
+    do: GenServer.cast(__MODULE__, {:unmap, scope_id})
+
+  @doc """
   List all deployment scopes that are mapped to given user
   """
   @spec list_by_email(binary) :: [binary]
   def list_by_email(email),
     do: GenServer.call(__MODULE__, {:by_email, email})
-
 
   # get path to DETS file for storage chain process
   defp db_path() do

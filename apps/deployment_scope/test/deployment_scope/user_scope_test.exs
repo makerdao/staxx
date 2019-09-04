@@ -18,5 +18,15 @@ defmodule Staxx.DeploymentScope.UserScopeTest do
 
     :ok = UserScope.unmap(id, email)
     assert [] = UserScope.list_by_email(email)
+
+    # Ignore absence
+    :ok = UserScope.unmap(id, email)
+    assert [] = UserScope.list_by_email(email)
+
+    :ok = UserScope.map(id, email)
+    assert [^id] = UserScope.list_by_email(email)
+
+    :ok = UserScope.unmap(id, email)
+    assert [] = UserScope.list_by_email(email)
   end
 end
