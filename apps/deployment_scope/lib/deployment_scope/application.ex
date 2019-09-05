@@ -11,7 +11,8 @@ defmodule Staxx.DeploymentScope.Application do
       {Registry, keys: :unique, name: Staxx.DeploymentScope.ScopeRegistry},
       {Registry, keys: :unique, name: Staxx.DeploymentScope.StackRegistry},
       Staxx.DeploymentScope.ScopesSupervisor,
-      Staxx.DeploymentScope.Stack.ConfigLoader
+      Staxx.DeploymentScope.Stack.ConfigLoader,
+      Staxx.DeploymentScope.UserScope
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
