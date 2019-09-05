@@ -177,11 +177,11 @@ defmodule Staxx.ExChain.EVM.Implementation.Ganache do
   defp get_block_mine_time(_), do: ""
 
   # Get path for logging
-  defp get_output(""), do: "--quiet 2>/dev/null"
+  defp get_output(""), do: "--quiet 2>> /dev/null"
   # We don't need to pipe stream because of we wrapped everything using `wrapper.sh` file
-  defp get_output(path) when is_binary(path), do: "--verbose 2>/dev/null"
+  defp get_output(path) when is_binary(path), do: "--verbose 2>> #{path}"
   # Ignore in any other case
-  defp get_output(_), do: "--quiet 2>/dev/null"
+  defp get_output(_), do: "--quiet 2>> /dev/null"
 
   #####
   # End of list
