@@ -10,6 +10,7 @@ defmodule Staxx.ExChain do
   alias Staxx.ExChain.EVM.Registry, as: EvmRegistry
   alias Staxx.ExChain.SnapshotManager
   alias Staxx.ExChain.Snapshot.Details
+  alias Staxx.Storage
 
   require Logger
 

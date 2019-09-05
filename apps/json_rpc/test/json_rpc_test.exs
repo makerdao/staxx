@@ -1,4 +1,4 @@
-defmodule JsonRpcTest do
+defmodule Staxx.JsonRpcTest do
   use ExUnit.Case
-  doctest JsonRpc
+  doctest Staxx.JsonRpc
 end

@@ -1,6 +1,6 @@
-defmodule JsonRpc do
+defmodule Staxx.JsonRpc do
   @moduledoc """
-  Very simple Ethereum JSONRPC client 
+  Very simple Ethereum JSONRPC client
   For now only HTTP implementation and not all functions
   Used only for internal commands
   """

@@ -432,7 +432,7 @@ defmodule Staxx.ExChain.EVM do
             %State{status: status, config: config} = state
           ) do
         Logger.error(
-          "#{config.id} Chain failed with exit status: #{inspect(signal)}. Check logs: #{
+          "#{config.id} Chain [#{config.type}] failed with exit status: #{inspect(signal)}. Check logs: #{
             Map.get(config, :output, "")
           }"
         )

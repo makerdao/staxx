@@ -1,3 +1,5 @@
+EVM_NAME ?= ex_evm
+EVM_VSN ?= v6.2.4
 APP_NAME ?= staxx
 APP_VSN ?= 0.1.0
 BUILD ?= `git rev-parse --short HEAD`
@@ -18,12 +20,24 @@ lint:
 
 deps: ## Load all required deps for project
 	@mix do deps.get, deps.compile
+	@echo "Setting up ganache"
+	@cd priv/presets/ganache-cli
+	@npm install --no-package-lock
+	@cd -
 .PHONY: deps
 
 docker-push:
 	@echo "Pushing docker image"
 	@docker push $(DOCKER_ID_USER)/$(APP_NAME):$(TAG)
 .PHONY: docker-push
+
+build-evm: ## Build the Docker image for geth/ganache/other evm
+	@docker build -f ./Dockerfile.evm \
+		--build-arg ALPINE_VERSION=$(ALPINE_VERSION) \
+		-t $(DOCKER_ID_USER)/$(EVM_NAME):$(EVM_VSN)-$(BUILD) \
+		-t $(DOCKER_ID_USER)/$(EVM_NAME):$(TAG) .
+
+.PHONY: build-evm
 
 build: ## Build elixir application with testchain and WS API
 	@docker build \
@@ -106,4 +120,3 @@ rm-latest:
 	@echo "====== Stopping and removing running containers"
 	@docker-compose -f docker-compose.yaml rm -s -f
 .PHONY: rm-latest
-

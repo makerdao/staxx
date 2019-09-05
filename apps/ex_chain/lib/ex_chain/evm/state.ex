@@ -14,6 +14,7 @@ defmodule Staxx.ExChain.EVM.State do
 
   alias Staxx.ExChain.EVM
   alias Staxx.ExChain.EVM.{Config, Notification}
+  alias Staxx.Storage
 
   @type t :: %__MODULE__{
           status: EVM.status(),
