@@ -21,3 +21,8 @@ config :proxy, node_manager_adapter: Staxx.Proxy.NodeManager.FakeNodeManager
 config :web_api, Staxx.WebApiWeb.Endpoint,
   http: [port: 4002],
   server: false
+
+config :ex_chain,
+  ganache_executable:
+    System.get_env("GANACHE_EXECUTABLE") ||
+      Path.expand("#{__DIR__}/../priv/presets/ganache-cli/cli.js")

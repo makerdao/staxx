@@ -58,7 +58,7 @@ defmodule Staxx.Proxy.ExChain.FakeExChain do
 
       %{config: config} = chain ->
         if pid = Map.get(config, :notify_pid) do
-          send(pid, %Chain.EVM.Notification{id: id, event: :stopped})
+          send(pid, %Staxx.ExChain.EVM.Notification{id: id, event: :stopped})
         end
 
         {:reply, :ok, %{state | chains: Map.put(chains, id, %{chain | status: :stopped})}}

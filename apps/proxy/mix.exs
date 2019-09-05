@@ -30,6 +30,7 @@ defmodule Staxx.Proxy.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:ex_chain, in_umbrella: true, runtime: false},
       {:docker, in_umbrella: true},
       {:event_stream, in_umbrella: true},
       {:httpoison, "~> 1.5"},
