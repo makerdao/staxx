@@ -41,7 +41,12 @@ config :event_stream, nats_docker_events_topic: "Prefix.Docker.Events"
 # Proxy application config
 #
 # config :proxy, replace_docker_url: true
-config :proxy, ex_chain_adapter: Staxx.Proxy.ExChain.Remote
+
+# ExChain adapter
+config :proxy, ex_chain_adapter: Staxx.Proxy.ExChain.Local
+# Node manager
+config :proxy, node_manager_adapter: Staxx.Proxy.NodeManager.Local
+
 config :proxy, deployment_service_url: "http://localhost:5001/rpc"
 config :proxy, deploy_chain_front_url: "host.docker.internal"
 config :proxy, deployment_steps_fetch_timeout: 30_000
@@ -52,8 +57,6 @@ config :proxy, snapshot_path: "/tmp/snapshots"
 # deployment timeout
 config :proxy, deployment_timeout: 1_800_000
 config :proxy, action_timeout: 600_000
-# Node manager
-config :proxy, node_manager_adapter: Staxx.Proxy.NodeManager.Real
 
 #
 # Metrics

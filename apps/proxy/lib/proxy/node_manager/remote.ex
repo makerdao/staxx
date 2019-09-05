@@ -1,4 +1,4 @@
-defmodule Staxx.Proxy.NodeManager.Real do
+defmodule Staxx.Proxy.NodeManager.Remote do
   @moduledoc """
   Node connection manager.
   It handles new nodes connecting/disconnedting and selects right node to make a call to
@@ -7,7 +7,9 @@ defmodule Staxx.Proxy.NodeManager.Real do
   use GenServer
   require Logger
 
-  @behaviour Staxx.Proxy.NodeManager
+  alias Staxx.Proxy.NodeManager
+
+  @behaviour NodeManager
 
   defmodule State do
     @moduledoc false
@@ -74,14 +76,14 @@ defmodule Staxx.Proxy.NodeManager.Real do
     end
   end
 
-  @impl Staxx.Proxy.NodeManager
+  @impl NodeManager
   def child_spec() do
     [
-      Staxx.Proxy.NodeManager.Real
+      __MODULE__
     ]
   end
 
-  @impl Staxx.Proxy.NodeManager
+  @impl NodeManager
   def node(), do: GenServer.call(__MODULE__, :node)
 
   # Checks if this is chain node

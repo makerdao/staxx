@@ -2,9 +2,9 @@ import Config
 
 config :logger,
   backends: [:console],
-  level: :warn,
+  level: :error,
   compile_time_purge_matching: [
-    [level_lower_than: :warn]
+    [level_lower_than: :error]
   ]
 
 config :event_stream, disable_nats: true
