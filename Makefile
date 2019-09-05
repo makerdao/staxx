@@ -21,9 +21,10 @@ lint:
 deps: ## Load all required deps for project
 	@mix do deps.get, deps.compile
 	@echo "Setting up ganache"
-	@cd priv/presets/ganache-cli
-	@npm install --no-package-lock
-	@cd -
+	@rm -rf priv/presets/ganache-cli
+	@git clone --branch v6.6.0 https://github.com/trufflesuite/ganache-cli.git priv/presets/ganache-cli
+	@cd priv/presets/ganache-cli && npm install --no-package-lock
+	@echo "Setting up ganache finished !"
 .PHONY: deps
 
 docker-push:
