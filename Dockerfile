@@ -45,7 +45,7 @@ RUN mix compile
 
 RUN \
   mkdir -p /opt/built && \
-  mix release && \
+  mix release ${APP_NAME} && \
   cp -R _build/${MIX_ENV}/rel/${APP_NAME} /opt/built
 
 
