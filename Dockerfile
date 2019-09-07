@@ -80,6 +80,7 @@ ENV APP_NAME=${APP_NAME} \
     CHAINS_DB_PATH=/opt/chains \
     NATS_URL=nats.local \
     STACKS_DIR=/opt/stacks \
+    SNAPSHOTS_DB_PATH="/opt/snapshots" \
     STACKS_FRONT_URL=http://localhost \
     RELEASE_COOKIE="W_cC]7^rUeVZc|}$UL{@&1sQwT3}p507mFlh<E=/f!cxWI}4gpQx7Yu{ZUaD0cuK" \
     DOCKER_DEV_MODE_ALLOWED=false

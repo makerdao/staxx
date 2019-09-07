@@ -12,17 +12,17 @@ config :event_stream, nats: %{host: System.fetch_env!("NATS_URL"), port: 4222}
 
 config :deployment_scope, stacks_dir: System.fetch_env!("STACKS_DIR")
 
-config :ex_chain, base_path: "/opt/chains"
-config :ex_chain, snapshot_base_path: "/opt/snapshots"
-config :ex_chain, geth_executable: "geth"
-config :ex_chain, geth_password_file: "/opt/built/priv/presets/geth/account_password"
-config :ex_chain, ganache_executable: "ganache-cli"
-config :ex_chain, ganache_wrapper_file: "/opt/built/priv/presets/ganache/wrapper.sh"
-config :ex_chain, geth_vdb_executable: "geth_vdb"
+config :ex_chain, base_path: System.fetch_env!("CHAINS_DB_PATH")
+config :ex_chain, snapshot_base_path: System.fetch_env!("SNAPSHOTS_DB_PATH")
+config :ex_chain, geth_executable: System.get_env("GETH_EXECUTABLE", "geth")
+config :ex_chain, geth_password_file: System.get_env("EVM_ACCOUNT_PASSWORD", "/opt/built/priv/presets/geth/account_password")
+config :ex_chain, ganache_executable: System.get_env("GANACHE_EXECUTABLE", "ganache-cli")
+config :ex_chain, ganache_wrapper_file: System.get_env("GANACHE_WRAPPER", "/opt/built/priv/presets/ganache/wrapper.sh")
+config :ex_chain, geth_vdb_executable: System.get_env("GETH_VDB_EXECUTABLE", "geth_vdb")
 
-config :ex_chain, backend_proxy_node: :"staxx@staxx.local"
+config :ex_chain, backend_proxy_node: System.get_env("STAXX_NODE", "staxx@staxx.local") |> String.to_atom()
 
-config :ex_chain, front_url: System.fetch_env!("FRONT_URL")
+config :ex_chain, front_url: System.fetch_env!("CHAINS_FRONT_URL")
 
 # Place where all dets DBs will be
-config :storage, dets_db_path: "/opt/chains"
+config :storage, dets_db_path: System.fetch_env!("CHAINS_DB_PATH")
