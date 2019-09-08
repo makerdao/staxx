@@ -33,8 +33,11 @@ COPY mix.* ./
 COPY apps/deployment_scope/mix.* ./apps/deployment_scope/
 COPY apps/docker/mix.* ./apps/docker/
 COPY apps/event_stream/mix.* ./apps/event_stream/
+COPY apps/ex_chain/mix.* ./apps/ex_chain/
+COPY apps/json_rpc/mix.* ./apps/json_rpc/
 COPY apps/metrix/mix.* ./apps/metrix/
 COPY apps/proxy/mix.* ./apps/proxy/
+COPY apps/storage/mix.* ./apps/storage/
 COPY apps/web_api/mix.* ./apps/web_api/
 
 RUN mix do deps.get, deps.compile
