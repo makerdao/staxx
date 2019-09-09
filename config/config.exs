@@ -28,7 +28,7 @@ config :docker, dev_mode_allowed: "true"
 #
 config :event_bus,
   topics: [
-    :ex_chain,
+    :chain,
     :docker
   ]
 
