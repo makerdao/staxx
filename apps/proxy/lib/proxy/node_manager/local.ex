@@ -14,5 +14,4 @@ defmodule Staxx.Proxy.NodeManager.Local do
 
   @impl NodeManager
   def node(), do: Kernel.node()
-
 end

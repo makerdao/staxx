@@ -1,5 +1,7 @@
 EVM_NAME ?= ex_evm
 EVM_VSN ?= v6.2.4
+EX_TESTCHAIN_APP_NAME ?= ex_testchain
+EX_TESTCHAIN_APP_VSN ?= 0.1.0
 APP_NAME ?= staxx
 APP_VSN ?= 0.1.0
 BUILD ?= `git rev-parse --short HEAD`
@@ -42,6 +44,16 @@ build-evm: ## Build the Docker image for geth/ganache/other evm
 		-t $(DOCKER_ID_USER)/$(EVM_NAME):$(TAG) .
 
 .PHONY: build-evm
+
+build-chain: ## Build elixir application with testchain and WS API
+	@docker build -f ./Dockerfile.ex_chain \
+		--build-arg ALPINE_VERSION=$(ALPINE_VERSION) \
+		--build-arg APP_NAME=$(EX_TESTCHAIN_APP_NAME) \
+		--build-arg APP_VSN=$(EX_TESTCHAIN_APP_VSN) \
+		--build-arg EVM_IMAGE=$(DOCKER_ID_USER)/$(EVM_NAME):$(TAG) \
+		-t $(DOCKER_ID_USER)/$(EX_TESTCHAIN_APP_NAME):$(EX_TESTCHAIN_APP_VSN)-$(BUILD) \
+		-t $(DOCKER_ID_USER)/$(EX_TESTCHAIN_APP_NAME):$(TAG) .
+.PHONY: build-chain
 
 build: ## Build elixir application with testchain and WS API
 	@docker build \

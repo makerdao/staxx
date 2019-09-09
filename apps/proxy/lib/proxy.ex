@@ -120,7 +120,8 @@ defmodule Staxx.Proxy do
   Alias for uploading snapshot to storage
   File has to be already placed to snapshot store
   """
-  @spec upload_snapshot(binary, Staxx.ExChain.evm_type(), binary) :: {:ok, term} | ExChain.ex_response()
+  @spec upload_snapshot(binary, Staxx.ExChain.evm_type(), binary) ::
+          {:ok, term} | ExChain.ex_response()
   def upload_snapshot(snapshot_id, chain_type, description \\ "") do
     NodeManager.node()
     |> ExChain.upload_snapshot(snapshot_id, chain_type, description)

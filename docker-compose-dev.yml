@@ -24,9 +24,10 @@ services:
     depends_on:
       - nats
     expose:
-      - "9100-9105"
+      - "9100-9100"
     ports:
-      # - "9100-9105:9100-9105"
+      # - "4369:4369"
+      # - "9100:9100"
       - "4000:4000"
     environment:
       NATS_URL: nats.local
@@ -43,7 +44,7 @@ services:
     container_name: ex-testchain.local
     expose:
       - "8500-8600"
-      - "9100-9105"
+      - "9100-9100"
     ports:
       - "8500-8600:8500-8600"
       # - "9100-9105:9100-9105"

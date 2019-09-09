@@ -17,6 +17,7 @@ defmodule Staxx.ExChain.BackendProxyNodeConnector do
   @doc false
   def init(_) do
     Logger.debug(fn -> "Connecting to staxx node: #{backend_node()}" end)
+
     case connect() do
       true ->
         {:ok, true}
