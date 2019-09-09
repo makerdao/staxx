@@ -34,12 +34,6 @@ defmodule Staxx.Proxy do
          {:ok, _} <- ChainSupervisor.start_chain(config, :new) do
       {:ok, id}
     else
-      {:node, _} ->
-        {:error, "No active ex_testchain node connected !"}
-
-      {:id, _} ->
-        {:error, "Failed to generrate new id for EVM"}
-
       {:error, err} ->
         {:error, err}
 
@@ -57,6 +51,7 @@ defmodule Staxx.Proxy do
   @spec new_chain_config!(binary | map) :: map
   def new_chain_config!(config) do
     with {:node, node} when not is_nil(node) <- {:node, NodeManager.node()},
+         _ <- Logger.debug(fn -> "Using node: #{node} for starting new chain" end),
          {:id, id} when is_binary(id) <- {:id, ExChain.unique_id(node)} do
       config
       |> Map.put(:id, id)
@@ -84,7 +79,7 @@ defmodule Staxx.Proxy do
   @doc """
   Send take snapshot command to chain process
   """
-  @spec take_snapshot(Chain.evm_id(), binary()) :: :ok | {:error, term()}
+  @spec take_snapshot(Staxx.ExChain.evm_id(), binary()) :: :ok | {:error, term()}
   def take_snapshot(id, description \\ "") do
     id
     |> Chain.via_tuple()
@@ -96,7 +91,7 @@ defmodule Staxx.Proxy do
   `:ok` will mean that reverting snapshot process started you have to wait for an event
   about complition
   """
-  @spec revert_snapshot(Chain.evm_id(), binary) :: :ok | {:error, term()}
+  @spec revert_snapshot(Staxx.ExChain.evm_id(), binary) :: :ok | {:error, term()}
   def revert_snapshot(id, snapshot_id) do
     id
     |> Chain.via_tuple()
@@ -125,7 +120,7 @@ defmodule Staxx.Proxy do
   Alias for uploading snapshot to storage
   File has to be already placed to snapshot store
   """
-  @spec upload_snapshot(binary, Chain.evm_type(), binary) :: {:ok, term} | ExChain.ex_response()
+  @spec upload_snapshot(binary, Staxx.ExChain.evm_type(), binary) :: {:ok, term} | ExChain.ex_response()
   def upload_snapshot(snapshot_id, chain_type, description \\ "") do
     NodeManager.node()
     |> ExChain.upload_snapshot(snapshot_id, chain_type, description)
@@ -153,7 +148,7 @@ defmodule Staxx.Proxy do
   @doc """
   Load list of snapshots from random ex_testchain node
   """
-  @spec snapshot_list(Chain.evm_type()) :: [map()]
+  @spec snapshot_list(Staxx.ExChain.evm_type()) :: [map()]
   def snapshot_list(chain_type) do
     with {:node, node} when not is_nil(node) <- {:node, NodeManager.node()},
          list <- ExChain.snapshot_list(node, chain_type),

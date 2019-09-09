@@ -4,8 +4,9 @@ defmodule Staxx.Storage.Provider.Dets do
   """
   use GenServer
   require Logger
+  alias Staxx.Storage.Provider
 
-  @behaviour Staxx.Storage.Provider
+  @behaviour Provider
 
   @table "chains"
 

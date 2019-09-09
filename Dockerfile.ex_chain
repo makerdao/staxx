@@ -69,7 +69,8 @@ RUN apk update && \
 ENV APP_NAME=${APP_NAME} \
     MIX_ENV=prod \
     FRONT_URL="ex-testchain.local" \
-    RELEASE_COOKIE="W_cC]7^rUeVZc|}$UL{@&1sQwT3}p507mFlh<E=/f!cxWI}4gpQx7Yu{ZUaD0cuK"
+    RELEASE_COOKIE="W_cC]7^rUeVZc|}$UL{@&1sQwT3}p507mFlh<E=/f!cxWI}4gpQx7Yu{ZUaD0cuK" \
+    RELEASE_NODE=staxx@staxx.local
 
 COPY --from=builder /opt/built/${APP_NAME} .
 
