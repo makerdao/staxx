@@ -136,3 +136,19 @@ rm-latest:
 	@echo "====== Stopping and removing running containers"
 	@docker-compose -f docker-compose.yaml rm -s -f
 .PHONY: rm-latest
+
+staxx-remote:
+	@docker run -it --rm --network staxx_net1 makerdao/staxx:dev ./bin/staxx remote
+.PHONY: staxx-remote
+
+staxx-bash:
+	@docker run -it --rm --network staxx_net1 makerdao/staxx:dev /bin/bash
+.PHONY: staxx-bash
+
+ex-testchain-remote:
+	@docker run -it --rm --network staxx_net1 makerdao/ex_testchain:dev ./bin/staxx remote
+.PHONY: ex-testchain-remote
+
+ex-testchain-bash:
+	@docker run -it --rm --network staxx_net1 makerdao/ex_testchain:dev /bin/bash
+.PHONY: ex-testchain-bash

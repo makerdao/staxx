@@ -65,6 +65,10 @@ ARG PORT=4000
 # The environment to build with
 ARG MIX_ENV=prod
 
+# Expose prometheus port
+EXPOSE 9568
+
+# Expose Main API port
 EXPOSE ${PORT}
 
 WORKDIR /opt/app
