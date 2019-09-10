@@ -1,0 +1,59 @@
+# vim: ft=dockerfile
+
+ARG ALPINE_VERSION=3.9
+
+FROM golang:1.11-alpine as builder
+
+ARG GANACHE_SUBDIR=./priv/presets/ganache-cli
+
+RUN apk update && \
+    apk add --no-cache make gcc g++ python git bash nodejs npm musl-dev linux-headers
+COPY ${GANACHE_SUBDIR}/package.json /app/package.json
+COPY ${GANACHE_SUBDIR}/package-lock.json /app/package-lock.json
+WORKDIR /app
+RUN npm install
+COPY ${GANACHE_SUBDIR} .
+RUN npx webpack-cli --config ./webpack/webpack.docker.config.js
+
+# Buidling our replaced geth with unlimited gas
+RUN git clone --single-branch --branch v1.8.27 https://github.com/ethereum/go-ethereum.git && \
+    cd go-ethereum && \
+    sed -i -e 's/GasLimit:   6283185,/GasLimit:   0xffffffffffffffff,/g' core/genesis.go && \
+    sed -i -e 's/MaxCodeSize = 24576/MaxCodeSize = 1000000/g' params/protocol_params.go && \
+    sed -i -e 's/return ErrOversizedData//g' core/tx_pool.go && \
+    make geth
+
+# Building VDB geth
+RUN git clone https://github.com/vulcanize/go-ethereum.git go-ethereum-vdb && \
+    cd go-ethereum-vdb && \
+    make geth
+
+# Release image
+FROM alpine:${ALPINE_VERSION} as runtime
+
+ENV VERSION=v10.14.1 \
+    DOCKER=true
+
+WORKDIR /app
+
+COPY --from=builder "/app/node_modules/scrypt/build/Release" "./node_modules/scrypt/build/Release/"
+COPY --from=builder "/app/node_modules/ganache-core/node_modules/scrypt/build/Release" "./node_modules/ganache-core/node_modules/scrypt/build/Release/"
+COPY --from=builder "/app/node_modules/ganache-core/node_modules/secp256k1/build/Release" "./node_modules/ganache-core/node_modules/secp256k1/build/Release/"
+COPY --from=builder "/app/node_modules/ganache-core/node_modules/keccak/build/Release" "./node_modules/ganache-core/node_modules/keccak/build/Release/"
+COPY --from=builder "/app/node_modules/sha3/build/Release" "./node_modules/sha3/build/Release/"
+COPY --from=builder "/app/node_modules/ganache-core/node_modules/websocket/build/Release" "./node_modules/ganache-core/node_modules/websocket/build/Release/"
+COPY --from=builder "/app/build/ganache-core.docker.cli.js" "./ganache-core.docker.cli.js"
+# COPY --from=builder "/app/build/ganache-core.docker.cli.js.map" "./ganache-core.docker.cli.js.map"
+
+COPY --from=builder "/app/go-ethereum/build/bin/geth" "./geth"
+COPY --from=builder "/app/go-ethereum-vdb/build/bin/geth" "./geth_vdb"
+
+RUN apk add --no-cache nodejs && \
+    ln -s /app/ganache-core.docker.cli.js /usr/bin/ganache-cli && \
+    chmod 755 /usr/bin/ganache-cli && \
+    ln -s /app/geth /usr/bin/geth && \
+    chmod 755 /usr/bin/geth && \
+    ln -s /app/geth_vdb /usr/bin/geth_vdb && \
+    chmod 755 /usr/bin/geth_vdb
+
+CMD ["ganache-cli"]

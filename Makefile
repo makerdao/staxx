@@ -1,3 +1,7 @@
+EVM_NAME ?= ex_evm
+EVM_VSN ?= v6.2.4
+EX_TESTCHAIN_APP_NAME ?= ex_testchain
+EX_TESTCHAIN_APP_VSN ?= 0.1.0
 APP_NAME ?= staxx
 APP_VSN ?= 0.1.0
 BUILD ?= `git rev-parse --short HEAD`
@@ -18,12 +22,41 @@ lint:
 
 deps: ## Load all required deps for project
 	@mix do deps.get, deps.compile
+	@echo "Fixing chmod for EVM executables"
+	@chmod +x priv/presets/ganache/wrapper.sh
+	@chmod +x priv/presets/geth/geth_vdb
+	@echo "Setting up ganache"
+	@rm -rf priv/presets/ganache-cli
+	@git clone --branch v6.6.0 https://github.com/trufflesuite/ganache-cli.git priv/presets/ganache-cli
+	@cd priv/presets/ganache-cli && npm install --no-package-lock
+	@echo "Setting up ganache finished !"
 .PHONY: deps
 
 docker-push:
-	@echo "Pushing docker image"
+	@echo "Pushing Staxx docker image"
 	@docker push $(DOCKER_ID_USER)/$(APP_NAME):$(TAG)
+	@echo "Pushing ex_evm & ex_testchain docker image"
+	@docker push $(DOCKER_ID_USER)/$(EVM_NAME):$(TAG)
+	@docker push $(DOCKER_ID_USER)/$(EX_TESTCHAIN_APP_NAME):$(TAG)
 .PHONY: docker-push
+
+build-evm: ## Build the Docker image for geth/ganache/other evm
+	@docker build -f ./Dockerfile.evm \
+		--build-arg ALPINE_VERSION=$(ALPINE_VERSION) \
+		-t $(DOCKER_ID_USER)/$(EVM_NAME):$(EVM_VSN)-$(BUILD) \
+		-t $(DOCKER_ID_USER)/$(EVM_NAME):$(TAG) .
+
+.PHONY: build-evm
+
+build-chain: ## Build elixir application with testchain and WS API
+	@docker build -f ./Dockerfile.ex_chain \
+		--build-arg ALPINE_VERSION=$(ALPINE_VERSION) \
+		--build-arg APP_NAME=$(EX_TESTCHAIN_APP_NAME) \
+		--build-arg APP_VSN=$(EX_TESTCHAIN_APP_VSN) \
+		--build-arg EVM_IMAGE=$(DOCKER_ID_USER)/$(EVM_NAME):$(TAG) \
+		-t $(DOCKER_ID_USER)/$(EX_TESTCHAIN_APP_NAME):$(EX_TESTCHAIN_APP_VSN)-$(BUILD) \
+		-t $(DOCKER_ID_USER)/$(EX_TESTCHAIN_APP_NAME):$(TAG) .
+.PHONY: build-chain
 
 build: ## Build elixir application with testchain and WS API
 	@docker build \
@@ -107,3 +140,18 @@ rm-latest:
 	@docker-compose -f docker-compose.yaml rm -s -f
 .PHONY: rm-latest
 
+staxx-remote:
+	@docker run -it --rm --network staxx_net1 makerdao/staxx:dev ./bin/staxx remote
+.PHONY: staxx-remote
+
+staxx-bash:
+	@docker run -it --rm --network staxx_net1 makerdao/staxx:dev /bin/bash
+.PHONY: staxx-bash
+
+ex-testchain-remote:
+	@docker run -it --rm --network staxx_net1 makerdao/ex_testchain:dev ./bin/staxx remote
+.PHONY: ex-testchain-remote
+
+ex-testchain-bash:
+	@docker run -it --rm --network staxx_net1 makerdao/ex_testchain:dev /bin/bash
+.PHONY: ex-testchain-bash

@@ -24,9 +24,9 @@ defmodule Staxx.Proxy.Chain.Notification do
   end
 end
 
-require Protocol
-
-Protocol.derive(Jason.Encoder, Chain.EVM.Process)
-Protocol.derive(Jason.Encoder, Chain.EVM.Account)
-Protocol.derive(Jason.Encoder, Chain.EVM.Notification)
-Protocol.derive(Jason.Encoder, Chain.Snapshot.Details)
+# require Protocol
+#
+# Protocol.derive(Jason.Encoder, Chain.EVM.Process)
+# Protocol.derive(Jason.Encoder, Chain.EVM.Account)
+# Protocol.derive(Jason.Encoder, Chain.EVM.Notification)
+# Protocol.derive(Jason.Encoder, Chain.Snapshot.Details)

@@ -13,7 +13,7 @@ defmodule Staxx.Proxy.Chain do
   alias Staxx.Proxy.NodeManager
   alias Staxx.Proxy.Chain.{State, ChainHelper}
   alias Staxx.Proxy.Chain.Storage.Record
-  alias Chain.EVM.Notification
+  alias Staxx.ExChain.EVM.Notification
 
   @doc false
   def start_link({:existing, id}) when is_binary(id) do

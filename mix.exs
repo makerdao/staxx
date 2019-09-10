@@ -19,9 +19,18 @@ defmodule Staxx.MixProject do
           runtime_tools: :permanent,
           deployment_scope: :permanent,
           docker: :permanent,
-          event_bus: :permanent,
+          event_stream: :permanent,
+          metrix: :permanent,
           proxy: :permanent,
           web_api: :permanent
+        ]
+      ],
+      ex_testchain: [
+        include_executables_for: [:unix],
+        applications: [
+          ex_chain: :permanent,
+          json_rpc: :permanent,
+          storage: :permanent
         ]
       ]
     ]
@@ -34,10 +43,7 @@ defmodule Staxx.MixProject do
   # Run "mix help deps" for examples and options.
   defp deps do
     [
-      {:telemetry, "~> 0.4"},
-      # {:credo, "~> 1.0.0", only: [:dev, :test], runtime: false},
-      # {:dialyxir, "~> 1.0.0-rc.4", only: [:dev], runtime: false},
-      {:ex_testchain, github: "makerdao/ex_testchain", branch: "master", runtime: false}
+      {:telemetry, "~> 0.4"}
     ]
   end
 end
