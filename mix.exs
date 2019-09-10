@@ -19,7 +19,8 @@ defmodule Staxx.MixProject do
           runtime_tools: :permanent,
           deployment_scope: :permanent,
           docker: :permanent,
-          event_bus: :permanent,
+          event_stream: :permanent,
+          metrix: :permanent,
           proxy: :permanent,
           web_api: :permanent
         ]

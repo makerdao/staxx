@@ -7,6 +7,7 @@ config :logger,
     [level_lower_than: :error]
   ]
 
+config :metrix, run_prometheus: false
 config :event_stream, disable_nats: true
 
 config :docker, adapter: Staxx.Docker.Adapter.Mock
