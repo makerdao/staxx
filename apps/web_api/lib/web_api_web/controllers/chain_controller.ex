@@ -4,6 +4,7 @@ defmodule Staxx.WebApiWeb.ChainController do
   action_fallback Staxx.WebApiWeb.FallbackController
 
   alias Staxx.Proxy
+  alias Staxx.DeploymentScope.UserScope
   alias Staxx.WebApiWeb.SuccessView
   alias Staxx.WebApiWeb.ErrorView
   # alias Chain.SnapshotManager
@@ -49,6 +50,18 @@ defmodule Staxx.WebApiWeb.ChainController do
 
   def chain_list(conn, _) do
     with list when is_list(list) <- Proxy.chain_list() do
+      list =
+        case get_user_email(conn) do
+          email when is_binary(email) and email != "" ->
+            user_list = UserScope.list_by_email(email)
+
+            list
+            |> Enum.filter(fn %{id: id} -> Enum.member?(user_list, id) end)
+
+          _ ->
+            list
+        end
+
       conn
       |> put_status(200)
       |> put_view(SuccessView)
@@ -96,6 +109,8 @@ defmodule Staxx.WebApiWeb.ChainController do
   # Remove chain details from internal storage
   def remove_chain(conn, %{"id" => id}) do
     with :ok <- Proxy.clean(id) do
+      UserScope.unmap(id)
+
       conn
       |> put_status(200)
       |> json(%{status: 0, message: "Chain data will be deleted"})

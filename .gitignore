@@ -25,6 +25,7 @@ priv/presets/ganache/node_modules
 priv/presets/ganache-cli
 
 # DETS databases
+user_deployment_scope
 snapshots
 chains
 .idea

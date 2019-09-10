@@ -43,7 +43,7 @@ defmodule Staxx.WebApiWeb.StackController do
   def start(conn, %{"testchain" => _} = params) do
     Logger.debug("#{__MODULE__}: New stack is starting")
 
-    with {:ok, id} <- DeploymentScope.start(params) do
+    with {:ok, id} <- DeploymentScope.start(params, get_user_email(conn)) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)
