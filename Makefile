@@ -25,12 +25,21 @@ deps: ## Load all required deps for project
 	@echo "Fixing chmod for EVM executables"
 	@chmod +x priv/presets/ganache/wrapper.sh
 	@chmod +x priv/presets/geth/geth_vdb
+.PHONY: deps
+
+ganache-fetch:
+	@echo "Setting up ganache"
+	@rm -rf priv/presets/ganache-cli
+	@git clone --branch v6.6.0 https://github.com/trufflesuite/ganache-cli.git priv/presets/ganache-cli
+.PHONY: ganache-fetch
+
+ganache-local:
 	@echo "Setting up ganache"
 	@rm -rf priv/presets/ganache-cli
 	@git clone --branch v6.6.0 https://github.com/trufflesuite/ganache-cli.git priv/presets/ganache-cli
 	@cd priv/presets/ganache-cli && npm install --no-package-lock
 	@echo "Setting up ganache finished !"
-.PHONY: deps
+.PHONY: ganache-local
 
 docker-push:
 	@echo "Pushing Staxx docker image"

@@ -36,6 +36,7 @@ deploy:
 - provider: script
   script: >-
     echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin &&
+    make ganache-fetch &&
     make build-evm TAG=dev &&
     make build-chain TAG=dev &&
     make build TAG=dev &&
@@ -46,6 +47,7 @@ deploy:
 - provider: script
   script: >-
     echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin &&
+    make ganache-fetch &&
     make build-evm TAG=latest &&
     make build-chain TAG=latest &&
     make build TAG=latest &&
