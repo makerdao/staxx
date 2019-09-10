@@ -20,6 +20,10 @@ lint:
 	@mix credo
 .PHONY: lint
 
+clean-local:
+	@rm -rf /tmp/chains/*
+.PHONY: clean-local
+
 deps: ## Load all required deps for project
 	@mix do deps.get, deps.compile
 	@echo "Fixing chmod for EVM executables"
