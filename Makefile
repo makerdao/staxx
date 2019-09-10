@@ -33,8 +33,11 @@ deps: ## Load all required deps for project
 .PHONY: deps
 
 docker-push:
-	@echo "Pushing docker image"
+	@echo "Pushing Staxx docker image"
 	@docker push $(DOCKER_ID_USER)/$(APP_NAME):$(TAG)
+	@echo "Pushing ex_evm & ex_testchain docker image"
+	@docker push $(DOCKER_ID_USER)/$(EVM_NAME):$(TAG)
+	@docker push $(DOCKER_ID_USER)/$(EX_TESTCHAIN_APP_NAME):$(TAG)
 .PHONY: docker-push
 
 build-evm: ## Build the Docker image for geth/ganache/other evm
