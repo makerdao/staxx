@@ -6,4 +6,4 @@ global:
 scrape_configs:
   - job_name: 'staxx-monitoring'
     static_configs:
-      - targets: ['host.docker.internal:9568']
+      - targets: ['staxx.local:9568']

@@ -22,6 +22,7 @@ erl_crash.dump
 node_modules
 
 priv/presets/ganache/node_modules
+priv/presets/ganache-cli
 
 # DETS databases
 snapshots

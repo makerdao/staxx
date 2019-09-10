@@ -5,7 +5,7 @@ defmodule Staxx.Proxy.Chain.ChainHelper do
 
   require Logger
 
-  alias Chain.EVM.Notification
+  alias Staxx.ExChain.EVM.Notification
   alias Staxx.Proxy.ExChain
   alias Staxx.Proxy.Chain.State
   alias Staxx.Proxy.Deployment.StepsFetcher
