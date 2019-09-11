@@ -58,7 +58,7 @@ services:
     networks:
      - net1
   testchain-deployment:
-    image: makerdao/testchain-deployment:latest
+    image: makerdao/testchain-deployment:dev
     container_name: testchain-deployment.local
     ports:
       - "5001:5001"
