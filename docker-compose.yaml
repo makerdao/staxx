@@ -32,6 +32,7 @@ services:
     environment:
       NATS_URL: nats.local
       DOCKER_DEV_MODE_ALLOWED: "true"
+      CHAINS_FRONT_URL: "https://testchain-backendgatway.makerfoundation.com"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - "/tmp/chains:/opt/chains"
@@ -50,6 +51,7 @@ services:
       # - "9100-9105:9100-9105"
     environment:
       RELEASE_NAME: ex_testchain@ex-testchain.local
+      CHAINS_FRONT_URL: "https://testchain-backendgatway.makerfoundation.com"
     volumes:
       - "/tmp/chains:/opt/chains"
       - "/tmp/snapshots:/opt/snapshots"
