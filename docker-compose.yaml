@@ -73,21 +73,21 @@ services:
       - nats
     networks:
      - net1
-  testchain-dashboard:
-    image: makerdao/testchain-dashboard
-    container_name: testchain-dashboard.local
-    expose:
-      - "3000"
-    ports:
-      - "4001:3000"
-    depends_on:
-      - staxx
-    environment:
-      TESTCHAIN_SERVICE_URL: http://localhost
-      TESTCHAIN_SERVICE_PORT: 4000
-      TESTCHAIN_SERVICE_WS_URL: ws://localhost:4000/socket
-    networks:
-     - net1
+  # testchain-dashboard:
+  #   image: makerdao/testchain-dashboard
+  #   container_name: testchain-dashboard.local
+  #   expose:
+  #     - "3000"
+  #   ports:
+  #     - "4001:3000"
+  #   depends_on:
+  #     - staxx
+  #   environment:
+  #     TESTCHAIN_SERVICE_URL: http://localhost
+  #     TESTCHAIN_SERVICE_PORT: 4000
+  #     TESTCHAIN_SERVICE_WS_URL: ws://localhost:4000/socket
+  #   networks:
+  #    - net1
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
