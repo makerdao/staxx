@@ -22,7 +22,8 @@ defmodule Staxx.MixProject do
           event_stream: :permanent,
           metrix: :permanent,
           proxy: :permanent,
-          web_api: :permanent
+          web_api: :permanent,
+          ex_chain: :load
         ]
       ],
       ex_testchain: [
