@@ -26,7 +26,7 @@ defmodule Staxx.EventStream.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:event_bus, "~> 1.6.0"},
+      {:event_bus, "~> 1.6.1"},
       {:uuid, "~> 1.1"},
       {:gnat, "~> 0.6.1"},
       {:jason, "~> 1.1"},
