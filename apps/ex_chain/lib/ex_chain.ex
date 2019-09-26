@@ -89,8 +89,9 @@ defmodule Staxx.ExChain do
   """
   @spec stop(evm_id()) :: :ok
   def stop(id) do
-    case get_pid() do
+    case get_pid(id) do
       nil ->
+        Logger.error(fn -> "Failed to find chain PID for EVM #{id}" end)
         :ok
 
       pid ->
