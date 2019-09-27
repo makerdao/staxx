@@ -88,8 +88,16 @@ defmodule Staxx.ExChain do
   Stop started EVM instance
   """
   @spec stop(evm_id()) :: :ok
-  def stop(id),
-    do: GenServer.cast(get_pid!(id), :stop)
+  def stop(id) do
+    case get_pid(id) do
+      nil ->
+        Logger.error(fn -> "Failed to find chain PID for EVM #{id}" end)
+        :ok
+
+      pid ->
+        GenServer.cast(pid, :stop)
+    end
+  end
 
   @doc """
   Check if chain with given id exist

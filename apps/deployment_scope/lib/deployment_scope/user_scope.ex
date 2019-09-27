@@ -28,11 +28,8 @@ defmodule Staxx.DeploymentScope.UserScope do
 
   @doc false
   def handle_call({:map, scope_id, email}, _, state) do
-    case :dets.insert_new(table(), {email, scope_id}) do
-      true ->
-        {:reply, :ok, state}
-
-      false ->
+    case :dets.insert(table(), {email, scope_id}) do
+      :ok ->
         {:reply, :ok, state}
 
       {:error, err} ->
