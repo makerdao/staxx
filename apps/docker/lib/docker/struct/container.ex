@@ -21,7 +21,8 @@ defmodule Staxx.Docker.Struct.Container do
           cmd: binary,
           ports: [pos_integer | {pos_integer, pos_integer}],
           env: map(),
-          dev_mode: boolean()
+          dev_mode: boolean(),
+          volumes: [binary]
         }
 
   defstruct permanent: true,
@@ -33,7 +34,8 @@ defmodule Staxx.Docker.Struct.Container do
             cmd: "",
             ports: [],
             env: %{},
-            dev_mode: false
+            dev_mode: false,
+            volumes: []
 
   @doc false
   def child_spec(%__MODULE__{name: name} = container) do
