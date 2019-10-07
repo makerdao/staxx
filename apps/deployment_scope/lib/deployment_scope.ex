@@ -40,7 +40,7 @@ defmodule Staxx.DeploymentScope do
     %{id: id} =
       chain_config =
       config
-      |> ChainHelper.chain_config_from_payload()
+      |> ChainHelper.config_from_payload()
       |> Proxy.new_chain_config!()
 
     stacks = Map.drop(params, ["testchain"])

@@ -19,8 +19,8 @@ defmodule Staxx.DeploymentScope.EVMWorker.ChainHelper do
   @doc """
   Convert payload (from POST) to valid chain config
   """
-  @spec chain_config_from_payload(map) :: map
-  def chain_config_from_payload(payload) when is_map(payload) do
+  @spec config_from_payload(map) :: map
+  def config_from_payload(payload) when is_map(payload) do
     %{
       type: String.to_atom(Map.get(payload, "type", "ganache")),
       # id: Map.get(payload, "id"),
@@ -41,14 +41,14 @@ defmodule Staxx.DeploymentScope.EVMWorker.ChainHelper do
   @doc """
   Locks execution before message will be received from chain
   """
-  @spec wait_chain_event(binary, atom, pos_integer) :: map | :timeout
-  def wait_chain_event(id, event, timeout \\ 30_000) do
+  @spec wait_for_event(binary, atom, pos_integer) :: map | :timeout
+  def wait_for_event(id, event, timeout \\ 30_000) do
     receive do
       %Notification{id: ^id, event: ^event} = msg ->
         msg
 
       _ ->
-        wait_chain_event(id, event, timeout)
+        wait_for_event(id, event, timeout)
     after
       timeout ->
         :timeout
@@ -195,16 +195,16 @@ defmodule Staxx.DeploymentScope.EVMWorker.ChainHelper do
   end
 
   @doc """
-  Handle chain status update
+  Handle EVM/chain status update
   """
-  @spec handle_chain_status_change(State.t(), atom) :: State.t()
-  def handle_chain_status_change(state, status)
+  @spec handle_status_change(State.t(), atom) :: State.t()
+  def handle_status_change(state, status)
       when status in @proxify_events do
     state
     |> State.notify(status)
   end
 
-  def handle_chain_status_change(%State{id: id} = state, status) do
+  def handle_status_change(%State{id: id} = state, status) do
     Logger.debug("#{id}: Unhandled EVM status: #{status}")
     state
   end

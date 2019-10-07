@@ -127,7 +127,7 @@ defmodule Staxx.DeploymentScope.EVMWorker do
       }
     )
 
-    case ChainHelper.wait_chain_event(id, :stopped) do
+    case ChainHelper.wait_for_event(id, :stopped) do
       :timeout ->
         Logger.error(fn -> "Timed out waiting chain to terminate..." end)
 
@@ -188,7 +188,7 @@ defmodule Staxx.DeploymentScope.EVMWorker do
 
     updated_state =
       state
-      |> ChainHelper.handle_chain_status_change(status)
+      |> ChainHelper.handle_status_change(status)
 
     {:noreply, %State{updated_state | chain_status: status}}
   end
