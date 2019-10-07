@@ -9,7 +9,7 @@ defmodule Staxx.DeploymentScope do
   alias Staxx.Proxy
   alias Staxx.Docker
   alias Staxx.Docker.Struct.Container
-  alias Staxx.DeploymentScope.Chain.ChainHelper
+  alias Staxx.DeploymentScope.EVMWorker.ChainHelper
   alias Staxx.DeploymentScope.UserScope
   alias Staxx.DeploymentScope.ScopesSupervisor
   alias Staxx.DeploymentScope.Scope.SupervisorTree

@@ -12,9 +12,9 @@ defmodule Staxx.DeploymentScope.Scope.SupervisorTree do
   require Logger
 
   alias Staxx.DeploymentScope
+  alias Staxx.DeploymentScope.EVMWorker
   alias Staxx.DeploymentScope.Scope.StackManagerSupervisor
   alias Staxx.DeploymentScope.ScopeRegistry
-  alias Staxx.DeploymentScope.Chain
 
   @doc false
   def child_spec(params) do
@@ -107,8 +107,8 @@ defmodule Staxx.DeploymentScope.Scope.SupervisorTree do
   end
 
   defp chain_child_spec(id) when is_binary(id),
-    do: {Chain, {:existing, id}}
+    do: {EVMWorker, {:existing, id}}
 
   defp chain_child_spec(config) when is_map(config),
-    do: {Chain, {:new, config}}
+    do: {EVMWorker, {:new, config}}
 end

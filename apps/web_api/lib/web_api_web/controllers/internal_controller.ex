@@ -2,7 +2,7 @@ defmodule Staxx.WebApiWeb.InternalController do
   use Staxx.WebApiWeb, :controller
   require Logger
 
-  alias Staxx.DeploymentScope.Chain
+  alias Staxx.DeploymentScope.EVMWorker
   alias Staxx.DeploymentScope.Deployment.{Deployer, ProcessWatcher, ServiceList}
 
   @doc false
@@ -64,7 +64,7 @@ defmodule Staxx.WebApiWeb.InternalController do
 
       chain_id when is_binary(chain_id) ->
         Logger.debug("Chain #{chain_id} need to handle deployment request")
-        Chain.handle_deployment_failure(chain_id, id, result)
+        EVMWorker.handle_deployment_failure(chain_id, id, result)
 
       _ ->
         Logger.error("Something wrong with fetching deployemnt result #{id}")
@@ -78,7 +78,7 @@ defmodule Staxx.WebApiWeb.InternalController do
 
       chain_id when is_binary(chain_id) ->
         Logger.debug("Chain #{chain_id} need to handle deployment request")
-        Chain.handle_deployment(chain_id, id, data)
+        EVMWorker.handle_deployment(chain_id, id, data)
 
       _ ->
         Logger.error("Something wrong with fetching deployemnt result #{id}")

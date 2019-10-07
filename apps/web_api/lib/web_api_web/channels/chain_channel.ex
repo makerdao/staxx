@@ -6,7 +6,7 @@ defmodule Staxx.WebApiWeb.ChainChannel do
   require Logger
 
   alias Staxx.Proxy
-  alias Staxx.DeploymentScope.Chain
+  alias Staxx.DeploymentScope.EVMWorker
 
   use Phoenix.Channel, log_join: false, log_handle_in: :debug
   # alias Chain.Snapshot.Details, as: SnapshotDetails
@@ -66,7 +66,7 @@ defmodule Staxx.WebApiWeb.ChainChannel do
   def handle_in("deploy", %{"step" => step}, %{topic: "chain:" <> id} = socket) do
     res =
       id
-      |> Chain.via_tuple()
+      |> EVMWorker.via_tuple()
       |> GenServer.call({:deploy, step})
 
     case res do

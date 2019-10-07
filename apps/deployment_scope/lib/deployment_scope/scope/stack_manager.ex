@@ -8,7 +8,7 @@ defmodule Staxx.DeploymentScope.Scope.StackManager do
   require Logger
 
   alias Staxx.Docker.Struct.Container
-  alias Staxx.DeploymentScope.Chain.Notification
+  alias Staxx.DeploymentScope.EVMWorker.Notification
   alias Staxx.DeploymentScope.StackRegistry
   alias Staxx.DeploymentScope.Stack.{ConfigLoader, Config}
 

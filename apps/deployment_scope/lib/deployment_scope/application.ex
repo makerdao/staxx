@@ -14,9 +14,9 @@ defmodule Staxx.DeploymentScope.Application do
       Staxx.DeploymentScope.Stack.ConfigLoader,
       Staxx.DeploymentScope.UserScope,
       # EVM & deployment integration
-      Staxx.DeploymentScope.Chain.Supervisor,
-      Staxx.DeploymentScope.Chain.Storage,
-      {Registry, keys: :unique, name: Staxx.DeploymentScope.ChainRegistry},
+      Staxx.DeploymentScope.EVMWorker.Supervisor,
+      Staxx.DeploymentScope.EVMWorker.Storage,
+      {Registry, keys: :unique, name: Staxx.DeploymentScope.EVMWorkerRegistry},
       Staxx.DeploymentScope.Deployment.Supervisor
     ]
 
