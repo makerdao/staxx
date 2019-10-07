@@ -30,7 +30,7 @@ defmodule Staxx.WebApiWeb.ApiChannel do
   Start new chain handler
   """
   def handle_in("start", payload, socket) do
-    config = ChainHelper.chain_config_from_payload(payload)
+    config = ChainHelper.config_from_payload(payload)
 
     case Proxy.start(config) do
       {:ok, id} ->

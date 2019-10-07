@@ -20,6 +20,7 @@ config :deployment_scope, dets_db_path: "/tmp/chains"
 # deployment timeout
 config :deployment_scope, deployment_timeout: 1_800_000
 config :deployment_scope, action_timeout: 600_000
+config :deployment_scope, deployment_worker_image: "makerdao/testchain-deployment-worker:dev"
 
 #
 # Docker configs
