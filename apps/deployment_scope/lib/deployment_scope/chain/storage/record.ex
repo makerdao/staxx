@@ -1,10 +1,10 @@
-defmodule Staxx.Proxy.Chain.Storage.Record do
+defmodule Staxx.DeploymentScope.Chain.Storage.Record do
   @moduledoc """
   Details for chain process that will be stored into DB
   """
 
-  alias Staxx.Proxy.Chain.State
-  alias Staxx.Proxy.Chain.Storage
+  alias Staxx.DeploymentScope.Chain.State
+  alias Staxx.DeploymentScope.Chain.Storage
 
   @type t :: %__MODULE__{
           id: binary,

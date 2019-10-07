@@ -1,4 +1,4 @@
-defmodule Staxx.Proxy.Chain do
+defmodule Staxx.DeploymentScope.Chain do
   @moduledoc """
   Chain/deployment/other tasks performer.
 
@@ -8,11 +8,11 @@ defmodule Staxx.Proxy.Chain do
 
   require Logger
 
-  alias Staxx.Proxy.ChainRegistry
+  alias Staxx.DeploymentScope.ChainRegistry
   alias Staxx.Proxy.ExChain
   alias Staxx.Proxy.NodeManager
-  alias Staxx.Proxy.Chain.{State, ChainHelper}
-  alias Staxx.Proxy.Chain.Storage.Record
+  alias Staxx.DeploymentScope.Chain.{State, ChainHelper}
+  alias Staxx.DeploymentScope.Chain.Storage.Record
   alias Staxx.ExChain.EVM.Notification
 
   @doc false

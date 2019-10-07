@@ -1,9 +1,9 @@
-defmodule Staxx.Proxy.Chain.Supervisor do
+defmodule Staxx.DeploymentScope.Chain.Supervisor do
   @moduledoc """
   Supervisor that will watch all chains running
   """
 
-  alias Staxx.Proxy.Chain
+  alias Staxx.DeploymentScope.Chain
 
   # Automatically defines child_spec/1
   use DynamicSupervisor

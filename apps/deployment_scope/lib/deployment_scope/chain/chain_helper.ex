@@ -1,4 +1,4 @@
-defmodule Staxx.Proxy.Chain.ChainHelper do
+defmodule Staxx.DeploymentScope.Chain.ChainHelper do
   @moduledoc """
   Most of chani action will be here
   """
@@ -7,11 +7,11 @@ defmodule Staxx.Proxy.Chain.ChainHelper do
 
   alias Staxx.ExChain.EVM.Notification
   alias Staxx.Proxy.ExChain
-  alias Staxx.Proxy.Chain.State
-  alias Staxx.Proxy.Deployment.StepsFetcher
-  alias Staxx.Proxy.Chain.Storage.Record
-  alias Staxx.Proxy.Deployment.ProcessWatcher
-  alias Staxx.Proxy.Deployment.Deployer
+  alias Staxx.DeploymentScope.Chain.State
+  alias Staxx.DeploymentScope.Deployment.StepsFetcher
+  alias Staxx.DeploymentScope.Chain.Storage.Record
+  alias Staxx.DeploymentScope.Deployment.ProcessWatcher
+  alias Staxx.DeploymentScope.Deployment.Deployer
 
   # List of events that should be resend to event bus
   @proxify_events [:active, :snapshot_taking, :snapshot_reverting]

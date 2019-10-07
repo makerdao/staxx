@@ -7,9 +7,9 @@ defmodule Staxx.DeploymentScope do
   require Logger
 
   alias Staxx.Proxy
-  alias Staxx.Proxy.Chain.ChainHelper
   alias Staxx.Docker
   alias Staxx.Docker.Struct.Container
+  alias Staxx.DeploymentScope.Chain.ChainHelper
   alias Staxx.DeploymentScope.UserScope
   alias Staxx.DeploymentScope.ScopesSupervisor
   alias Staxx.DeploymentScope.Scope.SupervisorTree

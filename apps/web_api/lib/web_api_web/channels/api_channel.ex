@@ -8,8 +8,8 @@ defmodule Staxx.WebApiWeb.ApiChannel do
   require Logger
 
   alias Staxx.Proxy
-  alias Staxx.Proxy.Chain.Storage
-  alias Staxx.Proxy.Chain.ChainHelper
+  alias Staxx.DeploymentScope.Chain.Storage
+  alias Staxx.DeploymentScope.Chain.ChainHelper
 
   def join(_, _, socket), do: {:ok, %{message: "Welcome to ExTestchain !"}, socket}
 

@@ -1,4 +1,4 @@
-defmodule Staxx.Proxy.Chain.Storage do
+defmodule Staxx.DeploymentScope.Chain.Storage do
   @moduledoc """
   Storage module that will store all chain processes that spawn on service
   """
@@ -6,7 +6,8 @@ defmodule Staxx.Proxy.Chain.Storage do
 
   require Logger
 
-  alias Staxx.Proxy.Chain.Storage.Record
+  alias Staxx.DeploymentScope.Chain.Storage.Record
+  alias Staxx.DeploymentScope.Chain.State
 
   @table "chain_workers"
 
@@ -39,7 +40,7 @@ defmodule Staxx.Proxy.Chain.Storage do
   @doc """
   Load all existing chain process details
   """
-  @spec all() :: [Staxx.Proxy.Chain.State.t()]
+  @spec all() :: [State.t()]
   def all() do
     table()
     |> :dets.match({:_, :"$1"})

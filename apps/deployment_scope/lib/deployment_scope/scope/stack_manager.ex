@@ -8,7 +8,7 @@ defmodule Staxx.DeploymentScope.Scope.StackManager do
   require Logger
 
   alias Staxx.Docker.Struct.Container
-  alias Staxx.Proxy.Chain.Notification
+  alias Staxx.DeploymentScope.Chain.Notification
   alias Staxx.DeploymentScope.StackRegistry
   alias Staxx.DeploymentScope.Stack.{ConfigLoader, Config}
 
@@ -31,7 +31,7 @@ defmodule Staxx.DeploymentScope.Scope.StackManager do
 
   def child_spec(scope_id, stack_name) do
     %{
-      id: "#{scope_id}:stack_name",
+      id: "#{scope_id}:#{stack_name}",
       start: {__MODULE__, :start_link, [{scope_id, stack_name}]},
       restart: :temporary
     }

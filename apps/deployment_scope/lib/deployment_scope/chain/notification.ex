@@ -1,4 +1,4 @@
-defmodule Staxx.Proxy.Chain.Notification do
+defmodule Staxx.DeploymentScope.Chain.Notification do
   @moduledoc """
   Default chain worker notification that might be sent by system
   """
@@ -23,10 +23,3 @@ defmodule Staxx.Proxy.Chain.Notification do
     |> send_to_event_bus()
   end
 end
-
-# require Protocol
-#
-# Protocol.derive(Jason.Encoder, Chain.EVM.Process)
-# Protocol.derive(Jason.Encoder, Chain.EVM.Account)
-# Protocol.derive(Jason.Encoder, Chain.EVM.Notification)
-# Protocol.derive(Jason.Encoder, Chain.Snapshot.Details)

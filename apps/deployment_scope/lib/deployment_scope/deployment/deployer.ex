@@ -1,14 +1,14 @@
-defmodule Staxx.Proxy.Deployment.Deployer do
+defmodule Staxx.DeploymentScope.Deployment.Deployer do
   @moduledoc """
   Module is responsible for deployment processes
   """
 
   require Logger
 
-  alias Staxx.Proxy.DeploymentRegistry
-  alias Staxx.Proxy.Deployment.BaseApi
-  alias Staxx.Proxy.Deployment.StepsFetcher
-  alias Staxx.Proxy.Deployment.TaskSupervisor
+  alias Staxx.DeploymentScope.DeploymentRegistry
+  alias Staxx.DeploymentScope.Deployment.BaseApi
+  alias Staxx.DeploymentScope.Deployment.StepsFetcher
+  alias Staxx.DeploymentScope.Deployment.TaskSupervisor
 
   @timeout Application.get_env(:proxy, :action_timeout)
 

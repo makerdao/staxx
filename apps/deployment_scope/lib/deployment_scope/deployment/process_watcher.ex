@@ -1,4 +1,4 @@
-defmodule Staxx.Proxy.Deployment.ProcessWatcher do
+defmodule Staxx.DeploymentScope.Deployment.ProcessWatcher do
   @moduledoc """
   This is special process that will store deployment requestId with chainId
   Sort of simple key => value storage.

@@ -12,7 +12,12 @@ defmodule Staxx.DeploymentScope.Application do
       {Registry, keys: :unique, name: Staxx.DeploymentScope.StackRegistry},
       Staxx.DeploymentScope.ScopesSupervisor,
       Staxx.DeploymentScope.Stack.ConfigLoader,
-      Staxx.DeploymentScope.UserScope
+      Staxx.DeploymentScope.UserScope,
+      # EVM & deployment integration
+      Staxx.DeploymentScope.Chain.Supervisor,
+      Staxx.DeploymentScope.Chain.Storage,
+      {Registry, keys: :unique, name: Staxx.DeploymentScope.ChainRegistry},
+      Staxx.DeploymentScope.Deployment.Supervisor
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

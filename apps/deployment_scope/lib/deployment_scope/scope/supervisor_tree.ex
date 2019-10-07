@@ -14,7 +14,7 @@ defmodule Staxx.DeploymentScope.Scope.SupervisorTree do
   alias Staxx.DeploymentScope
   alias Staxx.DeploymentScope.Scope.StackManagerSupervisor
   alias Staxx.DeploymentScope.ScopeRegistry
-  alias Staxx.Proxy.Chain
+  alias Staxx.DeploymentScope.Chain
 
   @doc false
   def child_spec(params) do

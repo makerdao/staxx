@@ -5,8 +5,8 @@ defmodule Staxx.WebApiWeb.StackController do
 
   action_fallback Staxx.WebApiWeb.FallbackController
 
-  alias Staxx.Proxy.Chain.Notification
   alias Staxx.DeploymentScope
+  alias Staxx.DeploymentScope.Chain.Notification
   alias Staxx.DeploymentScope.Scope.StackManager
   alias Staxx.DeploymentScope.Stack.ConfigLoader
 

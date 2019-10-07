@@ -148,6 +148,7 @@ defmodule Staxx.Docker.Adapter.DockerD do
       build_name(container),
       build_ports(container),
       build_env(container),
+      build_volumes(container),
       image,
       cmd
     ]
@@ -188,6 +189,14 @@ defmodule Staxx.Docker.Adapter.DockerD do
   defp build_port({port, to_port}), do: ["-p", "#{port}:#{to_port}"]
   defp build_port(port) when is_integer(port), do: ["-p", "#{port}:#{port}"]
   defp build_port(_), do: ""
+
+  defp build_volumes(%Container{volumes: []}), do: ""
+
+  defp build_volumes(%Container{volumes: volumes}) do
+    volumes
+    |> Enum.map(fn volume -> ["-v", volume] end)
+    |> List.flatten()
+  end
 
   defp build_env(%Container{env: []}), do: []
 

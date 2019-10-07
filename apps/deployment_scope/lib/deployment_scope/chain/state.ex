@@ -1,4 +1,4 @@
-defmodule Staxx.Proxy.Chain.State do
+defmodule Staxx.DeploymentScope.Chain.State do
   @moduledoc """
   Default chain process state
 
@@ -10,8 +10,8 @@ defmodule Staxx.Proxy.Chain.State do
   In case of failure status will be set to `:failed`
   """
 
-  alias Staxx.Proxy.Chain.Storage.Record
-  alias Staxx.Proxy.Chain.Notification
+  alias Staxx.DeploymentScope.Chain.Storage.Record
+  alias Staxx.DeploymentScope.Chain.Notification
 
   @type status :: :initializing | :ready | :terminating | :terminated | :locked | :failed
 

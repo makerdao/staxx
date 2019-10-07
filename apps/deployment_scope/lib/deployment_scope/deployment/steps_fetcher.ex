@@ -1,11 +1,11 @@
-defmodule Staxx.Proxy.Deployment.StepsFetcher do
+defmodule Staxx.DeploymentScope.Deployment.StepsFetcher do
   @moduledoc """
   Module will fetch list of steps from deployment service
   Fetching might be triggered by timeout (automatically) or manually
   by calling `Proxy.Deploy.StepsFetcher.reload/0`
   """
   use GenServer
-  alias Staxx.Proxy.Deployment.BaseApi
+  alias Staxx.DeploymentScope.Deployment.BaseApi
 
   require Logger
 

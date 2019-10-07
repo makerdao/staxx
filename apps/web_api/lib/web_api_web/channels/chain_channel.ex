@@ -6,7 +6,7 @@ defmodule Staxx.WebApiWeb.ChainChannel do
   require Logger
 
   alias Staxx.Proxy
-  alias Staxx.Proxy.Chain
+  alias Staxx.DeploymentScope.Chain
 
   use Phoenix.Channel, log_join: false, log_handle_in: :debug
   # alias Chain.Snapshot.Details, as: SnapshotDetails

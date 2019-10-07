@@ -6,14 +6,15 @@ defmodule Staxx.Proxy do
   require Logger
 
   alias Staxx.Proxy.ExChain
-  alias Staxx.Proxy.Chain
+  alias Staxx.DeploymentScope.Chain
   alias Staxx.Proxy.NodeManager
-  alias Staxx.Proxy.Chain.Storage
-  alias Staxx.Proxy.Chain.Supervisor, as: ChainSupervisor
+  alias Staxx.DeploymentScope.Chain.Storage
+  alias Staxx.DeploymentScope.Chain.Supervisor, as: ChainSupervisor
 
   @doc """
   Start new/existing chain
   """
+  @deprecated "Use Staxx.DeploymentScope for starting new chains"
   @spec start(binary | map()) :: {:ok, binary} | {:error, term()}
   def start(id) when is_binary(id) do
     case ChainSupervisor.start_chain(id, :existing) do
