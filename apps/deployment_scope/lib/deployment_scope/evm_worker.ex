@@ -1,8 +1,8 @@
 defmodule Staxx.DeploymentScope.EVMWorker do
   @moduledoc """
-  Chain/deployment/other tasks performer.
+  EVM representation for Staxx system.
 
-  All tasks that will iteract with chain should go through this process.
+  All tasks that will iteract with EVM chain should go through this process.
   """
   use GenServer, restart: :temporary
 
