@@ -89,5 +89,5 @@ defmodule Staxx.DeploymentScope.Deployment.StepsFetcher do
 
   # get deployment timeout
   defp timeout(),
-    do: Application.get_env(:proxy, :deployment_steps_fetch_timeout, 600_000)
+    do: Application.get_env(:deployment_scope, :deployment_steps_fetch_timeout, 600_000)
 end

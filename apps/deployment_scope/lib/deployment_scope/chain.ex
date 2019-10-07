@@ -203,7 +203,7 @@ defmodule Staxx.DeploymentScope.Chain do
     case new_state do
       %State{status: :initializing} ->
         # If deployment process started we have to set timeout
-        {:noreply, new_state, Application.get_env(:proxy, :deployment_timeout)}
+        {:noreply, new_state, Application.get_env(:deployment_scope, :deployment_timeout)}
 
       _ ->
         {:noreply, new_state}

@@ -10,7 +10,7 @@ defmodule Staxx.DeploymentScope.Deployment.Deployer do
   alias Staxx.DeploymentScope.Deployment.StepsFetcher
   alias Staxx.DeploymentScope.Deployment.TaskSupervisor
 
-  @timeout Application.get_env(:proxy, :action_timeout)
+  @timeout Application.get_env(:deployment_scope, :action_timeout)
 
   @spec deploy(binary, 1..9, binary, binary, binary) :: :ok | {:error, term}
   def deploy(chain_id, step_id, rpc_url, coinbase, commit \\ nil) do

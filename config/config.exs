@@ -13,6 +13,13 @@ import Config
 # Deployemnt Scope configs
 #
 config :deployment_scope, stacks_dir: "/tmp/stacks"
+config :deployment_scope, deployment_service_url: "http://localhost:5001/rpc"
+config :deployment_scope, deployment_steps_fetch_timeout: 30_000
+# DB path where all list of chain workers will be stored
+config :deployment_scope, dets_db_path: "/tmp/chains"
+# deployment timeout
+config :deployment_scope, deployment_timeout: 1_800_000
+config :deployment_scope, action_timeout: 600_000
 
 #
 # Docker configs
@@ -47,16 +54,8 @@ config :proxy, ex_chain_adapter: Staxx.Proxy.ExChain.Local
 # Node manager
 config :proxy, node_manager_adapter: Staxx.Proxy.NodeManager.Local
 
-config :proxy, deployment_service_url: "http://localhost:5001/rpc"
-config :proxy, deploy_chain_front_url: "host.docker.internal"
-config :proxy, deployment_steps_fetch_timeout: 30_000
-# DB path where all list of chain workers will be stored
-config :proxy, dets_db_path: "/tmp/chains"
 # Place where to upload snapshots
 config :proxy, snapshot_path: "/tmp/snapshots"
-# deployment timeout
-config :proxy, deployment_timeout: 1_800_000
-config :proxy, action_timeout: 600_000
 
 #
 # Metrics

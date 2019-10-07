@@ -94,7 +94,7 @@ defmodule Staxx.DeploymentScope.UserScope do
 
   # get path to DETS file for storage chain process
   defp db_path() do
-    :proxy
+    :deployment_scope
     |> Application.get_env(:dets_db_path)
     |> Path.expand()
   end
