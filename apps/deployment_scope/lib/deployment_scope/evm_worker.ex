@@ -152,7 +152,7 @@ defmodule Staxx.DeploymentScope.EVMWorker do
   def handle_info({:EXIT, _from, reason}, state) do
     Logger.debug(fn ->
       """
-      Exit trapped for chain process
+      Exit trapped for chain/deployment process
         Exit reason: #{inspect(reason)}
         Chain state:
           #{inspect(state, pretty: true)}

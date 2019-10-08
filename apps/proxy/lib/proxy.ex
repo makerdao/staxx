@@ -6,10 +6,10 @@ defmodule Staxx.Proxy do
   require Logger
 
   alias Staxx.Proxy.ExChain
-  alias Staxx.DeploymentScope.Chain
+  alias Staxx.DeploymentScope.EVMWorker
   alias Staxx.Proxy.NodeManager
-  alias Staxx.DeploymentScope.Chain.Storage
-  alias Staxx.DeploymentScope.Chain.Supervisor, as: ChainSupervisor
+  alias Staxx.DeploymentScope.EVMWorker.Storage
+  alias Staxx.DeploymentScope.EVMWorker.Supervisor, as: ChainSupervisor
 
   @doc """
   Start new/existing chain
@@ -73,7 +73,7 @@ defmodule Staxx.Proxy do
   @spec stop(binary) :: :ok
   def stop(id) do
     id
-    |> Chain.via_tuple()
+    |> EVMWorker.via_tuple()
     |> GenServer.cast(:stop)
   end
 
@@ -83,7 +83,7 @@ defmodule Staxx.Proxy do
   @spec take_snapshot(Staxx.ExChain.evm_id(), binary()) :: :ok | {:error, term()}
   def take_snapshot(id, description \\ "") do
     id
-    |> Chain.via_tuple()
+    |> EVMWorker.via_tuple()
     |> GenServer.call({:take_snapshot, description})
   end
 
@@ -95,7 +95,7 @@ defmodule Staxx.Proxy do
   @spec revert_snapshot(Staxx.ExChain.evm_id(), binary) :: :ok | {:error, term()}
   def revert_snapshot(id, snapshot_id) do
     id
-    |> Chain.via_tuple()
+    |> EVMWorker.via_tuple()
     |> GenServer.call({:revert_snapshot, snapshot_id})
   end
 

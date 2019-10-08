@@ -10,8 +10,10 @@ defmodule Staxx.DeploymentScope.EVMWorker.ChainHelper do
   alias Staxx.DeploymentScope.EVMWorker.State
   alias Staxx.DeploymentScope.EVMWorker.Storage.Record
   alias Staxx.DeploymentScope.Deployment.StepsFetcher
-  alias Staxx.DeploymentScope.Deployment.ProcessWatcher
-  alias Staxx.DeploymentScope.Deployment.Deployer
+  # alias Staxx.DeploymentScope.Deployment.ProcessWatcher
+  # alias Staxx.DeploymentScope.Deployment.Deployer
+  alias Staxx.DeploymentScope.Deployment.Config, as: DeploymentConfig
+  alias Staxx.DeploymentScope.Deployment.Worker, as: DeploymentWorker
 
   # List of events that should be resend to event bus
   @proxify_events [:active, :snapshot_taking, :snapshot_reverting]
@@ -111,18 +113,19 @@ defmodule Staxx.DeploymentScope.EVMWorker.ChainHelper do
     # Load step details
     with step when is_map(step) <- StepsFetcher.get(step_id),
          hash when byte_size(hash) > 0 <- StepsFetcher.hash(),
-         {:ok, request_id} <- run_deployment(state, step_id, details) do
-      Logger.debug("Deployment process scheduled with request_id #{request_id} !")
+         {:ok, pid} <- run_deployment(state, step_id, details) do
+      Logger.debug("Deployment process scheduled, worker pid: #{inspect(pid)} !")
 
       # Collecting telemetry
       :telemetry.execute(
         [:staxx, :chain, :deployment, :started],
-        %{request_id: request_id},
+        # %{request_id: request_id},
+        %{},
         %{id: id, step_id: step_id}
       )
 
       # Save deployment request association with current chain
-      ProcessWatcher.put(request_id, id)
+      # ProcessWatcher.put(request_id, id)
 
       state
       |> Record.from_state()
@@ -210,14 +213,22 @@ defmodule Staxx.DeploymentScope.EVMWorker.ChainHelper do
   end
 
   @doc """
-  Run deployment scripts for chain
+  Run deployment worker for newly started EVM
   """
   @spec run_deployment(State.t(), 1..9, map()) :: {:ok, term} | {:error, term}
   def run_deployment(%State{id: id, deploy_tag: tag}, step_id, %{
         rpc_url: rpc_url,
         coinbase: coinbase
-      }),
-      do: Deployer.deploy(id, step_id, rpc_url, coinbase, tag)
+      }) do
+    %DeploymentConfig{
+      scope_id: id,
+      step_id: step_id,
+      # git_ref: tag,
+      rpc_url: rpc_url,
+      coinbase: coinbase
+    }
+    |> DeploymentWorker.start_link()
+  end
 
   def run_deployment(_state, _step_id, _details),
     do: {:error, "No chain details exist"}
