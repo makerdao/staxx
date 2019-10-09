@@ -137,6 +137,7 @@ defmodule Staxx.DeploymentScope.EVMWorker.ChainHelper do
       # Notify UI that deployment started
       state
       |> State.chain_status(:started)
+      |> State.deploy_pid(pid)
       |> State.notify(:deploying, details)
     else
       err ->

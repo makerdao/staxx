@@ -23,7 +23,8 @@ defmodule Staxx.DeploymentScope.EVMWorker.State do
           notify_pid: pid() | nil,
           chain_status: atom(),
           deploy_tag: nil | binary,
-          deploy_step_id: 0..9
+          deploy_step_id: 0..9,
+          deploy_pid: pid() | nil
         }
 
   defstruct id: nil,
@@ -33,7 +34,8 @@ defmodule Staxx.DeploymentScope.EVMWorker.State do
             notify_pid: nil,
             chain_status: :none,
             deploy_tag: nil,
-            deploy_step_id: 0
+            deploy_step_id: 0,
+            deploy_pid: nil
 
   @doc """
   Update node for state and return updated state
@@ -54,6 +56,13 @@ defmodule Staxx.DeploymentScope.EVMWorker.State do
   @spec chain_status(t(), atom) :: t()
   def chain_status(%__MODULE__{} = state, chain_status),
     do: %__MODULE__{state | chain_status: chain_status}
+
+  @doc """
+  Set deployment process id for state and return updated state
+  """
+  @spec deploy_pid(t(), pid) :: t()
+  def deploy_pid(%__MODULE__{} = state, pid),
+    do: %__MODULE__{state | deploy_pid: pid}
 
   @doc """
   Send notification about chain to `notify_pid`.

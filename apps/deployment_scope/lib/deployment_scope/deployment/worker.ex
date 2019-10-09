@@ -17,6 +17,7 @@ defmodule Staxx.DeploymentScope.Deployment.Worker do
 
   require Logger
 
+  alias Staxx.DeploymentScope.EVMWorker
   alias Staxx.DeploymentScope.DeploymentRegistry
   alias Staxx.DeploymentScope.Deployment.{Config, BaseApi}
   alias Staxx.Docker.Struct.Container
@@ -78,6 +79,20 @@ defmodule Staxx.DeploymentScope.Deployment.Worker do
   end
 
   @doc false
+  def handle_cast({:failed, data}, %Config{scope_id: id, request_id: request_id} = config) do
+    Logger.debug("Chain #{id} need to handle deployment request")
+    EVMWorker.handle_deployment_failure(id, request_id, data)
+    {:stop, :normal, config}
+  end
+
+  @doc false
+  def handle_cast({:finsihed, result}, %Config{scope_id: id, request_id: request_id} = config) do
+    Logger.debug("Chain #{id} need to handle deployment request")
+    EVMWorker.handle_deployment(id, request_id, result)
+    {:stop, :normal, config}
+  end
+
+  @doc false
   def handle_info({:EXIT, _from, :normal}, config) do
     Logger.debug(fn -> "Deployment worker container successfully terminated" end)
     {:stop, :normal, config}
@@ -129,6 +144,26 @@ defmodule Staxx.DeploymentScope.Deployment.Worker do
         "TCD_NATS" => "servers=nats://host.docker.internal:4222"
       }
     }
+  end
+
+  @doc """
+  Notify that deployment process failed
+  """
+  @spec deployment_failed(binary, term) :: :ok
+  def deployment_failed(request_id, data) do
+    request_id
+    |> via_tuple()
+    |> GenServer.cast({:failed, data})
+  end
+
+  @doc """
+  Notify that deployment process finished
+  """
+  @spec deployment_finished(binary, term) :: :ok
+  def deployment_finished(request_id, result) do
+    request_id
+    |> via_tuple()
+    |> GenServer.cast({:finished, result})
   end
 
   # Combine deployment ENV vars for chain

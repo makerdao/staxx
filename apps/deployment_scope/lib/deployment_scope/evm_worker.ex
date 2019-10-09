@@ -149,17 +149,28 @@ defmodule Staxx.DeploymentScope.EVMWorker do
   end
 
   @doc false
-  def handle_info({:EXIT, _from, reason}, state) do
-    Logger.debug(fn ->
-      """
-      Exit trapped for chain/deployment process
-        Exit reason: #{inspect(reason)}
-        Chain state:
-          #{inspect(state, pretty: true)}
-      """
-    end)
+  def handle_info({:EXIT, from, reason}, %State{deploy_pid: pid} = state) do
+    case pid == from do
+      true ->
+        Logger.debug(fn ->
+          "Deployment worker process terminated: #{inspect(reason)}"
+        end)
 
-    {:stop, reason, state}
+        {:noreply, state}
+
+      false ->
+        Logger.debug(fn ->
+          """
+          Exit trapped for chain process
+            From PID: #{inspect(from)}
+            Exit reason: #{inspect(reason)}
+            Chain state:
+              #{inspect(state, pretty: true)}
+          """
+        end)
+
+        {:stop, reason, state}
+    end
   end
 
   @doc false
