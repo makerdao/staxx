@@ -10,8 +10,6 @@ defmodule Staxx.DeploymentScope.EVMWorker.ChainHelper do
   alias Staxx.DeploymentScope.EVMWorker.State
   alias Staxx.DeploymentScope.EVMWorker.Storage.Record
   alias Staxx.DeploymentScope.Deployment.StepsFetcher
-  # alias Staxx.DeploymentScope.Deployment.ProcessWatcher
-  # alias Staxx.DeploymentScope.Deployment.Deployer
   alias Staxx.DeploymentScope.Deployment.Config, as: DeploymentConfig
   alias Staxx.DeploymentScope.Deployment.Worker, as: DeploymentWorker
 
@@ -124,9 +122,6 @@ defmodule Staxx.DeploymentScope.EVMWorker.ChainHelper do
         %{id: id, step_id: step_id}
       )
 
-      # Save deployment request association with current chain
-      # ProcessWatcher.put(request_id, id)
-
       state
       |> Record.from_state()
       |> Record.chain_details(details)
@@ -217,7 +212,7 @@ defmodule Staxx.DeploymentScope.EVMWorker.ChainHelper do
   Run deployment worker for newly started EVM
   """
   @spec run_deployment(State.t(), 1..9, map()) :: {:ok, term} | {:error, term}
-  def run_deployment(%State{id: id, deploy_tag: tag}, step_id, %{
+  def run_deployment(%State{id: id, deploy_tag: _tag}, step_id, %{
         rpc_url: rpc_url,
         coinbase: coinbase
       }) do

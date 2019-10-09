@@ -15,6 +15,9 @@ defmodule Staxx.DeploymentScope.Deployment.Worker do
   """
   use GenServer, restart: :transient
 
+  # Timeout 20 mins in ms
+  @timeout 20 * 60 * 60 * 1000
+
   require Logger
 
   alias Staxx.DeploymentScope.EVMWorker
@@ -74,7 +77,7 @@ defmodule Staxx.DeploymentScope.Deployment.Worker do
 
       _ ->
         Logger.debug(fn -> "Started new deployment worker container process" end)
-        {:noreply, config}
+        {:noreply, config, @timeout}
     end
   end
 
@@ -90,6 +93,11 @@ defmodule Staxx.DeploymentScope.Deployment.Worker do
     Logger.debug("Chain #{id} need to handle deployment request")
     EVMWorker.handle_deployment(id, request_id, result)
     {:stop, :normal, config}
+  end
+
+  def handle_info(:timeout, %Config{scope_id: id} = config) do
+    Logger.debug(fn -> "#{id}: Deployment worker received timeout for deployment" end)
+    {:stop, :timeout, config}
   end
 
   @doc false

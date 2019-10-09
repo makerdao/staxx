@@ -2,9 +2,8 @@ defmodule Staxx.WebApiWeb.InternalController do
   use Staxx.WebApiWeb, :controller
   require Logger
 
-  alias Staxx.DeploymentScope.EVMWorker
   alias Staxx.DeploymentScope.Deployment.Worker, as: DeployWorker
-  alias Staxx.DeploymentScope.Deployment.{Deployer, ProcessWatcher, ServiceList}
+  alias Staxx.DeploymentScope.Deployment.{Deployer, ServiceList}
 
   @doc false
   def rpc(conn, %{"id" => id, "method" => "RegisterDeployment", "data" => data}) do

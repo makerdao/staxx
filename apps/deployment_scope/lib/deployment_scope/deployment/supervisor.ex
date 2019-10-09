@@ -11,8 +11,7 @@ defmodule Staxx.DeploymentScope.Deployment.Supervisor do
       {Task.Supervisor, name: Staxx.DeploymentScope.Deployment.TaskSupervisor},
       {Registry, keys: :unique, name: Staxx.DeploymentScope.DeploymentRegistry},
       Staxx.DeploymentScope.Deployment.StepsFetcher,
-      Staxx.DeploymentScope.Deployment.ServiceList,
-      Staxx.DeploymentScope.Deployment.ProcessWatcher
+      Staxx.DeploymentScope.Deployment.ServiceList
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
