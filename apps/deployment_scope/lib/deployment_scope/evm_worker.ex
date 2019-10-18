@@ -1,18 +1,18 @@
-defmodule Staxx.Proxy.Chain do
+defmodule Staxx.DeploymentScope.EVMWorker do
   @moduledoc """
-  Chain/deployment/other tasks performer.
+  EVM representation for Staxx system.
 
-  All tasks that will iteract with chain should go through this process.
+  All tasks that will iteract with EVM chain should go through this process.
   """
   use GenServer, restart: :temporary
 
   require Logger
 
-  alias Staxx.Proxy.ChainRegistry
+  alias Staxx.DeploymentScope.EVMWorkerRegistry
   alias Staxx.Proxy.ExChain
   alias Staxx.Proxy.NodeManager
-  alias Staxx.Proxy.Chain.{State, ChainHelper}
-  alias Staxx.Proxy.Chain.Storage.Record
+  alias Staxx.DeploymentScope.EVMWorker.{State, ChainHelper}
+  alias Staxx.DeploymentScope.EVMWorker.Storage.Record
   alias Staxx.ExChain.EVM.Notification
 
   @doc false
@@ -127,7 +127,7 @@ defmodule Staxx.Proxy.Chain do
       }
     )
 
-    case ChainHelper.wait_chain_event(id, :stopped) do
+    case ChainHelper.wait_for_event(id, :stopped) do
       :timeout ->
         Logger.error(fn -> "Timed out waiting chain to terminate..." end)
 
@@ -149,17 +149,28 @@ defmodule Staxx.Proxy.Chain do
   end
 
   @doc false
-  def handle_info({:EXIT, _from, reason}, state) do
-    Logger.debug(fn ->
-      """
-      Exit trapped for chain process
-        Exit reason: #{inspect(reason)}
-        Chain state:
-          #{inspect(state, pretty: true)}
-      """
-    end)
+  def handle_info({:EXIT, from, reason}, %State{deploy_pid: pid} = state) do
+    case pid == from do
+      true ->
+        Logger.debug(fn ->
+          "Deployment worker process terminated: #{inspect(reason)}"
+        end)
 
-    {:stop, reason, state}
+        {:noreply, state}
+
+      false ->
+        Logger.debug(fn ->
+          """
+          Exit trapped for chain process
+            From PID: #{inspect(from)}
+            Exit reason: #{inspect(reason)}
+            Chain state:
+              #{inspect(state, pretty: true)}
+          """
+        end)
+
+        {:stop, reason, state}
+    end
   end
 
   @doc false
@@ -188,7 +199,7 @@ defmodule Staxx.Proxy.Chain do
 
     updated_state =
       state
-      |> ChainHelper.handle_chain_status_change(status)
+      |> ChainHelper.handle_status_change(status)
 
     {:noreply, %State{updated_state | chain_status: status}}
   end
@@ -203,7 +214,7 @@ defmodule Staxx.Proxy.Chain do
     case new_state do
       %State{status: :initializing} ->
         # If deployment process started we have to set timeout
-        {:noreply, new_state, Application.get_env(:proxy, :deployment_timeout)}
+        {:noreply, new_state, Application.get_env(:deployment_scope, :deployment_timeout)}
 
       _ ->
         {:noreply, new_state}
@@ -285,7 +296,10 @@ defmodule Staxx.Proxy.Chain do
         {:deployment_failed, request_id, msg},
         %State{id: id, status: :initializing} = state
       ) do
-    Logger.debug("#{id}: Handling deployment failure #{request_id}: #{inspect(msg)}")
+    Logger.error("""
+    #{id}: Handling deployment failure #{request_id}:
+      #{inspect(msg, printable_limit: :infinity, limit: :infinity, pretty: true)}
+    """)
 
     # Collecting telemetry
     :telemetry.execute(
@@ -303,9 +317,9 @@ defmodule Staxx.Proxy.Chain do
   @doc """
   Generates via cause for GenServer registration
   """
-  @spec via_tuple(binary) :: {:via, Registry, {ChainRegistry, binary}}
+  @spec via_tuple(binary) :: {:via, Registry, {EVMWorkerRegistry, binary}}
   def via_tuple(id),
-    do: {:via, Registry, {ChainRegistry, id}}
+    do: {:via, Registry, {EVMWorkerRegistry, id}}
 
   @doc """
   Handle deployment by chain process

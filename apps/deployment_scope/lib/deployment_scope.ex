@@ -7,9 +7,9 @@ defmodule Staxx.DeploymentScope do
   require Logger
 
   alias Staxx.Proxy
-  alias Staxx.Proxy.Chain.ChainHelper
   alias Staxx.Docker
   alias Staxx.Docker.Struct.Container
+  alias Staxx.DeploymentScope.EVMWorker.ChainHelper
   alias Staxx.DeploymentScope.UserScope
   alias Staxx.DeploymentScope.ScopesSupervisor
   alias Staxx.DeploymentScope.Scope.SupervisorTree
@@ -40,7 +40,7 @@ defmodule Staxx.DeploymentScope do
     %{id: id} =
       chain_config =
       config
-      |> ChainHelper.chain_config_from_payload()
+      |> ChainHelper.config_from_payload()
       |> Proxy.new_chain_config!()
 
     stacks = Map.drop(params, ["testchain"])
@@ -209,6 +209,15 @@ defmodule Staxx.DeploymentScope do
   @spec reload_config() :: :ok
   def reload_config(),
     do: ConfigLoader.reload()
+
+  @doc """
+  Get NATS url
+  """
+  @spec nats_url() :: binary
+  def nats_url() do
+    %{host: host, port: port} = Application.get_env(:deployment_scope, :nats)
+    "nats://#{host}:#{port}"
+  end
 
   # Validate if all stacks are allowed to start
   defp validate_stacks([]), do: :ok

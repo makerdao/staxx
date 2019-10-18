@@ -1,4 +1,4 @@
-defmodule Staxx.Proxy.Deployment.ServiceList do
+defmodule Staxx.DeploymentScope.Deployment.ServiceList do
   @moduledoc """
   Module that will register deployment service connectivity.
   On connection it should force steps update etc. for Proxy app
@@ -6,7 +6,7 @@ defmodule Staxx.Proxy.Deployment.ServiceList do
   use GenServer
   require Logger
 
-  alias Staxx.Proxy.Deployment.StepsFetcher
+  alias Staxx.DeploymentScope.Deployment.StepsFetcher
 
   @doc false
   def start_link(_) do

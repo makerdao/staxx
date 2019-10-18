@@ -8,8 +8,8 @@ defmodule Staxx.WebApiWeb.ApiChannel do
   require Logger
 
   alias Staxx.Proxy
-  alias Staxx.Proxy.Chain.Storage
-  alias Staxx.Proxy.Chain.ChainHelper
+  alias Staxx.DeploymentScope.EVMWorker.Storage
+  alias Staxx.DeploymentScope.EVMWorker.ChainHelper
 
   def join(_, _, socket), do: {:ok, %{message: "Welcome to ExTestchain !"}, socket}
 
@@ -30,7 +30,7 @@ defmodule Staxx.WebApiWeb.ApiChannel do
   Start new chain handler
   """
   def handle_in("start", payload, socket) do
-    config = ChainHelper.chain_config_from_payload(payload)
+    config = ChainHelper.config_from_payload(payload)
 
     case Proxy.start(config) do
       {:ok, id} ->

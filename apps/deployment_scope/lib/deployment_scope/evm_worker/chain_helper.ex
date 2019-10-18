@@ -1,4 +1,4 @@
-defmodule Staxx.Proxy.Chain.ChainHelper do
+defmodule Staxx.DeploymentScope.EVMWorker.ChainHelper do
   @moduledoc """
   Most of chani action will be here
   """
@@ -7,11 +7,11 @@ defmodule Staxx.Proxy.Chain.ChainHelper do
 
   alias Staxx.ExChain.EVM.Notification
   alias Staxx.Proxy.ExChain
-  alias Staxx.Proxy.Chain.State
-  alias Staxx.Proxy.Deployment.StepsFetcher
-  alias Staxx.Proxy.Chain.Storage.Record
-  alias Staxx.Proxy.Deployment.ProcessWatcher
-  alias Staxx.Proxy.Deployment.Deployer
+  alias Staxx.DeploymentScope.EVMWorker.State
+  alias Staxx.DeploymentScope.EVMWorker.Storage.Record
+  alias Staxx.DeploymentScope.Deployment.StepsFetcher
+  alias Staxx.DeploymentScope.Deployment.Config, as: DeploymentConfig
+  alias Staxx.DeploymentScope.Deployment.Worker, as: DeploymentWorker
 
   # List of events that should be resend to event bus
   @proxify_events [:active, :snapshot_taking, :snapshot_reverting]
@@ -19,8 +19,8 @@ defmodule Staxx.Proxy.Chain.ChainHelper do
   @doc """
   Convert payload (from POST) to valid chain config
   """
-  @spec chain_config_from_payload(map) :: map
-  def chain_config_from_payload(payload) when is_map(payload) do
+  @spec config_from_payload(map) :: map
+  def config_from_payload(payload) when is_map(payload) do
     %{
       type: String.to_atom(Map.get(payload, "type", "ganache")),
       # id: Map.get(payload, "id"),
@@ -41,14 +41,14 @@ defmodule Staxx.Proxy.Chain.ChainHelper do
   @doc """
   Locks execution before message will be received from chain
   """
-  @spec wait_chain_event(binary, atom, pos_integer) :: map | :timeout
-  def wait_chain_event(id, event, timeout \\ 30_000) do
+  @spec wait_for_event(binary, atom, pos_integer) :: map | :timeout
+  def wait_for_event(id, event, timeout \\ 30_000) do
     receive do
       %Notification{id: ^id, event: ^event} = msg ->
         msg
 
       _ ->
-        wait_chain_event(id, event, timeout)
+        wait_for_event(id, event, timeout)
     after
       timeout ->
         :timeout
@@ -111,18 +111,16 @@ defmodule Staxx.Proxy.Chain.ChainHelper do
     # Load step details
     with step when is_map(step) <- StepsFetcher.get(step_id),
          hash when byte_size(hash) > 0 <- StepsFetcher.hash(),
-         {:ok, request_id} <- run_deployment(state, step_id, details) do
-      Logger.debug("Deployment process scheduled with request_id #{request_id} !")
+         {:ok, pid} <- run_deployment(state, step_id, details) do
+      Logger.debug("Deployment process scheduled, worker pid: #{inspect(pid)} !")
 
       # Collecting telemetry
       :telemetry.execute(
         [:staxx, :chain, :deployment, :started],
-        %{request_id: request_id},
+        # %{request_id: request_id},
+        %{},
         %{id: id, step_id: step_id}
       )
-
-      # Save deployment request association with current chain
-      ProcessWatcher.put(request_id, id)
 
       state
       |> Record.from_state()
@@ -134,6 +132,7 @@ defmodule Staxx.Proxy.Chain.ChainHelper do
       # Notify UI that deployment started
       state
       |> State.chain_status(:started)
+      |> State.deploy_pid(pid)
       |> State.notify(:deploying, details)
     else
       err ->
@@ -195,29 +194,37 @@ defmodule Staxx.Proxy.Chain.ChainHelper do
   end
 
   @doc """
-  Handle chain status update
+  Handle EVM/chain status update
   """
-  @spec handle_chain_status_change(State.t(), atom) :: State.t()
-  def handle_chain_status_change(state, status)
+  @spec handle_status_change(State.t(), atom) :: State.t()
+  def handle_status_change(state, status)
       when status in @proxify_events do
     state
     |> State.notify(status)
   end
 
-  def handle_chain_status_change(%State{id: id} = state, status) do
+  def handle_status_change(%State{id: id} = state, status) do
     Logger.debug("#{id}: Unhandled EVM status: #{status}")
     state
   end
 
   @doc """
-  Run deployment scripts for chain
+  Run deployment worker for newly started EVM
   """
   @spec run_deployment(State.t(), 1..9, map()) :: {:ok, term} | {:error, term}
-  def run_deployment(%State{id: id, deploy_tag: tag}, step_id, %{
+  def run_deployment(%State{id: id, deploy_tag: _tag}, step_id, %{
         rpc_url: rpc_url,
         coinbase: coinbase
-      }),
-      do: Deployer.deploy(id, step_id, rpc_url, coinbase, tag)
+      }) do
+    %DeploymentConfig{
+      scope_id: id,
+      step_id: step_id,
+      # git_ref: tag,
+      rpc_url: rpc_url,
+      coinbase: coinbase
+    }
+    |> DeploymentWorker.start_link()
+  end
 
   def run_deployment(_state, _step_id, _details),
     do: {:error, "No chain details exist"}
