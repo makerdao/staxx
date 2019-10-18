@@ -21,7 +21,7 @@ config :deployment_scope, dets_db_path: "/tmp/chains"
 config :deployment_scope, deployment_timeout: 1_800_000
 config :deployment_scope, action_timeout: 600_000
 config :deployment_scope, deployment_worker_image: "makerdao/testchain-deployment-worker:dev"
-
+config :deployment_scope, nats: %{host: "host.docker.internal", port: 4222}
 #
 # Docker configs
 #
@@ -42,7 +42,7 @@ config :event_bus,
 
 # Nats.io configuration
 config :event_stream, disable_nats: false
-config :event_stream, nats: %{host: "127.0.0.1", port: 4222}
+config :event_stream, nats: %{host: "nats.local", port: 4222}
 config :event_stream, nats_docker_events_topic: "Prefix.Docker.Events"
 
 #
@@ -82,6 +82,8 @@ config :web_api, Staxx.WebApiWeb.Endpoint,
 config :phoenix, :json_library, Poison
 
 # Configures Elixir's Logger
+config :logger, truncate: :infinity
+
 config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]

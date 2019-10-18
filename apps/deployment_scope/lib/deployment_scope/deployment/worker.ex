@@ -20,6 +20,7 @@ defmodule Staxx.DeploymentScope.Deployment.Worker do
 
   require Logger
 
+  alias Staxx.DeploymentScope
   alias Staxx.DeploymentScope.EVMWorker
   alias Staxx.DeploymentScope.DeploymentRegistry
   alias Staxx.DeploymentScope.Deployment.{Config, BaseApi}
@@ -135,10 +136,13 @@ defmodule Staxx.DeploymentScope.Deployment.Worker do
         git_ref: git_ref,
         step_id: step_id
       }) do
+    # Replace localhost to docker internal
+    rpc_url = String.replace(rpc_url, "localhost", "host.docker.internal")
+    # Building container configs
     %Container{
       # it will terminate and we don't need to fail on it
       permanent: false,
-      dev_mode: true,
+      # dev_mode: true,
       image: docker_image(),
       network: id,
       volumes: ["nix-db:/nix"],
@@ -149,7 +153,7 @@ defmodule Staxx.DeploymentScope.Deployment.Worker do
         "REPO_REF" => git_ref,
         "SCENARIO_NR" => step_id,
         "TCD_GATEWAY" => "host=#{host()}",
-        "TCD_NATS" => "servers=nats://host.docker.internal:4222"
+        "TCD_NATS" => "servers=#{DeploymentScope.nats_url()}"
       }
     }
   end

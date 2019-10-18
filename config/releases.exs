@@ -7,6 +7,7 @@ config :deployment_scope, deployment_service_url: System.fetch_env!("DEPLOYMENT_
 config :deployment_scope, deployment_steps_fetch_timeout: 30_000
 config :deployment_scope, dets_db_path: System.fetch_env!("CHAINS_DB_PATH")
 config :deployment_scope, stacks_dir: System.get_env("STACKS_DIR", "/opt/stacks")
+config :deployment_scope, nats: %{host: System.fetch_env!("NATS_URL"), port: 4222}
 
 config :event_stream, nats: %{host: System.fetch_env!("NATS_URL"), port: 4222}
 

@@ -3,7 +3,7 @@ defmodule Staxx.WebApiWeb.InternalController do
   require Logger
 
   alias Staxx.DeploymentScope.Deployment.Worker, as: DeployWorker
-  alias Staxx.DeploymentScope.Deployment.{Deployer, ServiceList}
+  alias Staxx.DeploymentScope.Deployment.{ServiceList}
 
   @doc false
   def rpc(conn, %{"id" => id, "method" => "RegisterDeployment", "data" => data}) do
@@ -40,10 +40,10 @@ defmodule Staxx.WebApiWeb.InternalController do
     |> json(%{type: "ok"})
   end
 
+  # DEPRECATED method handler
   def rpc(conn, %{"method" => "CheckoutResult", "data" => data}) do
     id = Map.get(data, "id")
-    Logger.info("Request id #{id}, checkout successfull, data: #{inspect(data)}")
-    Deployer.handle(id, {:checkout, data})
+    Logger.error("DEPRECATED: Request id #{id}, checkout successfull, data: #{inspect(data)}")
 
     conn
     |> json(%{type: "ok"})

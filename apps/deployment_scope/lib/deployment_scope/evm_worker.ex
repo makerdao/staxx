@@ -296,7 +296,10 @@ defmodule Staxx.DeploymentScope.EVMWorker do
         {:deployment_failed, request_id, msg},
         %State{id: id, status: :initializing} = state
       ) do
-    Logger.debug("#{id}: Handling deployment failure #{request_id}: #{inspect(msg)}")
+    Logger.error("""
+    #{id}: Handling deployment failure #{request_id}:
+      #{inspect(msg, printable_limit: :infinity, limit: :infinity, pretty: true)}
+    """)
 
     # Collecting telemetry
     :telemetry.execute(

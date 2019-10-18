@@ -7,6 +7,7 @@ defmodule Staxx.DeploymentScope.Scope.StackManager do
 
   require Logger
 
+  alias Staxx.DeploymentScope
   alias Staxx.Docker.Struct.Container
   alias Staxx.DeploymentScope.EVMWorker.Notification
   alias Staxx.DeploymentScope.StackRegistry
@@ -278,7 +279,7 @@ defmodule Staxx.DeploymentScope.Scope.StackManager do
       "STACK_ID" => scope_id,
       "STACK_NAME" => stack_name,
       "WEB_API_URL" => "http://host.docker.internal:4000",
-      "NATS_URL" => "http://host.docker.internal:4222"
+      "NATS_URL" => DeploymentScope.nats_url()
     }
   end
 
