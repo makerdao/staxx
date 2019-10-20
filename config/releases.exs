@@ -9,6 +9,10 @@ config :deployment_scope, dets_db_path: System.fetch_env!("CHAINS_DB_PATH")
 config :deployment_scope, stacks_dir: System.get_env("STACKS_DIR", "/opt/stacks")
 config :deployment_scope, nats: %{host: System.fetch_env!("NATS_URL"), port: 4222}
 
+config :deployment_scope,
+  deployment_worker_image:
+    System.get_env("DEPLOYMENT_WORKER_IMAGE", "makerdao/testchain-deployment-worker:dev")
+
 config :event_stream, nats: %{host: System.fetch_env!("NATS_URL"), port: 4222}
 
 config :ex_chain, base_path: System.fetch_env!("CHAINS_DB_PATH")

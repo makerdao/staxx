@@ -9,6 +9,7 @@ ALPINE_VERSION ?= 3.9
 DOCKER_ID_USER ?= makerdao
 MIX_ENV ?= prod
 TAG ?= latest
+DEPLOYMENT_WORKER_IMAGE ?= "makerdao/testchain-deployment-worker:$(TAG)"
 
 help:
 	@echo "$(DOCKER_ID_USER)/$(APP_NAME):$(APP_VSN)-$(BUILD)"
@@ -23,6 +24,10 @@ lint:
 clean-local:
 	@rm -rf /tmp/chains/*
 .PHONY: clean-local
+
+docker-deps:
+	@docker pull $(DEPLOYMENT_WORKER_IMAGE)
+.PHONY: docker-deps
 
 deps: ## Load all required deps for project
 	@mix do deps.get, deps.compile
@@ -75,10 +80,11 @@ build: ## Build elixir application with testchain and WS API
 	@docker build \
 		--build-arg ALPINE_VERSION=$(ALPINE_VERSION) \
 		--build-arg APP_NAME=$(APP_NAME) \
-    --build-arg APP_VSN=$(APP_VSN) \
-    --build-arg MIX_ENV=$(MIX_ENV) \
-    -t $(DOCKER_ID_USER)/$(APP_NAME):$(APP_VSN)-$(BUILD) \
-    -t $(DOCKER_ID_USER)/$(APP_NAME):$(TAG) .
+		--build-arg APP_VSN=$(APP_VSN) \
+		--build-arg DEPLOYMENT_WORKER_IMAGE=$(DEPLOYMENT_WORKER_IMAGE) \
+		--build-arg MIX_ENV=$(MIX_ENV) \
+		-t $(DOCKER_ID_USER)/$(APP_NAME):$(APP_VSN)-$(BUILD) \
+		-t $(DOCKER_ID_USER)/$(APP_NAME):$(TAG) .
 .PHONY: build
 
 upgrade-dev:

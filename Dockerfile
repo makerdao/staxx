@@ -62,6 +62,7 @@ FROM alpine:${ALPINE_VERSION}
 # The name of your application/release (required)
 ARG APP_NAME=${APP_NAME}
 ARG PORT=4000
+ARG DEPLOYMENT_WORKER_IMAGE=makerdao/testchain-deployment-worker:dev
 # The environment to build with
 ARG MIX_ENV=prod
 
@@ -91,7 +92,8 @@ ENV APP_NAME=${APP_NAME} \
     STACKS_FRONT_URL=http://localhost \
     RELEASE_COOKIE="W_cC]7^rUeVZc|}$UL{@&1sQwT3}p507mFlh<E=/f!cxWI}4gpQx7Yu{ZUaD0cuK" \
     RELEASE_NODE=staxx@staxx.local \
-    DOCKER_DEV_MODE_ALLOWED=false
+    DOCKER_DEV_MODE_ALLOWED=false \
+    DEPLOYMENT_WORKER_IMAGE=${DEPLOYMENT_WORKER_IMAGE}
 
 COPY --from=builder /opt/built/${APP_NAME} .
 COPY ./apps/docker/priv/wrapper.sh /opt/app/apps/docker/priv/wrapper.sh
