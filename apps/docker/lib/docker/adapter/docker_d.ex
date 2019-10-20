@@ -121,6 +121,29 @@ defmodule Staxx.Docker.Adapter.DockerD do
   end
 
   @doc """
+  Get nats docker network name for staxx
+  """
+  @spec get_nats_network() :: binary
+  def get_nats_network() do
+    # Logger.debug("Get nats docker network name for staxx")
+
+    # case System.cmd(executable!(), [
+    #        "inspect",
+    #        "nats.local",
+    #        "--format={{.HostConfig.NetworkMode}}"
+    #      ]) do
+    #   {name, 0} ->
+    #     name
+    #     |> String.trim()
+
+    #   {err, exit_status} ->
+    #     Logger.error("Failed to get nats network name: #{exit_status} - #{inspect(err)}")
+    #     ""
+    # end
+    "container:nats.local"
+  end
+
+  @doc """
   Join container to network
   """
   @spec join_network(binary, binary) :: {:ok, term} | {:error, term}

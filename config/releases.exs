@@ -3,6 +3,7 @@ import Config
 # To set it to true, pass `DOCKER_DEV_MODE_ALLOWED=true`, all other variables will be interpritated as false
 config :docker, dev_mode_allowed: System.get_env("DOCKER_DEV_MODE_ALLOWED", "false")
 
+config :deployment_scope, host: System.get_env("HOST", "staxx.local")
 config :deployment_scope, deployment_service_url: System.fetch_env!("DEPLOYMENT_SERVICE_URL")
 config :deployment_scope, deployment_steps_fetch_timeout: 30_000
 config :deployment_scope, dets_db_path: System.fetch_env!("CHAINS_DB_PATH")

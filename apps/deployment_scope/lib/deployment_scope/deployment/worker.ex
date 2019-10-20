@@ -24,6 +24,7 @@ defmodule Staxx.DeploymentScope.Deployment.Worker do
   alias Staxx.DeploymentScope.EVMWorker
   alias Staxx.DeploymentScope.DeploymentRegistry
   alias Staxx.DeploymentScope.Deployment.{Config, BaseApi}
+  alias Staxx.Docker
   alias Staxx.Docker.Struct.Container
 
   @doc """
@@ -138,13 +139,16 @@ defmodule Staxx.DeploymentScope.Deployment.Worker do
       }) do
     # Replace localhost to docker internal
     rpc_url = String.replace(rpc_url, "localhost", "host.docker.internal")
+
+    Logger.debug(fn -> "#{id}: Starting new deployment container: #{docker_image()}" end)
+
     # Building container configs
     %Container{
       # it will terminate and we don't need to fail on it
       permanent: false,
-      # dev_mode: true,
+      dev_mode: true,
       image: docker_image(),
-      network: id,
+      network: Docker.get_nats_network(),
       volumes: ["nix-db:/nix"],
       env: %{
         "REQUEST_ID" => request_id,
@@ -152,7 +156,7 @@ defmodule Staxx.DeploymentScope.Deployment.Worker do
         "REPO_URL" => git_url,
         "REPO_REF" => git_ref,
         "SCENARIO_NR" => step_id,
-        "TCD_GATEWAY" => "host=#{host()}",
+        "TCD_GATEWAY" => "host=#{DeploymentScope.host()}",
         "TCD_NATS" => "servers=#{DeploymentScope.nats_url()}"
       }
     }
@@ -191,9 +195,6 @@ defmodule Staxx.DeploymentScope.Deployment.Worker do
 
   defp via_tuple(request_id),
     do: {:via, Registry, {DeploymentRegistry, request_id}}
-
-  defp host(),
-    do: Application.get_env(:deployment_scope, :host, "host.docker.internal")
 
   defp docker_image(),
     do: Application.get_env(:deployment_scope, :deployment_worker_image)

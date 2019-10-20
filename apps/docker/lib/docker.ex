@@ -33,6 +33,11 @@ defmodule Staxx.Docker do
   @callback prune_networks() :: :ok | {:error, term}
 
   @doc """
+  Get nats docker network name for staxx
+  """
+  @callback get_nats_network() :: binary
+
+  @doc """
   Join container to network
   """
   @callback join_network(id :: binary, container_id :: binary) :: {:ok, term} | {:error, term}
@@ -105,6 +110,13 @@ defmodule Staxx.Docker do
   @spec prune_networks() :: :ok | {:error, term}
   def prune_networks(),
     do: adapter().prune_networks()
+
+  @doc """
+  Get nats docker network name for staxx
+  """
+  @spec get_nats_network() :: binary
+  def get_nats_network(),
+    do: adapter().get_nats_network()
 
   @doc """
   Join container to network

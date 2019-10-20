@@ -13,6 +13,7 @@ import Config
 # Deployemnt Scope configs
 #
 config :deployment_scope, stacks_dir: "/tmp/stacks"
+config :deployment_scope, host: "host.docker.internal"
 config :deployment_scope, deployment_service_url: "http://localhost:5001/rpc"
 config :deployment_scope, deployment_steps_fetch_timeout: 30_000
 # DB path where all list of chain workers will be stored
@@ -21,7 +22,7 @@ config :deployment_scope, dets_db_path: "/tmp/chains"
 config :deployment_scope, deployment_timeout: 1_800_000
 config :deployment_scope, action_timeout: 600_000
 config :deployment_scope, deployment_worker_image: "makerdao/testchain-deployment-worker:dev"
-config :deployment_scope, nats: %{host: "host.docker.internal", port: 4222}
+config :deployment_scope, nats: %{host: "nats.local", port: 4222}
 #
 # Docker configs
 #

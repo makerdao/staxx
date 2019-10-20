@@ -8,6 +8,7 @@ defmodule Staxx.DeploymentScope.Scope.StackManager do
   require Logger
 
   alias Staxx.DeploymentScope
+  alias Staxx.Docker
   alias Staxx.Docker.Struct.Container
   alias Staxx.DeploymentScope.EVMWorker.Notification
   alias Staxx.DeploymentScope.StackRegistry
@@ -268,7 +269,7 @@ defmodule Staxx.DeploymentScope.Scope.StackManager do
     %Container{
       image: image,
       name: "",
-      network: scope_id,
+      network: Docker.get_nats_network(),
       ports: [],
       env: default_env(scope_id, stack_name)
     }
