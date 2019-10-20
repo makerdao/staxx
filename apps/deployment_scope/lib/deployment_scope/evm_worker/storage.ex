@@ -1,4 +1,4 @@
-defmodule Staxx.Proxy.Chain.Storage do
+defmodule Staxx.DeploymentScope.EVMWorker.Storage do
   @moduledoc """
   Storage module that will store all chain processes that spawn on service
   """
@@ -6,7 +6,8 @@ defmodule Staxx.Proxy.Chain.Storage do
 
   require Logger
 
-  alias Staxx.Proxy.Chain.Storage.Record
+  alias Staxx.DeploymentScope.EVMWorker.Storage.Record
+  alias Staxx.DeploymentScope.EVMWorker.State
 
   @table "chain_workers"
 
@@ -39,7 +40,7 @@ defmodule Staxx.Proxy.Chain.Storage do
   @doc """
   Load all existing chain process details
   """
-  @spec all() :: [Staxx.Proxy.Chain.State.t()]
+  @spec all() :: [State.t()]
   def all() do
     table()
     |> :dets.match({:_, :"$1"})
@@ -70,7 +71,7 @@ defmodule Staxx.Proxy.Chain.Storage do
 
   # get path to DETS file for storage chain process
   defp db_path() do
-    :proxy
+    :deployment_scope
     |> Application.get_env(:dets_db_path)
     |> Path.expand()
   end

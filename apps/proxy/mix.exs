@@ -32,7 +32,6 @@ defmodule Staxx.Proxy.MixProject do
     [
       {:ex_chain, in_umbrella: true, runtime: false},
       {:docker, in_umbrella: true},
-      {:event_stream, in_umbrella: true},
       {:httpoison, "~> 1.5"},
       {:jason, "~> 1.1"}
     ]

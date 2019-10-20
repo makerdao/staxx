@@ -10,7 +10,12 @@ defmodule Staxx.Docker.Adapter.DockerD do
 
   # docker run --name=postgres-vdb -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres
   def start(%Container{network: network} = container) do
-    Logger.debug("Try to start new container #{inspect(container)}")
+    Logger.debug(fn ->
+      """
+      Try to start new container:
+        #{inspect(container, pretty: true)}
+      """
+    end)
 
     if network != "" do
       create_network(network)
@@ -20,6 +25,7 @@ defmodule Staxx.Docker.Adapter.DockerD do
       container
       |> build_start_params()
       |> Enum.join(" ")
+      |> IO.inspect()
       |> String.to_charlist()
       |> :os.cmd()
       |> to_string()
@@ -148,6 +154,7 @@ defmodule Staxx.Docker.Adapter.DockerD do
       build_name(container),
       build_ports(container),
       build_env(container),
+      build_volumes(container),
       image,
       cmd
     ]
@@ -189,11 +196,19 @@ defmodule Staxx.Docker.Adapter.DockerD do
   defp build_port(port) when is_integer(port), do: ["-p", "#{port}:#{port}"]
   defp build_port(_), do: ""
 
+  defp build_volumes(%Container{volumes: []}), do: ""
+
+  defp build_volumes(%Container{volumes: volumes}) do
+    volumes
+    |> Enum.map(fn volume -> ["-v", volume] end)
+    |> List.flatten()
+  end
+
   defp build_env(%Container{env: []}), do: []
 
   defp build_env(%Container{env: env}) do
     env
-    |> Enum.map(fn {key, val} -> ["-e", "#{key}=#{val}"] end)
+    |> Enum.map(fn {key, val} -> ["-e", "'#{key}=#{val}'"] end)
     |> List.flatten()
   end
 end

@@ -1,4 +1,4 @@
-defmodule Staxx.Proxy.Deployment.BaseApi do
+defmodule Staxx.DeploymentScope.Deployment.BaseApi do
   @moduledoc """
   Module represents basic http layer for deployment service
   """
@@ -96,7 +96,7 @@ defmodule Staxx.Proxy.Deployment.BaseApi do
   def random_id(), do: @random_max |> :rand.uniform() |> to_string()
 
   # Get deployment service url
-  defp url(), do: Application.get_env(:proxy, :deployment_service_url)
+  defp url(), do: Application.get_env(:deployment_scope, :deployment_service_url)
 
   # Pick only needed information
   defp fetch_body({:ok, %HTTPoison.Response{body: %{"type" => "error", "result" => res}}}) do

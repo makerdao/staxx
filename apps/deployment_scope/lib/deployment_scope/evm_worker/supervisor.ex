@@ -1,9 +1,9 @@
-defmodule Staxx.Proxy.Chain.Supervisor do
+defmodule Staxx.DeploymentScope.EVMWorker.Supervisor do
   @moduledoc """
   Supervisor that will watch all chains running
   """
 
-  alias Staxx.Proxy.Chain
+  alias Staxx.DeploymentScope.EVMWorker
 
   # Automatically defines child_spec/1
   use DynamicSupervisor
@@ -28,5 +28,5 @@ defmodule Staxx.Proxy.Chain.Supervisor do
   @spec start_chain(map() | binary, :new | :existing) ::
           DynamicSupervisor.on_start_child()
   def start_chain(config_or_id, action),
-    do: DynamicSupervisor.start_child(__MODULE__, {Chain, {action, config_or_id}})
+    do: DynamicSupervisor.start_child(__MODULE__, {EVMWorker, {action, config_or_id}})
 end

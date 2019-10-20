@@ -2,8 +2,8 @@ defmodule Staxx.WebApiWeb.InternalController do
   use Staxx.WebApiWeb, :controller
   require Logger
 
-  alias Staxx.Proxy.Chain
-  alias Staxx.Proxy.Deployment.{Deployer, ProcessWatcher, ServiceList}
+  alias Staxx.DeploymentScope.Deployment.Worker, as: DeployWorker
+  alias Staxx.DeploymentScope.Deployment.{ServiceList}
 
   @doc false
   def rpc(conn, %{"id" => id, "method" => "RegisterDeployment", "data" => data}) do
@@ -40,10 +40,10 @@ defmodule Staxx.WebApiWeb.InternalController do
     |> json(%{type: "ok"})
   end
 
+  # DEPRECATED method handler
   def rpc(conn, %{"method" => "CheckoutResult", "data" => data}) do
     id = Map.get(data, "id")
-    Logger.info("Request id #{id}, checkout successfull, data: #{inspect(data)}")
-    Deployer.handle(id, {:checkout, data})
+    Logger.error("DEPRECATED: Request id #{id}, checkout successfull, data: #{inspect(data)}")
 
     conn
     |> json(%{type: "ok"})
@@ -57,31 +57,9 @@ defmodule Staxx.WebApiWeb.InternalController do
     |> json(%{type: "ok"})
   end
 
-  defp process_deployment_result(%{"id" => id, "type" => "error", "result" => result}) do
-    case ProcessWatcher.pop(id) do
-      nil ->
-        Logger.debug("No process found that want to handle deployment request with id: #{id}")
+  defp process_deployment_result(%{"id" => id, "type" => "error", "result" => result}),
+    do: DeployWorker.deployment_failed(id, result)
 
-      chain_id when is_binary(chain_id) ->
-        Logger.debug("Chain #{chain_id} need to handle deployment request")
-        Chain.handle_deployment_failure(chain_id, id, result)
-
-      _ ->
-        Logger.error("Something wrong with fetching deployemnt result #{id}")
-    end
-  end
-
-  defp process_deployment_result(%{"id" => id, "type" => "ok", "result" => %{"data" => data}}) do
-    case ProcessWatcher.pop(id) do
-      nil ->
-        Logger.debug("No process found that want to handle deployment request with id: #{id}")
-
-      chain_id when is_binary(chain_id) ->
-        Logger.debug("Chain #{chain_id} need to handle deployment request")
-        Chain.handle_deployment(chain_id, id, data)
-
-      _ ->
-        Logger.error("Something wrong with fetching deployemnt result #{id}")
-    end
-  end
+  defp process_deployment_result(%{"id" => id, "type" => "ok", "result" => %{"data" => data}}),
+    do: DeployWorker.deployment_finished(id, data)
 end
