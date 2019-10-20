@@ -91,7 +91,7 @@ defmodule Staxx.DeploymentScope.Deployment.Worker do
   end
 
   @doc false
-  def handle_cast({:finsihed, result}, %Config{scope_id: id, request_id: request_id} = config) do
+  def handle_cast({:finished, result}, %Config{scope_id: id, request_id: request_id} = config) do
     Logger.debug("Chain #{id} need to handle deployment request")
     EVMWorker.handle_deployment(id, request_id, result)
     {:stop, :normal, config}
