@@ -146,7 +146,7 @@ defmodule Staxx.DeploymentScope.Deployment.Worker do
     %Container{
       # it will terminate and we don't need to fail on it
       permanent: false,
-      dev_mode: true,
+      # dev_mode: true,
       image: docker_image(),
       network: Docker.get_nats_network(),
       volumes: ["nix-db:/nix"],
