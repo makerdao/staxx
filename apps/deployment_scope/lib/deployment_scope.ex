@@ -215,8 +215,9 @@ defmodule Staxx.DeploymentScope do
   """
   @spec nats_url() :: binary
   def nats_url() do
-    %{host: host, port: port} = Application.get_env(:deployment_scope, :nats)
-    "nats://#{host}:#{port}"
+    # %{host: host, port: port} = Application.get_env(:deployment_scope, :nats)
+    # "nats://#{host}:#{port}"
+    "nats://host.docker.internal:4222"
   end
 
   # Validate if all stacks are allowed to start
