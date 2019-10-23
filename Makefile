@@ -55,7 +55,7 @@ ganache-local:
 geth-local:
 	@echo "Setting up geth"
 	@rm -rf priv/presets/geth_local
-	@rm priv/presets/geth/geth
+	@rm -f priv/presets/geth/geth
 	@git clone --single-branch --branch $(GETH_TAG) https://github.com/ethereum/go-ethereum.git priv/presets/geth_local
 	@cd priv/presets/geth_local && \
 		sed -i -e 's/GasLimit:   6283185,/GasLimit:   0xffffffffffffffff,/g' core/genesis.go && \
@@ -70,7 +70,7 @@ geth-local:
 geth-vdb-local:
 	@echo "Setting up geth"
 	@rm -rf priv/presets/geth_vdb_local
-	@rm priv/presets/geth/geth_vdb
+	@rm -f priv/presets/geth/geth_vdb
 	@git clone --single-branch --branch $(GETH_VDB_TAG) https://github.com/vulcanize/go-ethereum.git priv/presets/geth_vdb_local
 	@cd priv/presets/geth_vdb_local && \
 		sed -i -e 's/GasLimit:   6283185,/GasLimit:   0xffffffffffffffff,/g' core/genesis.go && \
