@@ -110,7 +110,7 @@ defmodule Staxx.DeploymentScope.EVMWorker.ChainHelper do
 
     # Load step details
     with step when is_map(step) <- StepsFetcher.get(step_id),
-         hash when byte_size(hash) > 0 <- StepsFetcher.hash(),
+         hash <- Map.get(state, :deploy_tag, DeploymentScope.default_deploy_tag()),
          {:ok, pid} <- run_deployment(state, step_id, details) do
       Logger.debug("Deployment process scheduled, worker pid: #{inspect(pid)} !")
 
@@ -212,14 +212,14 @@ defmodule Staxx.DeploymentScope.EVMWorker.ChainHelper do
   Run deployment worker for newly started EVM
   """
   @spec run_deployment(State.t(), 1..9, map()) :: {:ok, term} | {:error, term}
-  def run_deployment(%State{id: id, deploy_tag: _tag}, step_id, %{
+  def run_deployment(%State{id: id, deploy_tag: tag}, step_id, %{
         rpc_url: rpc_url,
         coinbase: coinbase
       }) do
     %DeploymentConfig{
       scope_id: id,
       step_id: step_id,
-      # git_ref: tag,
+      git_ref: tag,
       rpc_url: rpc_url,
       coinbase: coinbase
     }

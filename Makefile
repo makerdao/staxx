@@ -10,7 +10,7 @@ DOCKER_ID_USER ?= makerdao
 MIX_ENV ?= prod
 TAG ?= latest
 DEPLOYMENT_WORKER_IMAGE ?= "makerdao/testchain-deployment-worker:$(TAG)"
-GETH_TAG ?= v1.9.6
+GETH_TAG ?= v1.8.27
 GETH_VDB_TAG ?= v1.10-alpha.0
 
 help:
@@ -93,6 +93,7 @@ docker-push:
 build-evm: ## Build the Docker image for geth/ganache/other evm
 	@docker build -f ./Dockerfile.evm \
 		--build-arg ALPINE_VERSION=$(ALPINE_VERSION) \
+		--build-arg GETH_TAG=$(GETH_TAG)
 		-t $(DOCKER_ID_USER)/$(EVM_NAME):$(EVM_VSN)-$(BUILD) \
 		-t $(DOCKER_ID_USER)/$(EVM_NAME):$(TAG) .
 
