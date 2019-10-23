@@ -139,7 +139,7 @@ config :ex_chain, backend_proxy_node_reconnection_timeout: 5_000
 # For dev env it will be in related to project root. In Docker it will be replaced with
 # file from `rel/config/config.exs`
 config :ex_chain,
-  geth_executable: System.find_executable("geth"),
+  geth_executable: Path.expand("#{__DIR__}/../priv/presets/geth/geth"),
   # geth_executable: "/tmp/chains/test/go-ethereum/build/bin/geth",
   geth_vdb_executable: Path.expand("#{__DIR__}/../priv/presets/geth/geth_vdb"),
   geth_password_file: Path.expand("#{__DIR__}/../priv/presets/geth/account_password"),
