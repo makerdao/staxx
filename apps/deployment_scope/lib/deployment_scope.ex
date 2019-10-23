@@ -231,7 +231,7 @@ defmodule Staxx.DeploymentScope do
   """
   @spec default_deploy_tag() :: binary
   def default_deploy_tag(),
-    do: Application.get_evn(:deployment_scope, :default_deployment_scripts_git_ref)
+    do: Application.get_env(:deployment_scope, :default_deployment_scripts_git_ref)
 
   # Validate if all stacks are allowed to start
   defp validate_stacks([]), do: :ok
