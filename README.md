@@ -39,6 +39,28 @@ Before starting, you should confirm that you have docker compose up and running.
 
 Next, the following command ensures you do not have any lingering chains left over from a past deployment `rm -r /tmp/chains /tmp/snapshots`(This step only applies to developers who have run the testchain environment before).
 
+## Building local EVM (Etherial Virtual machine)
+
+For now only `geth|ganache|geth_vdb` supported. 
+You have to build all of them or the one you plan to use.
+
+Building ganache:
+
+```bash
+# make ganache-local
+```
+
+Building geth:
+
+```bash
+# make geth-local
+```
+
+Building geth_vdb:
+
+```bash
+# make geth-vdb-local
+```
 
 ## Getting the testchain up and running:
 

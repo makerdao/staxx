@@ -25,6 +25,10 @@ node_modules
 
 priv/presets/ganache/node_modules
 priv/presets/ganache-cli
+priv/presets/geth_local
+priv/presets/geth_vdb_local
+priv/presets/geth/geth
+priv/presets/geth/geth_vdb
 
 # DETS databases
 user_deployment_scope
