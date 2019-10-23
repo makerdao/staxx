@@ -10,6 +10,8 @@ DOCKER_ID_USER ?= makerdao
 MIX_ENV ?= prod
 TAG ?= latest
 DEPLOYMENT_WORKER_IMAGE ?= "makerdao/testchain-deployment-worker:$(TAG)"
+GETH_TAG ?= v1.9.6
+GETH_VDB_TAG ?= v1.10-alpha.0
 
 help:
 	@echo "$(DOCKER_ID_USER)/$(APP_NAME):$(APP_VSN)-$(BUILD)"
@@ -49,6 +51,36 @@ ganache-local:
 	@cd priv/presets/ganache-cli && npm install --no-package-lock
 	@echo "Setting up ganache finished !"
 .PHONY: ganache-local
+
+geth-local:
+	@echo "Setting up geth"
+	@rm -rf priv/presets/geth_local
+	@rm priv/presets/geth/geth
+	@git clone --single-branch --branch $(GETH_TAG) https://github.com/ethereum/go-ethereum.git priv/presets/geth_local
+	@cd priv/presets/geth_local && \
+		sed -i -e 's/GasLimit:   6283185,/GasLimit:   0xffffffffffffffff,/g' core/genesis.go && \
+		sed -i -e 's/MaxCodeSize = 24576/MaxCodeSize = 1000000/g' params/protocol_params.go && \
+		sed -i -e 's/return ErrOversizedData//g' core/tx_pool.go && \
+		make geth && \
+		mv build/bin/geth ../geth/
+	@rm -rf priv/presets/geth_local
+	@echo "Setting up geth finished 'priv/presets/geth/geth' !"
+.PHONY: geth-local
+
+geth-vdb-local:
+	@echo "Setting up geth"
+	@rm -rf priv/presets/geth_vdb_local
+	@rm priv/presets/geth/geth_vdb
+	@git clone --single-branch --branch $(GETH_VDB_TAG) https://github.com/vulcanize/go-ethereum.git priv/presets/geth_vdb_local
+	@cd priv/presets/geth_vdb_local && \
+		sed -i -e 's/GasLimit:   6283185,/GasLimit:   0xffffffffffffffff,/g' core/genesis.go && \
+		sed -i -e 's/MaxCodeSize = 24576/MaxCodeSize = 1000000/g' params/protocol_params.go && \
+		sed -i -e 's/return ErrOversizedData//g' core/tx_pool.go && \
+		make geth && \
+		mv build/bin/geth ../geth/geth_vdb
+	@rm -rf priv/presets/geth_vdb_local
+	@echo "Setting up geth finished 'priv/presets/geth/geth_vdb' !"
+.PHONY: geth-vdb-local
 
 docker-push:
 	@echo "Pushing Staxx docker image"
