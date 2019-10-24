@@ -97,10 +97,9 @@ docker-push:
 build-evm: ## Build the Docker image for geth/ganache/other evm
 	@docker build -f ./Dockerfile.evm \
 		--build-arg ALPINE_VERSION=$(ALPINE_VERSION) \
-		--build-arg GETH_TAG=$(GETH_TAG)
+		--build-arg GETH_TAG=$(GETH_TAG) \
 		-t $(DOCKER_ID_USER)/$(EVM_NAME):$(EVM_VSN)-$(BUILD) \
 		-t $(DOCKER_ID_USER)/$(EVM_NAME):$(TAG) .
-
 .PHONY: build-evm
 
 build-chain: ## Build elixir application with testchain and WS API
