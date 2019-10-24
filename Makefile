@@ -10,6 +10,8 @@ DOCKER_ID_USER ?= makerdao
 MIX_ENV ?= prod
 TAG ?= latest
 DEPLOYMENT_WORKER_IMAGE ?= "makerdao/testchain-deployment-worker:$(TAG)"
+GETH_TAG ?= v1.8.27
+GETH_VDB_TAG ?= v1.10-alpha.0
 
 help:
 	@echo "$(DOCKER_ID_USER)/$(APP_NAME):$(APP_VSN)-$(BUILD)"
@@ -50,6 +52,40 @@ ganache-local:
 	@echo "Setting up ganache finished !"
 .PHONY: ganache-local
 
+geth-local:
+	@echo "Setting up geth"
+	@rm -rf priv/presets/geth_local
+	@rm -f priv/presets/geth/geth
+	@git clone --single-branch --branch $(GETH_TAG) https://github.com/ethereum/go-ethereum.git priv/presets/geth_local
+	@cd priv/presets/geth_local && \
+		sed -i -e 's/GasLimit:   6283185,/GasLimit:   0xffffffffffffffff,/g' core/genesis.go && \
+		sed -i -e 's/MaxCodeSize = 24576/MaxCodeSize = 1000000/g' params/protocol_params.go && \
+		sed -i -e 's/return ErrOversizedData//g' core/tx_pool.go && \
+		make geth && \
+		mv build/bin/geth ../geth/
+	@rm -rf priv/presets/geth_local
+	@echo "Setting up geth finished 'priv/presets/geth/geth' !"
+.PHONY: geth-local
+
+geth-vdb-local:
+	@echo "Setting up geth_vdb"
+	@rm -rf priv/presets/geth_vdb_local
+	@rm -f priv/presets/geth/geth_vdb
+	@git clone --single-branch --branch $(GETH_VDB_TAG) https://github.com/vulcanize/go-ethereum.git priv/presets/geth_vdb_local
+	@cd priv/presets/geth_vdb_local && \
+		sed -i -e 's/GasLimit:   6283185,/GasLimit:   0xffffffffffffffff,/g' core/genesis.go && \
+		sed -i -e 's/MaxCodeSize = 24576/MaxCodeSize = 1000000/g' params/protocol_params.go && \
+		sed -i -e 's/return ErrOversizedData//g' core/tx_pool.go && \
+		make geth && \
+		mv build/bin/geth ../geth/geth_vdb
+	@rm -rf priv/presets/geth_vdb_local
+	@echo "Setting up geth finished 'priv/presets/geth/geth_vdb' !"
+.PHONY: geth-vdb-local
+
+evm-local: ganache-local geth-local geth-vdb-local
+	@echo "Built all EVMs"
+.PHONY: geth-vdb-local
+
 docker-push:
 	@echo "Pushing Staxx docker image"
 	@docker push $(DOCKER_ID_USER)/$(APP_NAME):$(TAG)
@@ -61,9 +97,9 @@ docker-push:
 build-evm: ## Build the Docker image for geth/ganache/other evm
 	@docker build -f ./Dockerfile.evm \
 		--build-arg ALPINE_VERSION=$(ALPINE_VERSION) \
+		--build-arg GETH_TAG=$(GETH_TAG) \
 		-t $(DOCKER_ID_USER)/$(EVM_NAME):$(EVM_VSN)-$(BUILD) \
 		-t $(DOCKER_ID_USER)/$(EVM_NAME):$(TAG) .
-
 .PHONY: build-evm
 
 build-chain: ## Build elixir application with testchain and WS API

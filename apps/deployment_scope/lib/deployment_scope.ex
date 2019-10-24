@@ -226,6 +226,13 @@ defmodule Staxx.DeploymentScope do
     "nats://#{host}:#{port}"
   end
 
+  @doc """
+  Get default deployment scripts git ref for system.
+  """
+  @spec default_deploy_tag() :: binary
+  def default_deploy_tag(),
+    do: Application.get_env(:deployment_scope, :default_deployment_scripts_git_ref)
+
   # Validate if all stacks are allowed to start
   defp validate_stacks([]), do: :ok
 
@@ -249,5 +256,6 @@ defmodule Staxx.DeploymentScope do
     params
     |> Map.keys()
     |> Enum.reject(&(&1 == "testchain"))
+    |> Enum.reject(&(&1 == ""))
   end
 end

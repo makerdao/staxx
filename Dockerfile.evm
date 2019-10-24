@@ -5,6 +5,8 @@ ARG ALPINE_VERSION=3.9
 FROM golang:1.11-alpine as builder
 
 ARG GANACHE_SUBDIR=./priv/presets/ganache-cli
+ARG GETH_TAG=v1.8.27
+ARG GETH_VDB_TAG=statediffing
 
 RUN apk update && \
     apk add --no-cache make gcc g++ python git bash nodejs npm musl-dev linux-headers
@@ -16,7 +18,7 @@ COPY ${GANACHE_SUBDIR} .
 RUN npx webpack-cli --config ./webpack/webpack.docker.config.js
 
 # Buidling our replaced geth with unlimited gas
-RUN git clone --single-branch --branch v1.8.27 https://github.com/ethereum/go-ethereum.git && \
+RUN git clone --single-branch --branch ${GETH_TAG} https://github.com/ethereum/go-ethereum.git && \
     cd go-ethereum && \
     sed -i -e 's/GasLimit:   6283185,/GasLimit:   0xffffffffffffffff,/g' core/genesis.go && \
     sed -i -e 's/MaxCodeSize = 24576/MaxCodeSize = 1000000/g' params/protocol_params.go && \
@@ -24,7 +26,7 @@ RUN git clone --single-branch --branch v1.8.27 https://github.com/ethereum/go-et
     make geth
 
 # Building VDB geth
-RUN git clone --single-branch --branch statediffing https://github.com/vulcanize/go-ethereum.git go-ethereum-vdb && \
+RUN git clone --single-branch --branch ${GETH_VDB_TAG} https://github.com/vulcanize/go-ethereum.git go-ethereum-vdb && \
     cd go-ethereum-vdb && \
     make geth
 

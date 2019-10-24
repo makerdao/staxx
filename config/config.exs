@@ -23,6 +23,8 @@ config :deployment_scope, deployment_timeout: 1_800_000
 config :deployment_scope, action_timeout: 600_000
 config :deployment_scope, deployment_worker_image: "makerdao/testchain-deployment-worker:dev"
 config :deployment_scope, nats: %{host: "nats.local", port: 4222}
+config :deployment_scope, default_deployment_scripts_git_ref: "tags/staxx-deploy"
+
 #
 # Docker configs
 #
@@ -139,7 +141,7 @@ config :ex_chain, backend_proxy_node_reconnection_timeout: 5_000
 # For dev env it will be in related to project root. In Docker it will be replaced with
 # file from `rel/config/config.exs`
 config :ex_chain,
-  geth_executable: System.find_executable("geth"),
+  geth_executable: Path.expand("#{__DIR__}/../priv/presets/geth/geth"),
   # geth_executable: "/tmp/chains/test/go-ethereum/build/bin/geth",
   geth_vdb_executable: Path.expand("#{__DIR__}/../priv/presets/geth/geth_vdb"),
   geth_password_file: Path.expand("#{__DIR__}/../priv/presets/geth/account_password"),
