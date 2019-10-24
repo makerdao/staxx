@@ -197,6 +197,8 @@ defmodule Staxx.ExChain.EVM.Implementation.GethVDB do
       "--gcmode=archive",
       "--datadir #{db_path}",
       "--networkid #{network_id}",
+      # Special flag for VDB stack
+      "--statediff",
       # Disabling network, node is private !
       "--port=0",
       "--maxpeers=0",
