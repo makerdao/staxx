@@ -68,7 +68,7 @@ geth-local:
 .PHONY: geth-local
 
 geth-vdb-local:
-	@echo "Setting up geth"
+	@echo "Setting up geth_vdb"
 	@rm -rf priv/presets/geth_vdb_local
 	@rm -f priv/presets/geth/geth_vdb
 	@git clone --single-branch --branch $(GETH_VDB_TAG) https://github.com/vulcanize/go-ethereum.git priv/presets/geth_vdb_local
