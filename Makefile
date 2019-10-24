@@ -82,6 +82,10 @@ geth-vdb-local:
 	@echo "Setting up geth finished 'priv/presets/geth/geth_vdb' !"
 .PHONY: geth-vdb-local
 
+evm-local: ganache-local geth-local geth-vdb-local
+	@echo "Built all EVMs"
+.PHONY: geth-vdb-local
+
 docker-push:
 	@echo "Pushing Staxx docker image"
 	@docker push $(DOCKER_ID_USER)/$(APP_NAME):$(TAG)
