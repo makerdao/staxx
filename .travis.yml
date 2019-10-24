@@ -20,6 +20,8 @@ before_install:
 - sudo apt-get update -q
 - sudo apt-get install -y ethereum
 before_script:
+- make geth-local
+- make geth-vdb-local
 - npm install -g ganache-cli
 env:
   global:
