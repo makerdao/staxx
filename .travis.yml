@@ -16,7 +16,7 @@ go:
  - '1.13'
 before_script:
 - make geth-local
-- make geth-vdb-local
+# - make geth-vdb-local
 - npm install -g ganache-cli
 env:
   global:
