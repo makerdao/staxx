@@ -7,6 +7,7 @@ defmodule Staxx.DeploymentScope.EVMWorker.ChainHelper do
 
   alias Staxx.ExChain.EVM.Notification
   alias Staxx.Proxy.ExChain
+  alias Staxx.DeploymentScope
   alias Staxx.DeploymentScope.EVMWorker.State
   alias Staxx.DeploymentScope.EVMWorker.Storage.Record
   alias Staxx.DeploymentScope.Deployment.StepsFetcher

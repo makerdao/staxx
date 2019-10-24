@@ -256,5 +256,6 @@ defmodule Staxx.DeploymentScope do
     params
     |> Map.keys()
     |> Enum.reject(&(&1 == "testchain"))
+    |> Enum.reject(&(&1 == ""))
   end
 end
