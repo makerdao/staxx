@@ -23,7 +23,7 @@ config :deployment_scope, deployment_timeout: 1_800_000
 config :deployment_scope, action_timeout: 600_000
 config :deployment_scope, deployment_worker_image: "makerdao/testchain-deployment-worker:dev"
 config :deployment_scope, nats: %{host: "nats.local", port: 4222}
-config :deployment_scope, default_deployment_scripts_git_ref: "tags/staxx-deploy"
+config :deployment_scope, default_deployment_scripts_git_ref: "refs/tags/staxx-deploy"
 
 #
 # Docker configs
