@@ -95,7 +95,7 @@ docker-push:
 .PHONY: docker-push
 
 build-evm: ## Build the Docker image for geth/ganache/other evm
-	@docker build -f ./Dockerfile.evm \
+	@docker build -f ./docker/Dockerfile.evm \
 		--build-arg ALPINE_VERSION=$(ALPINE_VERSION) \
 		--build-arg GETH_TAG=$(GETH_TAG) \
 		-t $(DOCKER_ID_USER)/$(EVM_NAME):$(EVM_VSN)-$(BUILD) \
@@ -103,7 +103,7 @@ build-evm: ## Build the Docker image for geth/ganache/other evm
 .PHONY: build-evm
 
 build-chain: ## Build elixir application with testchain and WS API
-	@docker build -f ./Dockerfile.ex_chain \
+	@docker build -f ./docker/Dockerfile.ex_chain \
 		--build-arg ALPINE_VERSION=$(ALPINE_VERSION) \
 		--build-arg APP_NAME=$(EX_TESTCHAIN_APP_NAME) \
 		--build-arg APP_VSN=$(EX_TESTCHAIN_APP_VSN) \
@@ -113,7 +113,7 @@ build-chain: ## Build elixir application with testchain and WS API
 .PHONY: build-chain
 
 build: ## Build elixir application with testchain and WS API
-	@docker build \
+	@docker build -f ./docker/Dockerfile \
 		--build-arg ALPINE_VERSION=$(ALPINE_VERSION) \
 		--build-arg APP_NAME=$(APP_NAME) \
 		--build-arg APP_VSN=$(APP_VSN) \
@@ -125,17 +125,17 @@ build: ## Build elixir application with testchain and WS API
 
 upgrade-dev:
 	@echo "====== Stopping and removing running containers"
-	@docker-compose -f docker-compose-dev.yml rm -s -f
+	@docker-compose -f ./docker/docker-compose-dev.yml rm -s -f
 	@echo "====== Removing local images"
 	@docker rmi -f makerdao/testchain-deployment:dev \
-								 makerdao/ex_testchain:dev \
-								 makerdao/$(APP_NAME):dev \
-								 makerdao/testchain-dashboard
+					makerdao/ex_testchain:dev \
+					makerdao/$(APP_NAME):dev \
+					makerdao/testchain-dashboard
 .PHONY: upgrade-dev
 
 rm-dev:
 	@echo "====== Stopping and removing running containers"
-	@docker-compose -f docker-compose-dev.yml rm -s -f
+	@docker-compose -f ./docker/docker-compose-dev.yml rm -s -f
 .PHONY: rm-dev
 
 logs-deploy:
@@ -157,15 +157,23 @@ run: ## Run the app in Docker
 .PHONY: run
 
 run-dev:
-	@docker-compose -f ./docker-compose-dev.yml up -d
+	@docker-compose -f ./docker/docker-compose-dev.yml up -d
 .PHONY: run-dev
 
-run-elixir-env:
-	@docker-compose -f ./docker-compose-elixir.yml up -d
+stop-elixir-env:
+	@docker-compose -f ./docker/docker-compose-elixir.yml stop
+.PHONY: stop-elixir-env
+
+rm-elixir-env:
+	@docker-compose -f ./docker/docker-compose-elixir.yml rm
+.PHONY: rm-elixir-env
+
+run-elixir-env: rm-elixir-env
+	@docker-compose -f ./docker/docker-compose-elixir.yml up -d
 .PHONY: run-elixir-env
 
 stop-dev:
-	@docker-compose -f ./docker-compose-dev.yml stop
+	@docker-compose -f ./docker/docker-compose-dev.yml stop
 .PHONY: stop-dev
 
 dev: ## Run local node with correct values
@@ -183,16 +191,16 @@ dc-down:
 .PHONY: dc-down
 
 run-latest:
-	@docker-compose -f ./docker-compose.yaml up -d
+	@docker-compose -f ./docker/docker-compose.yaml up -d
 .PHONY: run-latest
 
 stop-latest:
-	@docker-compose -f ./docker-compose.yaml stop
+	@docker-compose -f ./docker/docker-compose.yaml stop
 .PHONY: stop-latest
 
 rm-latest:
 	@echo "====== Stopping and removing running containers"
-	@docker-compose -f docker-compose.yaml rm -s -f
+	@docker-compose -f docker/docker-compose.yaml rm -s -f
 .PHONY: rm-latest
 
 staxx-remote:
