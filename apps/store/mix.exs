@@ -26,6 +26,7 @@ defmodule Staxx.Store.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:event_stream, in_umbrella: true},
       {:ecto_sql, "~> 3.2"},
       {:postgrex, ">= 0.0.0"}
     ]

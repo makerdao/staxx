@@ -82,6 +82,9 @@ defmodule Staxx.DeploymentScope.EVMWorker do
 
     # Store new chain process details
     state
+    |> State.notify(:initializing)
+    |> State.status(:initializing)
+    |> State.store()
     |> Record.from_state()
     |> Record.config(config)
     |> Record.store()
@@ -102,6 +105,9 @@ defmodule Staxx.DeploymentScope.EVMWorker do
 
     # Store updated chain state
     state
+    |> State.notify(:initializing)
+    |> State.status(:initializing)
+    |> State.store()
     |> Record.from_state()
     |> Record.store()
 
@@ -112,8 +118,15 @@ defmodule Staxx.DeploymentScope.EVMWorker do
   end
 
   @doc false
-  def terminate(_, %State{id: id, node: node}) do
+  def terminate(_, %State{id: id, node: node} = state) do
     Logger.debug(fn -> "Got stop signal... Terminating" end)
+
+    # Sending terminating
+    state
+    |> State.notify(:terminating)
+    |> State.status(:terminating)
+    |> State.store()
+
     # Sending termination signal
     ExChain.stop(node, id)
 
@@ -127,13 +140,23 @@ defmodule Staxx.DeploymentScope.EVMWorker do
       }
     )
 
-    case ChainHelper.wait_for_event(id, :stopped) do
-      :timeout ->
-        Logger.error(fn -> "Timed out waiting chain to terminate..." end)
+    status =
+      case ChainHelper.wait_for_event(id, :stopped) do
+        :timeout ->
+          Logger.error(fn -> "Timed out waiting chain to terminate..." end)
+          :failed
 
-      _ ->
-        Logger.debug(fn -> "Chain #{id} stopped." end)
-    end
+        _ ->
+          Logger.debug(fn -> "Chain #{id} stopped." end)
+          :terminated
+      end
+
+    state
+    |> State.notify(status)
+    |> State.status(status)
+    |> State.store()
+    |> Record.from_state()
+    |> Record.store()
   end
 
   @doc false

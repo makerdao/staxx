@@ -51,7 +51,7 @@ defmodule Staxx.DeploymentScope do
       Chain configuration:
       #{inspect(chain_config, pretty: true)}
 
-      Config:
+      Stacks Config:
       #{inspect(stacks, pretty: true)}
       """
     end)
