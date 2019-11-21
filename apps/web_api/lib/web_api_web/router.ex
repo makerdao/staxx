@@ -54,4 +54,12 @@ defmodule Staxx.WebApiWeb.Router do
     post "/notify/ready", StackController, :stack_ready
     post "/notify/failed", StackController, :stack_failed
   end
+
+  scope "/user", Staxx.WebApiWeb do
+    pipe_through :api
+    get "/", UserController, :list
+    get "/:id", UserController, :get
+    post "/", UserController, :create
+    post "/:id", UserController, :update
+  end
 end

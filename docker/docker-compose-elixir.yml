@@ -9,6 +9,13 @@ services:
       - "4222:4222"
     networks:
      - net1
+  db:
+    image: 'postgres:11-alpine'
+    environment:
+      - POSTGRES_USER=staxx
+      - POSTGRES_PASSWORD=staxx
+    ports:
+      - "5432:5432"
   testchain-deployment:
     image: makerdao/testchain-deployment:dev
     container_name: testchain-deployment.local

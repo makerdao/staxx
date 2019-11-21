@@ -62,6 +62,17 @@ config :proxy, node_manager_adapter: Staxx.Proxy.NodeManager.Local
 config :proxy, snapshot_path: "/tmp/snapshots"
 
 #
+# Store configs
+#
+config :store, Staxx.Store.Repo,
+  database: "staxx",
+  username: "staxx",
+  password: "staxx",
+  hostname: "localhost"
+
+config :store, ecto_repos: [Staxx.Store.Repo]
+
+#
 # Metrics
 #
 config :metrix, run_prometheus: true

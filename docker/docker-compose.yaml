@@ -18,6 +18,13 @@ services:
       # CONSUL_BIND_INTERFACE: eth0
     # networks:
       # - net1
+  db:
+    image: 'postgres:11-alpine'
+    environment:
+      - POSTGRES_USER=staxx
+      - POSTGRES_PASSWORD=staxx
+    ports:
+      - "5432:5432"
   staxx:
     image: makerdao/staxx:latest
     container_name: staxx.local
