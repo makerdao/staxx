@@ -25,7 +25,6 @@ defmodule Staxx.Docker.Adapter.DockerD do
       container
       |> build_start_params()
       |> Enum.join(" ")
-      |> IO.inspect()
       |> String.to_charlist()
       |> :os.cmd()
       |> to_string()

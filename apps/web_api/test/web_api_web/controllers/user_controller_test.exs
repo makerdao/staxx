@@ -60,7 +60,7 @@ defmodule Staxx.WebApiWeb.UserControllerTest do
       |> build()
       |> User.create()
 
-    to_update = build(:user) |> IO.inspect()
+    to_update = build(:user)
 
     %{"status" => 0, "data" => res, "message" => "", "errors" => []} =
       conn
