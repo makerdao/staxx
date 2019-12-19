@@ -19,7 +19,7 @@ defmodule Staxx.Store.EventHandler do
   def process({:chain, id} = event_shadow) do
     case EventStream.fetch_event_data({:chain, id}) do
       %{id: chain_id, event: _event, data: _data} = msg ->
-        IO.inspect(msg)
+        Logger.debug(fn -> "Notification: #{inspect(msg, pretty: true)}" end)
         EventStream.mark_as_completed({__MODULE__, :chain, id})
 
       _ ->
