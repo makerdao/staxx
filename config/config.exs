@@ -65,10 +65,10 @@ config :proxy, snapshot_path: "/tmp/snapshots"
 # Store configs
 #
 config :store, Staxx.Store.Repo,
-  database: "staxx",
-  username: "staxx",
-  password: "staxx",
-  hostname: "localhost"
+  username: System.get_env("POSTGRES_USER", "staxx"),
+  password: System.get_env("POSTGRES_PASSWORD", "staxx"),
+  database: System.get_env("POSTGRES_DB", "staxx"),
+  hostname: System.get_env("POSTGRES_HOST", "localhost")
 
 config :store, ecto_repos: [Staxx.Store.Repo]
 
