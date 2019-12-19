@@ -1,23 +1,25 @@
 language: elixir
 dist: xenial
-services: docker
+services: 
+  - docker
+  - postgresql
 branches:
   only:
   - "/.*/"
 before_install:
-- docker pull nats:linux
-- docker run -d -p 4222:4222 nats:linux
-- docker ps -a
-- mkdir -p /tmp/stacks
+  - docker pull nats:linux
+  - docker run -d -p 4222:4222 nats:linux
+  - docker ps -a
+  - mkdir -p /tmp/stacks
 elixir:
   - '1.9'
 otp_release: 22.0
 go:
- - '1.13'
+  - '1.13'
 before_script:
-- make geth-local
-# - make geth-vdb-local
-- npm install -g ganache-cli
+  - make geth-local
+  # - make geth-vdb-local
+  - npm install -g ganache-cli
 env:
   global:
   - GANACHE_EXECUTABLE=ganache-cli
@@ -28,7 +30,7 @@ cache:
   - _build
   - deps
 script:
-- mix test --exclude evm:geth_vdb
+  - mix test --exclude evm:geth_vdb
 deploy:
 - provider: script
   script: >-
@@ -55,6 +57,6 @@ deploy:
 notifications:
   webhooks:
     urls:
-    - secure: "hDTcJUYpJ5OIpAQLfLkUkoaqd35JR5hNoyZKTVynL/ulHY5/gqJVqZJBPxb9mP2Tun/8bBE0QyhDWm2Bj/vghbhDKM1k+ZBpJBrSKwRPmDBUaaId8IsDbjTvpbkuDBTVJrhieP1xx3tQMV1FJBydvuGtr74qvDshcevgjy/OcriOJyTcbsVAmm9+VYgFI/i/Wki9F0actxE85966x5ctAZXeGUCHKDley6Rf6icxJlIwI2KvlpSqGgREvHhvUYukkT93WxT367rZOJtkT3uzNLEUJhFvtLCYW2RXi6rxGh33GJYl6CebbBliOU/37nr7yEYX0wj/gPDWJ7GOeDKVN88G2vhtSH+Zk9tCpGmkzEAmglcEnpc24BI8w8OtZl0jMm3Ahv+VERWUpGRMTK9u+4iRGD3G8mswDJXAlVnXKPhkxH4mhsjZtzhbAXhV+xDVWiox/bhS3KWFf8FuCh0jetsWYd9noYNpVQGjtM9jI328uqWN+PEBWdGbDRwIzIlPGnKtLhqZuhOv0JkkB10orHrPvQII6ywYZHpOMclGggVKdSp7WOvh56WQJNmzUvkL1jrgy2MoRFb1jz4EaThstMpAczzbxNXorVWxNZHviy1ExDQGqZ/ene7zaD04C7rCnP2GoaWuKMiMf+cliVE6iawrocWI395LKiIiGM/YuAA="
+      - secure: "hDTcJUYpJ5OIpAQLfLkUkoaqd35JR5hNoyZKTVynL/ulHY5/gqJVqZJBPxb9mP2Tun/8bBE0QyhDWm2Bj/vghbhDKM1k+ZBpJBrSKwRPmDBUaaId8IsDbjTvpbkuDBTVJrhieP1xx3tQMV1FJBydvuGtr74qvDshcevgjy/OcriOJyTcbsVAmm9+VYgFI/i/Wki9F0actxE85966x5ctAZXeGUCHKDley6Rf6icxJlIwI2KvlpSqGgREvHhvUYukkT93WxT367rZOJtkT3uzNLEUJhFvtLCYW2RXi6rxGh33GJYl6CebbBliOU/37nr7yEYX0wj/gPDWJ7GOeDKVN88G2vhtSH+Zk9tCpGmkzEAmglcEnpc24BI8w8OtZl0jMm3Ahv+VERWUpGRMTK9u+4iRGD3G8mswDJXAlVnXKPhkxH4mhsjZtzhbAXhV+xDVWiox/bhS3KWFf8FuCh0jetsWYd9noYNpVQGjtM9jI328uqWN+PEBWdGbDRwIzIlPGnKtLhqZuhOv0JkkB10orHrPvQII6ywYZHpOMclGggVKdSp7WOvh56WQJNmzUvkL1jrgy2MoRFb1jz4EaThstMpAczzbxNXorVWxNZHviy1ExDQGqZ/ene7zaD04C7rCnP2GoaWuKMiMf+cliVE6iawrocWI395LKiIiGM/YuAA="
     on_failure: always
     on_success: change
