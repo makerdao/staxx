@@ -113,6 +113,37 @@ config :storage, dets_db_path: "/tmp/chains"
 
 config :porcelain, driver: Porcelain.Driver.Basic
 
+# Default timeout for checking testchain health
+config :testchain, health_check_timeout: 30_000
+
+# Amount of time in ms process allowed to perform "blocking" work before supervisor will terminate it
+config :testchain, kill_timeout: 180_000
+
+# URL that will be placed to chain.
+# It's actually outside world URL to testchain.
+# For local development it should be `localhost`
+# For production instance in cloud it will be changed to real DNS address.
+# NOTE: you don't need protocol here (`http:// | ws://`) it will be set by evm provider
+config :testchain, front_url: "localhost"
+
+# Default folder where all chain db's will be created, please use full path
+# Note that chain id will be added as final folder.
+# Example: with `config :ex_chain, base_path: "/tmp/chains"`
+# Final chain path will be
+# `/tmp/chains/some-id-here`
+config :testchain, base_path: "/tmp/chains"
+
+# Default location of account password file.
+# For dev env it will be in related to project root. In Docker it will be replaced with
+# file from `rel/config/config.exs`
+config :testchain,
+  geth_executable: Path.expand("#{__DIR__}/../priv/presets/geth/geth"),
+  geth_docker_image: "test_geth",
+  # geth_executable: "/tmp/chains/test/go-ethereum/build/bin/geth",
+  geth_password_file: Path.expand("#{__DIR__}/../priv/presets/geth/account_password"),
+  ganache_executable: Path.expand("#{__DIR__}/../priv/presets/ganache-cli/cli.js"),
+  ganache_wrapper_file: Path.expand("#{__DIR__}/../priv/presets/ganache/wrapper.sh")
+
 # Amount of time in ms process allowed to perform "blocking" work before supervisor will terminate it
 config :ex_chain, kill_timeout: 180_000
 

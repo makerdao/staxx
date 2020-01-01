@@ -1,9 +1,9 @@
-defmodule Staxx.ExChain.MixProject do
+defmodule Staxx.Testchain.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :ex_chain,
+      app: :testchain,
       version: "0.1.0",
       build_path: "../../_build",
       config_path: "../../config/config.exs",
@@ -20,8 +20,8 @@ defmodule Staxx.ExChain.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger]
-      # mod: {Staxx.ExChain.Application, []}
+      extra_applications: [:logger],
+      mod: {Staxx.Testchain.Application, []}
     ]
   end
 
@@ -33,14 +33,15 @@ defmodule Staxx.ExChain.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:json_rpc, in_umbrella: true},
+      {:storage, in_umbrella: true},
+      {:docker, in_umbrella: true},
       {:poison, "~> 3.1"},
       {:porcelain, "~> 2.0"},
       {:poolboy, "~> 1.5.1"},
       {:ksha3, "~> 1.0.0", git: "https://github.com/onyxrev/ksha3.git", branch: "master"},
       {:ethereum_wallet, github: "onyxrev/ethereum_wallet_elixir"},
       {:jason, "~> 1.1"},
-      {:json_rpc, in_umbrella: true},
-      {:storage, in_umbrella: true},
       {:faker, "~> 0.11", only: :test}
     ]
   end

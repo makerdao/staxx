@@ -58,8 +58,8 @@ defmodule Staxx.Docker do
   def start(%Container{image: ""}),
     do: {:error, "Could not start container without image"}
 
-  def start(%Container{network: ""}),
-    do: {:error, "Could not start container without network"}
+  # def start(%Container{network: ""}),
+  #   do: {:error, "Could not start container without network"}
 
   def start(%Container{name: ""} = container),
     do: start(%Container{container | name: random_name()})

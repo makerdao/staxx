@@ -16,6 +16,8 @@ config :deployment_scope,
 
 config :event_stream, nats: %{host: System.fetch_env!("NATS_URL"), port: 4222}
 
+config :testchain, base_path: System.fetch_env!("CHAINS_DB_PATH")
+
 config :ex_chain, base_path: System.fetch_env!("CHAINS_DB_PATH")
 config :ex_chain, snapshot_base_path: System.fetch_env!("SNAPSHOTS_DB_PATH")
 config :ex_chain, geth_executable: System.get_env("GETH_EXECUTABLE", "geth")

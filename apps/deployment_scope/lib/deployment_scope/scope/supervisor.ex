@@ -1,4 +1,4 @@
-defmodule Staxx.DeploymentScope.Scope.SupervisorTree do
+defmodule Staxx.DeploymentScope.Scope.DeploymentScopeSupervisor do
   @moduledoc """
   Deployment scope supervisor.
   It controll specific scope for user.
@@ -12,14 +12,14 @@ defmodule Staxx.DeploymentScope.Scope.SupervisorTree do
   require Logger
 
   alias Staxx.DeploymentScope
-  alias Staxx.DeploymentScope.EVMWorker
   alias Staxx.DeploymentScope.Scope.StackManagerSupervisor
   alias Staxx.DeploymentScope.ScopeRegistry
+  alias Staxx.Testchain.Supervisor, as: TestchainSupervisor
 
   @doc false
-  def child_spec(params) do
+  def child_spec({id, _, _} = params) do
     %{
-      id: __MODULE__,
+      id: "deployment_scope_supervisor_#{id}",
       start: {__MODULE__, :start_link, [params]},
       restart: :temporary,
       type: :supervisor
@@ -32,6 +32,8 @@ defmodule Staxx.DeploymentScope.Scope.SupervisorTree do
   def start_link({id, _chain_config_or_id, stacks} = params) do
     res = Supervisor.start_link(__MODULE__, params, name: via_tuple(id))
 
+    # have to start stack managers here. Because need to be sure that testchain
+    # already started, before starting stacks.
     case res do
       {:ok, _} ->
         start_stack_managers(id, stacks)
@@ -45,11 +47,9 @@ defmodule Staxx.DeploymentScope.Scope.SupervisorTree do
   @impl true
   def init({id, chain_config_or_id, _stacks}) do
     children = [
-      {StackManagerSupervisor, id},
-      chain_child_spec(chain_config_or_id)
+      TestchainSupervisor.child_spec({id, chain_config_or_id}),
+      StackManagerSupervisor.child_spec(id)
     ]
-
-    # ++ stack_managers(id, stacks)
 
     opts = [strategy: :one_for_all, max_restarts: 0]
     Supervisor.init(children, opts)
@@ -105,10 +105,4 @@ defmodule Staxx.DeploymentScope.Scope.SupervisorTree do
     |> Enum.uniq()
     |> Enum.map(&start_stack_manager(scope_id, &1))
   end
-
-  defp chain_child_spec(id) when is_binary(id),
-    do: {EVMWorker, {:existing, id}}
-
-  defp chain_child_spec(config) when is_map(config),
-    do: {EVMWorker, {:new, config}}
 end

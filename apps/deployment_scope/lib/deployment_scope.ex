@@ -6,13 +6,13 @@ defmodule Staxx.DeploymentScope do
 
   require Logger
 
-  alias Staxx.Proxy
   alias Staxx.Docker
   alias Staxx.Docker.Struct.Container
-  alias Staxx.DeploymentScope.EVMWorker.ChainHelper
+  alias Staxx.Testchain
+  alias Staxx.Testchain.Helper
   alias Staxx.DeploymentScope.UserScope
   alias Staxx.DeploymentScope.ScopesSupervisor
-  alias Staxx.DeploymentScope.Scope.SupervisorTree
+  alias Staxx.DeploymentScope.Scope.DeploymentScopeSupervisor
   alias Staxx.DeploymentScope.Scope.StackManager
   alias Staxx.DeploymentScope.Stack.ConfigLoader
 
@@ -22,26 +22,26 @@ defmodule Staxx.DeploymentScope do
   @spec start(map, binary) :: {:ok, binary} | {:error, term}
   def start(params, email \\ "")
 
-  def start(%{"testchain" => %{"config" => %{"id" => id}}} = params, email) do
-    stacks = Map.drop(params, ["testchain"])
+  # def start(%{"testchain" => %{"config" => %{"id" => id}}} = params, email) do
+  #   stacks = Map.drop(params, ["testchain"])
 
-    Logger.debug(fn ->
-      """
-      Starting deployment scope with existing chain #{id}
-      Config:
-      #{inspect(stacks, pretty: true)}
-      """
-    end)
+  #   Logger.debug(fn ->
+  #     """
+  #     Starting deployment scope with existing chain #{id}
+  #     Config:
+  #     #{inspect(stacks, pretty: true)}
+  #     """
+  #   end)
 
-    start(id, id, stacks, email)
-  end
+  #   start(id, id, stacks, email)
+  # end
 
   def start(%{"testchain" => %{"config" => config}} = params, email) do
     %{id: id} =
       chain_config =
       config
-      |> ChainHelper.config_from_payload()
-      |> Proxy.new_chain_config!()
+      |> Helper.config_from_payload()
+      |> Helper.generate_id!()
 
     stacks = Map.drop(params, ["testchain"])
 
@@ -65,7 +65,7 @@ defmodule Staxx.DeploymentScope do
   @doc """
   Start supervision tree for new deployment scope
   """
-  @spec start(binary, binary | map, map, binary) :: {:ok, binary} | {:error, term}
+  @spec start(binary, binary | map, map, binary) :: {:ok, Testchain.evm_id()} | {:error, term}
   def start(id, chain_config, stacks, email \\ "") when is_binary(id) do
     modules = get_stack_names(stacks)
     Logger.debug("Starting new deployment scope with modules: #{inspect(modules)}")
@@ -97,7 +97,7 @@ defmodule Staxx.DeploymentScope do
   """
   @spec spawn_stack_manager(binary, binary) :: DynamicSupervisor.on_start_child()
   def spawn_stack_manager(scope_id, stack_name),
-    do: SupervisorTree.start_stack_manager(scope_id, stack_name)
+    do: DeploymentScopeSupervisor.start_stack_manager(scope_id, stack_name)
 
   @doc """
   Stop stack manager service
@@ -115,7 +115,7 @@ defmodule Staxx.DeploymentScope do
     case alive?(id) do
       true ->
         id
-        |> SupervisorTree.via_tuple()
+        |> DeploymentScopeSupervisor.via_tuple()
         |> Supervisor.stop(:normal)
 
       false ->
@@ -129,7 +129,7 @@ defmodule Staxx.DeploymentScope do
   @spec alive?(binary) :: boolean
   def alive?(id) do
     id
-    |> SupervisorTree.via_tuple()
+    |> DeploymentScopeSupervisor.via_tuple()
     |> GenServer.whereis()
     |> case do
       nil ->
@@ -181,7 +181,7 @@ defmodule Staxx.DeploymentScope do
 
       true ->
         id
-        |> SupervisorTree.get_stack_manager_supervisor()
+        |> DeploymentScopeSupervisor.get_stack_manager_supervisor()
         |> Supervisor.which_children()
         |> Enum.filter(fn {_, _, _, mods} -> mods == [StackManager] end)
         |> Enum.map(fn {_, pid, :worker, _} -> pid end)

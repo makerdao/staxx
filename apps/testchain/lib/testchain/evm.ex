@@ -1,17 +1,18 @@
-defmodule Staxx.ExChain.EVM do
+defmodule Staxx.Testchain.EVM do
   @moduledoc """
   EVM abscraction. Each EVMs have to implement this abstraction.
   """
 
   require Logger
 
-  alias Staxx.ExChain
-  alias Staxx.ExChain.EVM.{Config, Notification}
-  alias Staxx.ExChain.AccountStore
-  alias Staxx.ExChain.Snapshot.Details, as: SnapshotDetails
+  alias Staxx.Testchain
+  alias Staxx.Testchain.EVM.{Config, Notification}
+  alias Staxx.Testchain.EVM.Implementation.{Geth, Ganache}
+  alias Staxx.Testchain.AccountStore
+  alias Staxx.Docker.Struct.Container
 
   # Amount of ms the server is allowed to spend initializing or it will be terminated
-  @timeout Application.get_env(:ex_chain, :kill_timeout, 60_000)
+  @timeout Application.get_env(:testchain, :kill_timeout, 60_000)
 
   @typedoc """
   List of EVM lifecircle statuses
@@ -41,18 +42,18 @@ defmodule Staxx.ExChain.EVM do
           | :snapshot_reverted
           | :failed
 
-  @typedoc """
-  Task that should be performed.
+  # @typedoc """
+  # Task that should be performed.
 
-  Some tasks require chain to be stopped before performing
-  like, taking/reverting snapshots, changing initial evm configs.
-  such tasks should be set into `State.task` and after evm termination
-  system will perform this task and try to start chain again
-  """
-  @type scheduled_task ::
-          nil
-          | {:take_snapshot, description :: binary}
-          | {:revert_snapshot, SnapshotDetails.t()}
+  # Some tasks require chain to be stopped before performing
+  # like, taking/reverting snapshots, changing initial evm configs.
+  # such tasks should be set into `State.task` and after evm termination
+  # system will perform this task and try to start chain again
+  # """
+  # @type scheduled_task ::
+  #         nil
+  #         | {:take_snapshot, description :: binary}
+  #         | {:revert_snapshot, SnapshotDetails.t()}
 
   @typedoc """
   Default evm action reply message
@@ -64,11 +65,6 @@ defmodule Staxx.ExChain.EVM do
           | {:noreply, state :: any()}
           | {:reply, reply :: term(), state :: any()}
           | {:error, term()}
-
-  @doc """
-  This callback shuold return path to EVM executable file
-  """
-  @callback executable!() :: binary
 
   @doc """
   Callback will be called on chain starting process.
@@ -86,12 +82,14 @@ defmodule Staxx.ExChain.EVM do
   @callback migrate_config(Config.t()) :: Config.t()
 
   @doc """
-  This callback is called on starting evm instance. Here EVM should be started and validated RPC.
-  The argument is configuration for EVM.
-  In must return `{:ok, state}`, that `state` will be keept as in `GenServer` and can be
+  This callback is called on starting evm instance. 
+  Here EVM should prepare all required files/accounts/other actions before it 
+  actually will be started in docker container.
+
+  In must return `{:ok, Container.t(), state}`, that `state` will be keept as in `GenServer` and can be
   retrieved in futher functions.
   """
-  @callback start(config :: Config.t()) :: {:ok, state :: any()} | {:error, term()}
+  @callback start(config :: Config.t()) :: {:ok, Container.t(), state :: any()} | {:error, term()}
 
   @doc """
   This callback will be called when system will need to stop EVM.
@@ -120,7 +118,7 @@ defmodule Staxx.ExChain.EVM do
   @doc """
   This callback is called just before the Process goes down. This is a good place for closing connections.
   """
-  @callback terminate(id :: ExChain.evm_id(), config :: Config.t(), state :: any()) ::
+  @callback terminate(id :: Testchain.evm_id(), config :: Config.t(), state :: any()) ::
               term()
 
   @doc """
@@ -129,7 +127,7 @@ defmodule Staxx.ExChain.EVM do
   By default they will be stored into `{db_path}/addresses.json` file in JSON format
 
   Reply should be in format
-  `{:ok, [Staxx.ExChain.EVM.Account.t()]} | {:error, term()}`
+  `{:ok, [Staxx.Testchain.EVM.Account.t()]} | {:error, term()}`
   """
   @callback initial_accounts(config :: Config.t(), state :: any()) :: action_reply()
 
@@ -142,6 +140,29 @@ defmodule Staxx.ExChain.EVM do
   Callback will be called to get exact EVM version
   """
   @callback version() :: binary
+
+  @doc """
+  Child specification for supervising given `Testchain.EVM` module
+  """
+  @spec child_spec(Config.t()) :: :supervisor.child_spec()
+  def child_spec(%Config{type: :geth} = config), do: child_spec(Geth, config)
+
+  def child_spec(%Config{type: :ganache} = config), do: child_spec(Ganache, config)
+
+  def child_spec(%Config{type: _}), do: {:error, :unsuported_evm_type}
+
+  @doc """
+  Child specification for supervising given `Chain.EVM` module
+  """
+  @spec child_spec(module(), Config.t()) :: :supervisor.child_spec()
+  def child_spec(module, %Config{id: id} = config) do
+    %{
+      id: "testchain_evm_#{id}",
+      start: {module, :start_link, [config]},
+      restart: :transient,
+      shutdown: @timeout
+    }
+  end
 
   @doc """
   Will clean `db_path` if `clean_on_stop` is set to true
@@ -177,13 +198,14 @@ defmodule Staxx.ExChain.EVM do
       require Logger
 
       alias Staxx.JsonRpc
-      alias Staxx.ExChain
-      alias Staxx.ExChain.EVM
-      alias Staxx.ExChain.PortReserver
-      alias Staxx.ExChain.EVM.State
-      alias Staxx.ExChain.SnapshotManager
-      alias Staxx.ExChain.Snapshot.Details, as: SnapshotDetails
-      alias Staxx.ExChain.EVM.Registry, as: EvmRegistry
+      alias Staxx.Testchain
+      alias Staxx.Testchain.EVM
+      alias Staxx.Testchain.EVM.{Account, Config, State}
+      alias Staxx.Testchain.PortReserver
+      alias Staxx.Testchain.EVMRegistry
+      alias Staxx.Testchain.AccountStore
+      alias Staxx.Docker
+      alias Staxx.Docker.Struct.Container
 
       @behaviour EVM
 
@@ -202,7 +224,13 @@ defmodule Staxx.ExChain.EVM do
       end
 
       @doc false
-      def init(%Config{} = config) do
+      def init(%Config{id: id, db_path: db_path} = config) do
+        # Check DB path existense
+        unless File.exists?(db_path) do
+          Logger.debug("#{id}: #{db_path} not exist, creating...")
+          :ok = File.mkdir_p!(db_path)
+        end
+
         {http_port, ws_port} = get_ports()
 
         new_config =
@@ -218,10 +246,17 @@ defmodule Staxx.ExChain.EVM do
       @doc false
       def handle_continue(:start_chain, %State{config: config} = state) do
         case start(config) do
-          {:ok, internal_state} ->
-            Logger.debug(
-              "#{config.id}: Chain initialization finished successfully ! Waiting for JSON-RPC become operational."
-            )
+          {:ok, %Container{} = container, internal_state} ->
+            Logger.debug(fn ->
+              """
+              #{config.id}: Chain initialization finished successfully ! 
+              Starting container and waiting for JSON-RPC become operational.
+              """
+            end)
+
+            container
+            |> Container.start_link()
+            |> IO.inspect()
 
             # Schedule started check
             # Operation is async and `status: :active` will be set later
@@ -346,75 +381,75 @@ defmodule Staxx.ExChain.EVM do
         |> handle_action(state)
       end
 
-      @doc false
-      def handle_info(
-            {_, :result, %Porcelain.Result{status: signal}},
-            %State{
-              status: :snapshot_taking,
-              task: {:take_snapshot, description},
-              config: config
-            } = state
-          ) do
-        %Config{id: id, db_path: db_path, type: type} = config
-        Logger.debug("#{id}: Chain terminated for taking snapshot with exit status: #{signal}")
+      # @doc false
+      # def handle_info(
+      #       {_, :result, %Porcelain.Result{status: signal}},
+      #       %State{
+      #         status: :snapshot_taking,
+      #         task: {:take_snapshot, description},
+      #         config: config
+      #       } = state
+      #     ) do
+      #   %Config{id: id, db_path: db_path, type: type} = config
+      #   Logger.debug("#{id}: Chain terminated for taking snapshot with exit status: #{signal}")
 
-        try do
-          details = SnapshotManager.make_snapshot!(db_path, type, description)
+      #   try do
+      #     details = SnapshotManager.make_snapshot!(db_path, type, description)
 
-          # Storing all snapshots
-          SnapshotManager.store(details)
+      #     # Storing all snapshots
+      #     SnapshotManager.store(details)
 
-          Logger.debug("#{id}: Snapshot made, details: #{inspect(details)}")
+      #     Logger.debug("#{id}: Snapshot made, details: #{inspect(details)}")
 
-          new_state =
-            state
-            |> State.status(:snapshot_taken, config)
-            |> State.task(nil)
+      #     new_state =
+      #       state
+      #       |> State.status(:snapshot_taken, config)
+      #       |> State.task(nil)
 
-          Notification.send(config, id, :snapshot_taken, details)
+      #     Notification.send(config, id, :snapshot_taken, details)
 
-          {:noreply, new_state, {:continue, :start_after_task}}
-        rescue
-          err ->
-            Logger.error("#{id} failed to make snapshot with error #{inspect(err)}")
-            {:stop, :failed_take_snapshot, State.status(state, :failed, config)}
-        end
-      end
+      #     {:noreply, new_state, {:continue, :start_after_task}}
+      #   rescue
+      #     err ->
+      #       Logger.error("#{id} failed to make snapshot with error #{inspect(err)}")
+      #       {:stop, :failed_take_snapshot, State.status(state, :failed, config)}
+      #   end
+      # end
 
-      @doc false
-      def handle_info(
-            {_, :result, %Porcelain.Result{status: signal}},
-            %State{
-              status: :snapshot_reverting,
-              task: {:revert_snapshot, snapshot},
-              config: config
-            } = state
-          ) do
-        %Config{id: id, db_path: db_path, type: type} = config
-        Logger.debug("#{id}: Chain terminated for reverting snapshot with exit status: #{signal}")
+      # @doc false
+      # def handle_info(
+      #       {_, :result, %Porcelain.Result{status: signal}},
+      #       %State{
+      #         status: :snapshot_reverting,
+      #         task: {:revert_snapshot, snapshot},
+      #         config: config
+      #       } = state
+      #     ) do
+      #   %Config{id: id, db_path: db_path, type: type} = config
+      #   Logger.debug("#{id}: Chain terminated for reverting snapshot with exit status: #{signal}")
 
-        try do
-          :ok = SnapshotManager.restore_snapshot!(snapshot, db_path)
-          Logger.debug("#{id}: Snapshot reverted")
+      #   try do
+      #     :ok = SnapshotManager.restore_snapshot!(snapshot, db_path)
+      #     Logger.debug("#{id}: Snapshot reverted")
 
-          Notification.send(config, id, :snapshot_reverted, snapshot)
+      #     Notification.send(config, id, :snapshot_reverted, snapshot)
 
-          new_state =
-            state
-            |> State.status(:snapshot_reverted, config)
-            |> State.task(nil)
+      #     new_state =
+      #       state
+      #       |> State.status(:snapshot_reverted, config)
+      #       |> State.task(nil)
 
-          {:noreply, new_state, {:continue, :start_after_task}}
-        rescue
-          err ->
-            Logger.error(
-              "#{id} failed to revert snapshot #{inspect(snapshot)} with error #{inspect(err)}"
-            )
+      #     {:noreply, new_state, {:continue, :start_after_task}}
+      #   rescue
+      #     err ->
+      #       Logger.error(
+      #         "#{id} failed to revert snapshot #{inspect(snapshot)} with error #{inspect(err)}"
+      #       )
 
-            # {:noreply, State.status(state, :failed, config)}
-            {:stop, :failed_restore_snapshot, State.status(state, :failed, config)}
-        end
-      end
+      #       # {:noreply, State.status(state, :failed, config)}
+      #       {:stop, :failed_restore_snapshot, State.status(state, :failed, config)}
+      #   end
+      # end
 
       @doc false
       def handle_info(
@@ -587,7 +622,7 @@ defmodule Staxx.ExChain.EVM do
         case reason do
           r when r in ~w(normal shutdown)a ->
             # Clean path for chain after it was terminated
-            ExChain.EVM.clean_on_stop(config)
+            Testchain.EVM.clean_on_stop(config)
             # Send notification after stop
             Notification.send(config, config.id, :stopped)
 
@@ -602,9 +637,9 @@ defmodule Staxx.ExChain.EVM do
       @doc """
       `{:via}` notation for process registry
       """
-      @spec via(ExChain.evm_id()) :: {:via, Registry, {module, ExChain.evm_id()}}
+      @spec via(Testchain.evm_id()) :: {:via, Registry, {module, Testchain.evm_id()}}
       def via(id),
-        do: {:via, Registry, {EvmRegistry, id}}
+        do: {:via, Registry, {EVMRegistry, id}}
 
       ######
       #
@@ -732,10 +767,11 @@ defmodule Staxx.ExChain.EVM do
       end
 
       # Load list of initial accoutns from storage
-      defp load_accounts(db_path), do: AccountStore.load(db_path)
+      defp load_accounts(db_path),
+        do: AccountStore.load(db_path)
 
       # Get front url for chain
-      defp front_url(), do: Application.get_env(:ex_chain, :front_url)
+      defp front_url(), do: Application.get_env(:testchain, :front_url)
 
       # Allow to override functions
       defoverridable handle_started: 2,
@@ -746,18 +782,5 @@ defmodule Staxx.ExChain.EVM do
                      handle_msg: 3,
                      version: 0
     end
-  end
-
-  @doc """
-  Child specification for supervising given `Chain.EVM` module
-  """
-  @spec child_spec(module(), Config.t()) :: :supervisor.child_spec()
-  def child_spec(module, %Config{id: id} = config) do
-    %{
-      id: id,
-      start: {module, :start_link, [config]},
-      restart: :transient,
-      shutdown: @timeout
-    }
   end
 end

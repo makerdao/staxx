@@ -9,40 +9,6 @@ defmodule Staxx.Proxy do
   alias Staxx.DeploymentScope.EVMWorker
   alias Staxx.Proxy.NodeManager
   alias Staxx.DeploymentScope.EVMWorker.Storage
-  alias Staxx.DeploymentScope.EVMWorker.Supervisor, as: ChainSupervisor
-
-  @doc """
-  Start new/existing chain
-  """
-  @deprecated "Use Staxx.DeploymentScope for starting new chains"
-  @spec start(binary | map()) :: {:ok, binary} | {:error, term()}
-  def start(id) when is_binary(id) do
-    case ChainSupervisor.start_chain(id, :existing) do
-      :ok ->
-        {:ok, id}
-
-      {:ok, _} ->
-        {:ok, id}
-
-      err ->
-        Logger.error("#{id}: Something wrong: #{inspect(err)}")
-        {:error, "failed to start chain"}
-    end
-  end
-
-  def start(config) when is_map(config) do
-    with %{id: id} = config <- new_chain_config!(config),
-         {:ok, _} <- ChainSupervisor.start_chain(config, :new) do
-      {:ok, id}
-    else
-      {:error, err} ->
-        {:error, err}
-
-      err ->
-        Logger.error("Failed to start EVM: #{inspect(err)}")
-        {:error, "Unknown error"}
-    end
-  end
 
   @doc """
   Create new chain configuration for given node

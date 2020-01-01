@@ -30,7 +30,7 @@ defmodule Staxx.DeploymentScope.MixProject do
   defp deps do
     [
       {:event_stream, in_umbrella: true},
-      {:proxy, in_umbrella: true},
+      {:testchain, in_umbrella: true},
       {:poison, "~> 3.1.0"},
       {:faker, "~> 0.12", only: :test},
       {:ex_machina, "~> 2.3", only: :test}

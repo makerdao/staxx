@@ -14,8 +14,7 @@ config :docker, adapter: Staxx.Docker.Adapter.Mock
 
 config :deployment_scope, stacks_dir: "#{__DIR__}/../priv/test/stacks"
 
-config :my_app, Staxx.Store.Repo,
-  pool: Ecto.Adapters.SQL.Sandbox
+config :my_app, Staxx.Store.Repo, pool: Ecto.Adapters.SQL.Sandbox
 
 #
 # Metrics

@@ -10,13 +10,14 @@ defmodule Staxx.DeploymentScope.Application do
     children = [
       {Registry, keys: :unique, name: Staxx.DeploymentScope.ScopeRegistry},
       {Registry, keys: :unique, name: Staxx.DeploymentScope.StackRegistry},
+      # TODO: Check if it's needed here
+      {Registry, keys: :unique, name: Staxx.DeploymentScope.EVMWorkerRegistry},
       Staxx.DeploymentScope.ScopesSupervisor,
       Staxx.DeploymentScope.Stack.ConfigLoader,
+      # User <-> Chain mapper, DETS based GenServer
       Staxx.DeploymentScope.UserScope,
       # EVM & deployment integration
-      Staxx.DeploymentScope.EVMWorker.Supervisor,
       Staxx.DeploymentScope.EVMWorker.Storage,
-      {Registry, keys: :unique, name: Staxx.DeploymentScope.EVMWorkerRegistry},
       Staxx.DeploymentScope.Deployment.Supervisor
     ]
 

@@ -6,7 +6,7 @@ defmodule Staxx.DeploymentScope.ScopesSupervisor do
   # Automatically defines child_spec/1
   use DynamicSupervisor
 
-  alias Staxx.DeploymentScope.Scope.SupervisorTree
+  alias Staxx.DeploymentScope.Scope.DeploymentScopeSupervisor
 
   @doc false
   def start_link(arg) do
@@ -26,8 +26,8 @@ defmodule Staxx.DeploymentScope.ScopesSupervisor do
   """
   @spec start_scope({binary, binary | map, map}) :: DynamicSupervisor.on_start_child()
   def start_scope({_id, _chain, _stacks} = params),
-    do: DynamicSupervisor.start_child(__MODULE__, {SupervisorTree, params})
+    do: DynamicSupervisor.start_child(__MODULE__, {DeploymentScopeSupervisor, params})
 
   def stop_scope(id) when is_binary(id),
-    do: DynamicSupervisor.terminate_child(__MODULE__, SupervisorTree.via_tuple(id))
+    do: DynamicSupervisor.terminate_child(__MODULE__, DeploymentScopeSupervisor.via_tuple(id))
 end

@@ -17,6 +17,8 @@ defmodule Staxx.WebApiWeb.ApiChannel do
   Start existing chain
   """
   def handle_in("start_existing", %{"id" => id}, socket) do
+    Logger.error(fn -> "Removed totally. Need to rework !" end)
+
     case Proxy.start(id) do
       {:ok, id} ->
         {:reply, {:ok, %{id: id}}, socket}
@@ -31,6 +33,8 @@ defmodule Staxx.WebApiWeb.ApiChannel do
   """
   def handle_in("start", payload, socket) do
     config = ChainHelper.config_from_payload(payload)
+
+    Logger.error(fn -> "Removed totally. Need to rework !" end)
 
     case Proxy.start(config) do
       {:ok, id} ->
