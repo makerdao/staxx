@@ -80,13 +80,6 @@ defmodule Staxx.Testchain.Helper do
     do: fix_path!(config)
 
   # Expands path like `~/something` to normal path
-  # This function is handler for `output: nil`
-  defp fix_path!(%{db_path: db_path, output: nil} = config),
+  defp fix_path!(%{db_path: db_path} = config),
     do: %Config{config | db_path: Path.expand(db_path)}
-
-  defp fix_path!(%{db_path: db_path, output: ""} = config),
-    do: fix_path!(%Config{config | output: "#{db_path}/out.log"})
-
-  defp fix_path!(%{db_path: db_path, output: output} = config),
-    do: %Config{config | db_path: Path.expand(db_path), output: Path.expand(output)}
 end

@@ -124,8 +124,7 @@ defmodule Staxx.Testchain.EVM do
   @doc """
   This callback is called just before the Process goes down. This is a good place for closing connections.
   """
-  @callback terminate(id :: Testchain.evm_id(), config :: Config.t(), state :: any()) ::
-              term()
+  @callback on_terminate(config :: Config.t(), state :: any()) :: term()
 
   @doc """
   Load list of initial accounts
@@ -209,6 +208,7 @@ defmodule Staxx.Testchain.EVM do
       alias Staxx.Testchain.EVM.{Account, Config, State}
       alias Staxx.Testchain.EVMRegistry
       alias Staxx.Testchain.AccountStore
+      alias Staxx.Testchain.Supervisor, as: TestchainSupervisor
       alias Staxx.Docker
       alias Staxx.Docker.Container
 
@@ -257,6 +257,8 @@ defmodule Staxx.Testchain.EVM do
               """
             end)
 
+            # Handling Container termination
+            Process.flag(:trap_exit, true)
             # Starting given container with EVM
             {:ok, container_pid} = Container.start_link(container)
 
@@ -270,11 +272,6 @@ defmodule Staxx.Testchain.EVM do
             # Operation is async and `status: :active` will be set later
             # See: `handle_info({:check_started, _})`
             check_started(self())
-
-            # Add process monitor for handling pid crash
-            if pid = Map.get(config, :notify_pid) do
-              Process.monitor(pid)
-            end
 
             # Updating EVM state with new values
             state =
@@ -332,10 +329,32 @@ defmodule Staxx.Testchain.EVM do
       # end
 
       @doc false
-      def handle_info({:DOWN, ref, :process, pid, _}, %State{config: config} = state) do
-        Logger.warn("#{config.id} EVM monitoring failed #{inspect(pid)}. Termination in 1 min")
-        Process.demonitor(ref)
-        {:noreply, state, 60_000}
+      def handle_info(
+            {:EXIT, pid, {:shutdown, exit_code}},
+            %State{container_pid: container_pid} = state
+          ) do
+        case pid do
+          ^container_pid ->
+            case Map.get(state, :status) do
+              :terminating ->
+                {:stop, :normal, state}
+
+              status ->
+                Logger.warn(fn ->
+                  "#{state.config.id}: EVM container terminated... Stopping..."
+                end)
+
+                {:stop, {:shutdown, :failed}, state}
+            end
+
+          _ ->
+            {:noreply, state}
+        end
+      end
+
+      def handle_info({:EXIT, _, _} = msg, %State{config: config} = state) do
+        Logger.warn(fn -> "#{config.id} EVM process handled unknown :EXIT #{inspect(msg)}" end)
+        {:noreply, state}
       end
 
       @doc false
@@ -346,8 +365,8 @@ defmodule Staxx.Testchain.EVM do
 
       @doc false
       def handle_info(:timeout, %State{config: %{id: id}} = state) do
-        Logger.warn("#{id}: Monitoring process didn't reconnect. Terminating EVM")
-        {:noreply, state, {:continue, :stop}}
+        Logger.warn("#{id}: Unknown timeout catched..")
+        {:noreply, state}
       end
 
       def handle_info({:check_started, retries}, %State{config: config} = state)
@@ -456,45 +475,6 @@ defmodule Staxx.Testchain.EVM do
       # end
 
       @doc false
-      def handle_info(
-            {_, :result, %Porcelain.Result{status: signal}},
-            %State{status: :terminating, config: config} = state
-          ) do
-        Logger.debug("#{config.id} catched process exit status #{signal} on evm terminating")
-
-        # Everything is ok, terminating GenServer
-        {:stop, :normal, state}
-      end
-
-      @doc false
-      def handle_info(
-            {_, :result, %Porcelain.Result{status: signal}},
-            %State{status: status, config: config} = state
-          ) do
-        Logger.error(
-          "#{config.id} Chain [#{config.type}] failed with exit status: #{inspect(signal)}. Check logs: #{
-            Map.get(config, :output, "")
-          }"
-        )
-
-        Notification.send(config, config.id, :error, %{
-          status: signal,
-          message: "#{config.id} chain terminated with status #{status}"
-        })
-
-        case status do
-          :active ->
-            {:stop, :chain_failure, state}
-
-          :initializing ->
-            {:stop, {:shutdown, :failed_to_start}, state}
-
-          _ ->
-            {:stop, :unknown_chain_status, state}
-        end
-      end
-
-      @doc false
       def handle_info(msg, state) do
         Logger.debug("#{state.config.id}: Got msg #{inspect(msg)}")
         {:noreply, state}
@@ -531,26 +511,6 @@ defmodule Staxx.Testchain.EVM do
             {:reply, {:error, "could not load details"}, state}
         end
       end
-
-      @doc false
-      def handle_call(:lock, _from, %State{status: :active, config: config} = state),
-        do: {:reply, :ok, State.locked(state, true, config)}
-
-      @doc false
-      def handle_call(:lock, _from, state),
-        do: {:reply, {:error, :not_active_status}, state}
-
-      @doc false
-      def handle_call(:unlock, _from, %State{locked: true, config: config} = state),
-        do: {:reply, :ok, State.locked(state, false, config)}
-
-      @doc false
-      def handle_call(:unlock, _from, state),
-        do: {:reply, :ok, state}
-
-      @doc false
-      def handle_cast({:new_notify_pid, pid}, %State{config: config} = state),
-        do: {:noreply, State.config(state, Map.put(config, :notify_pid, pid))}
 
       @doc false
       # def handle_cast(
@@ -611,33 +571,31 @@ defmodule Staxx.Testchain.EVM do
           ) do
         Logger.debug("#{config.id} Terminating evm with reason: #{inspect(reason)}")
 
-        # TODO: Rework termination
-
-        # I have to make terminate function with 3 params. otherwise it might override
-        # `GenServer.terminate/2`
-        terminate(config.id, config, internal_state)
-
-        # We are setting new state and status
-        # because system will send all required notifications
-        # and we really don't care about setting updated state somewhere
-        state
-        |> State.status(:terminated, config)
-        |> State.internal_state(internal_state)
+        on_terminate(config, internal_state)
 
         # If exit reason is normal we could send notification that evm stopped
         case reason do
           r when r in ~w(normal shutdown)a ->
+            # if termination goes with normal status - we are happy
+            State.status(state, :terminated, config)
             # Clean path for chain after it was terminated
             Testchain.EVM.clean_on_stop(config)
             # Send notification after stop
             Notification.send(config, config.id, :stopped)
 
-          other ->
-            Notification.send(config, config.id, :error, %{message: "#{inspect(other)}"})
+          {:shutdown, reason} ->
+            # Sending new error notification
+            Notification.send(config, config.id, :error, %{message: "#{inspect(reason)}"})
+            # Termination was not planned. Seems to be failure
+            State.status(state, :failed, config)
         end
 
+        # Send stop signal to Supervisor
+        # Task.async(fn -> TestchainSupervisor.stop(config.id) end)
+        spawn(fn -> TestchainSupervisor.stop(config.id) end)
+
         # We don't care if it was error or success we have to notify that EVM was terminated
-        Notification.send(config, config.id, :terminated)
+        # Notification.send(config, config.id, :terminated)
       end
 
       @doc """
@@ -645,7 +603,8 @@ defmodule Staxx.Testchain.EVM do
       """
       @spec via(Testchain.evm_id()) :: {:via, Registry, {module, Testchain.evm_id()}}
       def via(id),
-        do: {:via, Registry, {EVMRegistry, id}}
+        # do: {:via, Registry, {EVMRegistry, id}}
+        do: {:global, "evm_#{id}"}
 
       ######
       #
@@ -678,6 +637,10 @@ defmodule Staxx.Testchain.EVM do
 
       @impl EVM
       def pre_stop(_, state), do: state
+
+      @impl EVM
+      def on_terminate(config, state),
+        do: Logger.debug("#{config.id}: Terminating... #{inspect(state, pretty: true)}")
 
       @impl EVM
       def handle_started(%Config{notify_pid: nil}, _internal_state), do: :ok
@@ -798,7 +761,8 @@ defmodule Staxx.Testchain.EVM do
                      pick_ports: 2,
                      migrate_config: 1,
                      get_version: 0,
-                     version: 0
+                     version: 0,
+                     on_terminate: 2
     end
   end
 end

@@ -11,6 +11,7 @@ defmodule Staxx.Testchain.Supervisor do
 
   require Logger
 
+  alias Staxx.Testchain
   alias Staxx.Testchain.Helper
   alias Staxx.Testchain.HealthChecker
   alias Staxx.Testchain.EVM
@@ -28,8 +29,8 @@ defmodule Staxx.Testchain.Supervisor do
   @doc """
   Starts new supervision tree for testchain (EVM + deployment + helpers)
   """
-  def start_link({_id, _config_of_id} = params),
-    do: Supervisor.start_link(__MODULE__, params)
+  def start_link({id, _config_of_id} = params),
+    do: Supervisor.start_link(__MODULE__, params, name: via(id))
 
   @impl true
   def init({id, chain_config}) when is_map(chain_config) do
@@ -43,7 +44,22 @@ defmodule Staxx.Testchain.Supervisor do
       {HealthChecker, id}
     ]
 
-    opts = [strategy: :one_for_all, max_restarts: 0]
+    opts = [strategy: :rest_for_one, max_restarts: 0]
     Supervisor.init(children, opts)
   end
+
+  @doc """
+  Stops supervisor with all it's shildren
+  """
+  @spec stop(Testchain.evm_id()) :: :ok
+  def stop(id) do
+    Logger.debug(fn -> "#{id}: Trying to stop Testchain supervisor tree" end)
+
+    id
+    |> via()
+    |> Supervisor.stop(:normal)
+  end
+
+  defp via(id),
+    do: {:global, "testchain_supervisor_#{id}"}
 end

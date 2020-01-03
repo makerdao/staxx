@@ -4,7 +4,7 @@ defmodule Staxx.Testchain.EVM.State do
 
   Consist of this properties:
    - `status` - Chain status
-   - `locked` - Identify if chain is locked or not
+   - `version` - EVM version
    - `http_port` - HTTP JSONRPC port. In case of `nil` - port will be randomly assigned (Default: `nil`)
    - `ws_port` - WS JSONRPC port, in case of `nil` - port will be randomly assigned
     (for ganache it will be ignored and `http_port` will be used) (Default: `nil`)
@@ -21,7 +21,6 @@ defmodule Staxx.Testchain.EVM.State do
 
   @type t :: %__MODULE__{
           status: EVM.status(),
-          locked: boolean(),
           http_port: non_neg_integer() | nil,
           ws_port: non_neg_integer() | nil,
           version: Version.t() | nil,
@@ -32,7 +31,6 @@ defmodule Staxx.Testchain.EVM.State do
         }
   @enforce_keys [:config]
   defstruct status: :none,
-            locked: false,
             http_port: nil,
             ws_port: nil,
             version: nil,
@@ -74,25 +72,6 @@ defmodule Staxx.Testchain.EVM.State do
     end
 
     %__MODULE__{state | status: status}
-  end
-
-  @doc """
-  Set locked to true and send notification that chain was locked.
-  Notification will be sent only if config is passed and `notify_pid` is set
-
-  In case of chain is already locked - nothing will happen
-  """
-  @spec locked(t(), boolean, Config.t()) :: t()
-  def locked(%__MODULE__{} = state, locked, config \\ %{}) do
-    case locked do
-      true ->
-        Notification.send(config, Map.get(config, :id), :locked)
-
-      false ->
-        Notification.send(config, Map.get(config, :id), :unlocked)
-    end
-
-    %__MODULE__{state | locked: locked}
   end
 
   @doc """

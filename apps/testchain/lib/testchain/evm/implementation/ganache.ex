@@ -30,7 +30,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Ganache do
       description: "#{id}: Ganache EVM",
       cmd: build_command(config, accounts),
       ports: [@http_port],
-      dev_mode: true,
+      # dev_mode: true,
       volumes: ["#{db_path}:#{db_path}"]
     }
 
@@ -43,13 +43,6 @@ defmodule Staxx.Testchain.EVM.Implementation.Ganache do
 
   def pick_ports(_, _),
     do: raise(ArgumentError, "Wrong input ports for Ganache EVM")
-
-  @impl EVM
-  def terminate(id, _config, state) do
-    Logger.debug("#{id}: Terminating... #{inspect(state, pretty: true)}")
-
-    :ok
-  end
 
   @impl EVM
   def docker_image(),

@@ -51,7 +51,7 @@ defmodule Staxx.DeploymentScope.Scope.DeploymentScopeSupervisor do
       StackManagerSupervisor.child_spec(id)
     ]
 
-    opts = [strategy: :one_for_all, max_restarts: 0]
+    opts = [strategy: :rest_for_one, max_restarts: 0]
     Supervisor.init(children, opts)
   end
 

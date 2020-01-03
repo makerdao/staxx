@@ -11,7 +11,6 @@ defmodule Staxx.Testchain.EVM.Config do
   - `gas_limit` - The block gas limit (defaults to `9000000000000`)
   - `accounts` - How many accoutn should be created on start (Default: `1`)
   - `notify_pid` - Internal process id that will be notified on some chain events
-  - `output` - Path to logs file. If empty string passing logs will be stored into `db_path <> /out.log`. To disable logging pass `nil`
   - `clean_on_stop` - Clean up `db_path` after chain is stopped. (Default: `false`)
   - `description` - Chain description for storage
   - `snapshot_id` - Snapshot ID that should be loaded on chain start
@@ -43,7 +42,6 @@ defmodule Staxx.Testchain.EVM.Config do
             block_mine_time: 0,
             gas_limit: 9_000_000_000_000,
             accounts: 1,
-            output: "",
             notify_pid: nil,
             clean_on_stop: false,
             description: "",

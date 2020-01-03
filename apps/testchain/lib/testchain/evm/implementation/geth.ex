@@ -72,7 +72,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth do
       description: "#{id}: Geth EVM",
       cmd: build_cmd(config, accounts),
       ports: [@http_port, @ws_port],
-      dev_mode: true,
+      # dev_mode: true,
       volumes: ["#{db_path}:#{db_path}", "#{AccountsCreator.password_file()}:#{@password_file}"]
     }
 
@@ -85,18 +85,6 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth do
 
   def pick_ports(_, _),
     do: raise(ArgumentError, "Wrong input ports for Geth EVM")
-
-  @impl EVM
-  def terminate(id, config, nil) do
-    Logger.error("#{id} could not start process... Something wrong. Config: #{inspect(config)}")
-    :ok
-  end
-
-  @impl EVM
-  def terminate(id, _config, state) do
-    Logger.debug("#{id}: Terminating... #{inspect(state, pretty: true)}")
-    :ok
-  end
 
   @impl EVM
   def docker_image(),
@@ -180,8 +168,6 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth do
       "--password=#{@password_file}",
       get_etherbase(accounts),
       get_unlock(accounts)
-      # "console"
-      # get_output(output)
     ]
 
     # If version is greater than 1.8.17 need to add additional flag
