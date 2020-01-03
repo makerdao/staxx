@@ -5,9 +5,6 @@ defmodule Staxx.Testchain.EVM.Config do
   Options:
   - `type` - EVM type. (Default: `:ganache`)
   - `id` - Random unique internal process identificator. Example: `"11296068888839073704"`. If empty system will generate it automatically
-  - `http_port` - HTTP JSONRPC port. In case of `nil` - port will be randomly assigned (Default: `nil`)
-  - `ws_port` - WS JSONRPC port, in case of `nil` - port will be randomly assigned
-  (for ganache it will be ignored and `http_port` will be used) (Default: `nil`)
   - `network_id` - Network ID (Default: `Application.get_env(:deployment, :default_chain_id)`)
   - `db_path` - Specify a path to a directory to save the chain database
   - `block_mine_time` - Block period to use in developer mode (0 = mine only if transaction pending) (default: 0)
@@ -28,14 +25,11 @@ defmodule Staxx.Testchain.EVM.Config do
   @type t :: %__MODULE__{
           type: Testchain.evm_type(),
           id: Testchain.evm_id() | nil,
-          http_port: non_neg_integer() | nil,
-          ws_port: non_neg_integer() | nil,
           network_id: non_neg_integer(),
           db_path: binary(),
           block_mine_time: non_neg_integer(),
           gas_limit: pos_integer(),
           accounts: non_neg_integer(),
-          output: binary,
           notify_pid: nil | pid(),
           clean_on_stop: boolean(),
           description: binary,
@@ -44,8 +38,6 @@ defmodule Staxx.Testchain.EVM.Config do
 
   defstruct type: :ganache,
             id: nil,
-            http_port: nil,
-            ws_port: nil,
             network_id: Application.get_env(:ex_chain, :default_chain_id, 999),
             db_path: "",
             block_mine_time: 0,

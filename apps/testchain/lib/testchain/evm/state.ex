@@ -5,6 +5,9 @@ defmodule Staxx.Testchain.EVM.State do
   Consist of this properties:
    - `status` - Chain status
    - `locked` - Identify if chain is locked or not
+   - `http_port` - HTTP JSONRPC port. In case of `nil` - port will be randomly assigned (Default: `nil`)
+   - `ws_port` - WS JSONRPC port, in case of `nil` - port will be randomly assigned
+    (for ganache it will be ignored and `http_port` will be used) (Default: `nil`)
    - `task` - Task scheduled for execution after chain stop
    - `config` - default configuration for chain. Not available in implemented callback functions
    - `internal_state` - state for chain implementation
@@ -19,18 +22,31 @@ defmodule Staxx.Testchain.EVM.State do
   @type t :: %__MODULE__{
           status: EVM.status(),
           locked: boolean(),
+          http_port: non_neg_integer() | nil,
+          ws_port: non_neg_integer() | nil,
           version: Version.t() | nil,
           task: EVM.scheduled_task(),
           config: Config.t(),
+          container_pid: pid,
           internal_state: term()
         }
   @enforce_keys [:config]
   defstruct status: :none,
             locked: false,
+            http_port: nil,
+            ws_port: nil,
             version: nil,
             task: nil,
             config: nil,
+            container_pid: nil,
             internal_state: nil
+
+  @doc """
+  Set new `container_pid` for evm state
+  """
+  @spec container_pid(t(), pid) :: t()
+  def container_pid(%__MODULE__{} = state, pid),
+    do: %__MODULE__{state | container_pid: pid}
 
   @doc """
   Set internal state

@@ -35,5 +35,7 @@ WORKDIR /app
 
 COPY --from=builder "/app/go-ethereum/build/bin/geth" "./geth"
 
+EXPOSE 8545 8546
+
 ENTRYPOINT ["/app/geth"]
 CMD ["version"]

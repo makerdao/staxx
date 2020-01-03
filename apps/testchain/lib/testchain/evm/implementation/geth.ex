@@ -24,8 +24,13 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth do
   # it will be mapped to `AccountsCreator.password_file/0`
   @password_file "/tmp/account_password"
 
+  # Default HTTP RPC port
+  @http_port 8545
+  # Default WS RPC port
+  @ws_port 8546
+
   @impl EVM
-  def start(%Config{id: id, db_path: db_path, http_port: http_port, ws_port: ws_port} = config) do
+  def start(%Config{id: id, db_path: db_path} = config) do
     # We have to create accounts only if we don't have any already
     accounts =
       case AccountStore.exists?(db_path) do
@@ -62,11 +67,11 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth do
 
     container = %Container{
       permanent: true,
-      image: Application.get_env(:testchain, :geth_docker_image),
+      image: docker_image(),
       name: Docker.random_name(),
       description: "#{id}: Geth EVM",
       cmd: build_cmd(config, accounts),
-      ports: [{http_port, http_port}, {ws_port, ws_port}],
+      ports: [@http_port, @ws_port],
       dev_mode: true,
       volumes: ["#{db_path}:#{db_path}", "#{AccountsCreator.password_file()}:#{@password_file}"]
     }
@@ -75,10 +80,11 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth do
   end
 
   @impl EVM
-  def stop(_, %{port: port} = state) do
-    send_command(port, "exit")
-    {:ok, state}
-  end
+  def pick_ports([{http_port, @http_port}, {ws_port, @ws_port}], _),
+    do: {http_port, ws_port}
+
+  def pick_ports(_, _),
+    do: raise(ArgumentError, "Wrong input ports for Geth EVM")
 
   @impl EVM
   def terminate(id, config, nil) do
@@ -88,35 +94,13 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth do
 
   @impl EVM
   def terminate(id, _config, state) do
-    Logger.debug("#{id}: Terminating... #{inspect(state)}")
-    # Porcelain.Process.stop(port)
+    Logger.debug("#{id}: Terminating... #{inspect(state, pretty: true)}")
     :ok
   end
 
   @impl EVM
-  def version(),
-    do: "1.8.27"
-
-  @impl EVM
-  def get_version() do
-    version()
-    |> Version.parse()
-    |> case do
-      {:ok, version} ->
-        version
-
-      _ ->
-        Logger.error("#{__MODULE__} Failed to parse version for geth")
-        nil
-    end
-  end
-
-  @doc """
-  Path to `geth` executable in system. For generating accounts + runing `geth init`
-  """
-  @spec executable!() :: binary
-  def executable!(),
-    do: Application.get_env(:testchain, :geth_executable, "geth")
+  def docker_image(),
+    do: Application.get_env(:testchain, :geth_docker_image)
 
   @doc """
   Bootstrap and initialize a new genesis block.
@@ -127,7 +111,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth do
   @spec init_chain(binary) :: :ok | {:error, term()}
   def init_chain(db_path) do
     %Container{
-      image: Application.get_env(:testchain, :geth_docker_image),
+      image: docker_image(),
       cmd: "--datadir #{db_path} init #{db_path}/genesis.json",
       volumes: ["#{db_path}:#{db_path}"]
     }
@@ -141,27 +125,6 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth do
         Logger.error("#{__MODULE__}: Failed to run `geth init`. exited with code: #{code}")
         {:error, :init_failed}
     end
-  end
-
-  @doc """
-  Execute special console command on started node.
-  Be default command will be executed using HTTP JSONRPC console.
-
-  Comamnd will be used:
-  `geth --exec "${command}" attach http://localhost:${http_port}`
-
-  Example:
-  ```elixir
-  iex()> Staxx.Testchain.EVM.Implementation.Geth.exec_command(8545, "eth_blockNumber")
-  {:ok, 80}
-  ```
-  """
-  @spec exec_command(binary | non_neg_integer(), binary, term()) ::
-          {:ok, term()} | {:error, term()}
-  def exec_command(http_port, command, params \\ nil)
-      when is_binary(http_port) or is_integer(http_port) do
-    "http://localhost:#{http_port}"
-    |> Staxx.JsonRpc.call(command, params)
   end
 
   #
@@ -189,9 +152,6 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth do
          %Config{
            db_path: db_path,
            network_id: network_id,
-           http_port: http_port,
-           ws_port: ws_port,
-           output: output,
            gas_limit: gas_limit
          },
          accounts
@@ -207,13 +167,13 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth do
       "--mine",
       "--minerthreads=1",
       "--rpc",
-      "--rpcport #{http_port}",
+      "--rpcport #{@http_port}",
       "--rpcapi admin,personal,eth,miner,debug,txpool,net,web3,db,ssh",
       "--rpcaddr=\"0.0.0.0\"",
       "--rpccorsdomain=\"*\"",
       "--rpcvhosts=\"*\"",
       "--ws",
-      "--wsport #{ws_port}",
+      "--wsport #{@ws_port}",
       "--wsorigins=\"*\"",
       "--gasprice=\"2000000000\"",
       "--targetgaslimit=\"#{gas_limit}\"",
@@ -257,23 +217,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth do
   defp get_etherbase([%Account{address: address} | _]),
     do: "--etherbase=#{address}"
 
-  # Get path for logging
-  defp get_output(""), do: "2>> /dev/null"
-  defp get_output(path) when is_binary(path), do: "2>> #{path}"
-  # Ignore in any other case
-  defp get_output(_), do: "2>> /dev/null"
-
   #####
   # End of list
   #####
-
-  # Send command to port
-  # This action will send command directly to started node console.
-  # Without attaching.
-  # If you will send breacking command - node might exit
-
-  defp send_command(port, command) do
-    Porcelain.Process.send_input(port, command <> "\n")
-    :ok
-  end
 end

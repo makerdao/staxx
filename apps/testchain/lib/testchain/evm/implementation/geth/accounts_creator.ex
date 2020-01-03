@@ -10,6 +10,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth.AccountsCreator do
   alias Staxx.Docker.Container
   alias Staxx.Docker.Struct.SyncResult
   alias Staxx.Testchain.EVM.Account
+  alias Staxx.Testchain.EVM.Implementation.Geth
 
   @timeout 60_000
 
@@ -83,6 +84,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth.AccountsCreator do
       {:ok, account}
     else
       err ->
+        Logger.error(fn -> "Failed to create new geth account: #{inspect(err, pretty: true)}" end)
         # have to recheck if priv key file still exist
         if File.exists?(priv_file) do
           File.rm(priv_file)
@@ -136,7 +138,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth.AccountsCreator do
   # Executing `geth accoutn import` command with correct params
   defp execute(db_path, priv_file) do
     %Container{
-      image: Application.get_env(:testchain, :geth_docker_image),
+      image: Geth.docker_image(),
       cmd: "account import --datadir #{db_path} --password #{@password_file} #{priv_file}",
       volumes: ["#{db_path}:#{db_path}", "#{password_file()}:#{@password_file}"]
     }

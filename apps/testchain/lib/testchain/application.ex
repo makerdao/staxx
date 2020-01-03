@@ -15,7 +15,6 @@ defmodule Staxx.Testchain.Application do
     # List all child processes to be supervised
     children = [
       {Registry, keys: :unique, name: Staxx.Testchain.EVMRegistry},
-      Staxx.Testchain.PortReserver,
       :poolboy.child_spec(:worker, AccountsCreator.poolboy_config())
     ]
 

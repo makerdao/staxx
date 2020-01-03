@@ -57,4 +57,27 @@ defmodule Staxx.Docker.ContainerTest do
 
     refute PortMapper.reserved?(port)
   end
+
+  test "info/1 should get all information about container" do
+    name = Faker.String.base64()
+
+    container = %Container{
+      name: name,
+      image: Faker.String.base64(),
+      network: Faker.String.base64()
+    }
+
+    assert {:ok, pid} =
+             container
+             |> Container.start_link()
+
+    %Container{name: ^name, image: ^image, network: ^network} = Container.info(name)
+    %Container{name: ^name, image: ^image, network: ^network} = Container.info(pid)
+
+    Process.monitor(pid)
+
+    assert :ok = Container.terminate(name)
+
+    assert_receive {:DOWN, _, :process, ^pid, :normal}
+  end
 end

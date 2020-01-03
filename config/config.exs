@@ -144,6 +144,7 @@ config :testchain,
   geth_docker_image: "makerdao/geth_evm:1.8.27",
   # geth_executable: "/tmp/chains/test/go-ethereum/build/bin/geth",
   geth_password_file: Path.expand("#{__DIR__}/../priv/presets/geth/account_password"),
+  ganache_docker_image: "makerdao/ganache_evm:6.7.0",
   ganache_executable: Path.expand("#{__DIR__}/../priv/presets/ganache-cli/cli.js"),
   ganache_wrapper_file: Path.expand("#{__DIR__}/../priv/presets/ganache/wrapper.sh")
 

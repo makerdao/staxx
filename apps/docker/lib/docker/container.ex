@@ -171,18 +171,35 @@ defmodule Staxx.Docker.Container do
     {:stop, {:shutdown, exit_code}, state}
   end
 
+  @doc false
   def handle_call(:info, _from, state),
     do: {:reply, state, state}
 
   @doc """
+  Get container information for given name/pid
+  """
+  @spec info(pid | binary) :: t()
+  def info(name) when is_binary(name) do
+    name
+    |> via_tuple()
+    |> GenServer.call(:info)
+  end
+
+  def info(pid),
+    do: GenServer.call(pid, :info)
+
+  @doc """
   Terminate container process by container Name
   """
-  @spec terminate(binary) :: :ok
+  @spec terminate(pid | binary) :: :ok
   def terminate(name) when is_binary(name) do
     name
     |> via_tuple()
     |> GenServer.cast(:terminate)
   end
+
+  def terminate(pid),
+    do: GenServer.cast(pid, :terminate)
 
   @doc """
   Send die event from docker to container process by container Name

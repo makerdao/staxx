@@ -119,6 +119,8 @@ defmodule Staxx.Docker do
       |> case do
         {:ok, exit_code} ->
           data = logs(name)
+          # Remove docker image
+          rm(name)
           %SyncResult{status: exit_code, data: data}
 
         {:error, err} ->

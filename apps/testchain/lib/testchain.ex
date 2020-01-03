@@ -5,7 +5,6 @@ defmodule Staxx.Testchain do
 
   require Logger
 
-  alias Staxx.Testchain.EVM.{Config}
   alias Staxx.Testchain.EVMRegistry
   alias Staxx.Storage
 
@@ -127,26 +126,4 @@ defmodule Staxx.Testchain do
         nil
     end
   end
-
-  # Same as `get_pid\1` but will raise in case of issue
-  defp get_pid!(id) do
-    case get_pid(id) do
-      nil ->
-        raise "No pid found"
-
-      pid ->
-        pid
-    end
-  end
-
-  # Expands path like `~/something` to normal path
-  # This function is handler for `output: nil`
-  defp fix_path(%{db_path: db_path, output: nil} = config),
-    do: %Config{config | db_path: Path.expand(db_path)}
-
-  defp fix_path(%{db_path: db_path, output: ""} = config),
-    do: fix_path(%Config{config | output: "#{db_path}/out.log"})
-
-  defp fix_path(%{db_path: db_path, output: output} = config),
-    do: %Config{config | db_path: Path.expand(db_path), output: Path.expand(output)}
 end

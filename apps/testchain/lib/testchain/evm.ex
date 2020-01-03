@@ -20,27 +20,35 @@ defmodule Staxx.Testchain.EVM do
   Meanings:
 
   - `:none` - Did nothing. Initial status
-  - `:starting` - Starting chain process (Not operational)
+  - `:initializing` - Starting chain process (Not operational)
   - `:active` - Fully operational chain
   - `:terminating` - Termination process started (Not operational)
   - `:terminated` - Chain terminated (Not operational)
+  - `:deploying` - Chain operational and deployment process started
+  - `:deployment_failed` - Deployment process failed with error
+  - `:deployment_success` - Deployment process sucessfuly finished
   - `:snapshot_taking` - EVM is stopping/stoped to make hard snapshot for evm DB. (Not operational)
   - `:snapshot_taken` - EVM took snapshot and now is in starting process (Not operational)
   - `:snapshot_reverting` - EVM stopping/stoped and in process of restoring snapshot (Not operational)
   - `:snapshot_reverted` - EVM restored snapshot and is in starting process (Not operational)
   - `:failed` - Critical error occured
+  - `:ready` - Chain finished all tasks and totaly ready
   """
   @type status ::
           :none
-          | :starting
+          | :initializing
           | :active
           | :terminating
           | :terminated
+          | :deploying
+          | :deployment_failed
+          | :deployment_success
           | :snapshot_taking
           | :snapshot_taken
           | :snapshot_reverting
           | :snapshot_reverted
           | :failed
+          | :ready
 
   # @typedoc """
   # Task that should be performed.
@@ -67,16 +75,14 @@ defmodule Staxx.Testchain.EVM do
           | {:error, term()}
 
   @doc """
-  Callback will be called on chain starting process.
-  It should return 2 ports one for http RPC and another one for WS RPC.
-  Also method have to reserve this ports using `Chain.PortReserver` module
-  so no other processes should be able to use this ports
+  Callback that should return docker image for EVM
   """
-  @callback get_ports() :: {http_port :: pos_integer(), ws_port :: pos_integer()}
+  @callback docker_image() :: binary
 
   @doc """
-  Callback will be called on chain starting process after `EVM.get_ports/0`
-  and this is correct place to make internal changes for concrete chain.
+  Callback will be called on chain starting after all internal modifications
+  but before actual EVM start so
+  this is correct place to make internal changes for concrete chain.
   For example you might replace `gas_limit` value for geth chain.
   """
   @callback migrate_config(Config.t()) :: Config.t()
@@ -92,28 +98,28 @@ defmodule Staxx.Testchain.EVM do
   @callback start(config :: Config.t()) :: {:ok, Container.t(), state :: any()} | {:error, term()}
 
   @doc """
-  This callback will be called when system will need to stop EVM.
+  Callback will be called after EVM container start and system will assign ports to it.
+  It have to pick correct ports from given ports list.
+  Ports information might be found in `Staxx.Docker.Container.t()`.
 
-  **Note:** this function will be called several times and if it wouldn't return
-  success after `@max_start_checks` EVM will raise error. Be ready for that.
+  Result of this function have to be 2 ports for `{http_port, ws_port}`
   """
-  @callback stop(config :: Config.t(), state :: any()) :: action_reply()
+  @callback pick_ports([{host_port :: pos_integer, internal_port :: pos_integer}], state :: any()) ::
+              {pos_integer, pos_integer}
 
   @doc """
-  Callback is called to check if EVM started and responsive
+  This callback will be called when system will need to stop EVM.
+  Just before actual EVM termination this function will be called.
+  So it's nice place to stop some custom work you are doing on EVM.
+
+  Result value should be updated internal state
   """
-  @callback started?(config :: Config.t(), state :: any()) :: boolean()
+  @callback pre_stop(config :: Config.t(), state :: any()) :: any()
 
   @doc """
   Callback will be invoked after EVM started and confirmed it by `started?/2`
   """
   @callback handle_started(config :: Config.t(), state :: any()) :: action_reply()
-
-  @doc """
-  Handle incomming message from started OS chain process
-  """
-  @callback handle_msg(msg :: term(), config :: Config.t(), state :: any()) ::
-              action_reply()
 
   @doc """
   This callback is called just before the Process goes down. This is a good place for closing connections.
@@ -201,7 +207,6 @@ defmodule Staxx.Testchain.EVM do
       alias Staxx.Testchain
       alias Staxx.Testchain.EVM
       alias Staxx.Testchain.EVM.{Account, Config, State}
-      alias Staxx.Testchain.PortReserver
       alias Staxx.Testchain.EVMRegistry
       alias Staxx.Testchain.AccountStore
       alias Staxx.Docker
@@ -212,6 +217,9 @@ defmodule Staxx.Testchain.EVM do
       # maximum amount of checks for evm started
       # system checks if evm started every 200ms
       @max_start_checks 30 * 5
+
+      # Amount of milliseconds we will wait EVM container to terminate.
+      @evm_stop_timeout 60_000
 
       @doc false
       def start_link(%Config{id: nil}), do: {:error, :id_required}
@@ -231,15 +239,10 @@ defmodule Staxx.Testchain.EVM do
           :ok = File.mkdir_p!(db_path)
         end
 
-        {http_port, ws_port} = get_ports()
-
-        new_config =
-          %Config{config | http_port: http_port, ws_port: ws_port}
-          |> migrate_config()
-
+        new_config = migrate_config(config)
         version = get_version()
 
-        {:ok, %State{status: :starting, config: new_config, version: version},
+        {:ok, %State{status: :initializing, config: new_config, version: version},
          {:continue, :start_chain}}
       end
 
@@ -254,24 +257,33 @@ defmodule Staxx.Testchain.EVM do
               """
             end)
 
-            container
-            |> Container.start_link()
-            |> IO.inspect()
+            # Starting given container with EVM
+            {:ok, container_pid} = Container.start_link(container)
+
+            # Get container info for EVM
+            %Container{ports: ports} = Container.info(container_pid)
+
+            # Getting reserved by Docker ports
+            {http_port, ws_port} = pick_ports(ports, internal_state)
 
             # Schedule started check
             # Operation is async and `status: :active` will be set later
             # See: `handle_info({:check_started, _})`
             check_started(self())
 
-            %Config{notify_pid: pid} = config
-
             # Add process monitor for handling pid crash
-            if pid do
+            if pid = Map.get(config, :notify_pid) do
               Process.monitor(pid)
             end
 
-            # Added. finishing
-            {:noreply, State.internal_state(state, internal_state)}
+            # Updating EVM state with new values
+            state =
+              %State{state | http_port: http_port, ws_port: ws_port}
+              |> State.config(config)
+              |> State.container_pid(container_pid)
+              |> State.internal_state(internal_state)
+
+            {:noreply, state}
 
           {:error, err} ->
             Logger.error("#{config.id}: on start: #{inspect(err)}")
@@ -280,42 +292,44 @@ defmodule Staxx.Testchain.EVM do
       end
 
       @doc false
-      def handle_continue(:stop, %State{config: config, internal_state: internal_state} = state) do
-        case stop(config, internal_state) do
-          {:ok, new_internal_state} ->
-            Logger.debug("#{config.id}: Successfully stopped EVM")
+      def handle_continue(
+            :stop,
+            %State{config: config, container_pid: pid, internal_state: internal_state} = state
+          ) do
+        Logger.debug(fn -> "#{config.id}: Stopping EVM container." end)
 
-            new_state =
-              state
-              |> State.status(:terminating, config)
-              |> State.internal_state(new_internal_state)
+        # Calling pre stop function to stop something.
+        new_internal_state = pre_stop(config, internal_state)
 
-            # Stop timeout
-            {:noreply, new_state, 60_000}
+        # Terminating container
+        :ok = Container.terminate(pid)
 
-          {:error, err} ->
-            Logger.error("#{config.id}: Failed to stop EVM with error: #{inspect(err)}")
-            {:stop, :shutdown, state}
-        end
+        new_state =
+          state
+          |> State.status(:terminating, config)
+          |> State.internal_state(new_internal_state)
+
+        # Stop timeout
+        {:noreply, new_state, @evm_stop_timeout}
       end
 
       @doc false
       # method will be called after snapshot for evm was taken and EVM switched to `:snapshot_taken` status.
       # here evm will be started again
-      def handle_continue(
-            :start_after_task,
-            %State{status: status, config: config} = state
-          )
-          when status in ~w(snapshot_taken snapshot_reverted)a do
-        Logger.debug("#{config.id} Starting chain after #{status}")
-        # Start chain process
-        {:ok, new_internal_state} = start(config)
-        # Schedule started check
-        # Operation is async and `status: :active` will be set later
-        # See: `handle_info({:check_started, _})`
-        check_started(self())
-        {:noreply, State.internal_state(state, new_internal_state)}
-      end
+      # def handle_continue(
+      #       :start_after_task,
+      #       %State{status: status, config: config} = state
+      #     )
+      #     when status in ~w(snapshot_taken snapshot_reverted)a do
+      #   Logger.debug("#{config.id} Starting chain after #{status}")
+      #   # Start chain process
+      #   {:ok, new_internal_state} = start(config)
+      #   # Schedule started check
+      #   # Operation is async and `status: :active` will be set later
+      #   # See: `handle_info({:check_started, _})`
+      #   check_started(self())
+      #   {:noreply, State.internal_state(state, new_internal_state)}
+      # end
 
       @doc false
       def handle_info({:DOWN, ref, :process, pid, _}, %State{config: config} = state) do
@@ -326,8 +340,8 @@ defmodule Staxx.Testchain.EVM do
 
       @doc false
       def handle_info(:timeout, %State{config: %{id: id}, status: :terminating} = state) do
-        Logger.warn("#{id}: EVM didn't stop after a minute !")
-        {:noreply, state, {:continue, :stop}}
+        Logger.warn("#{id}: EVM didn't stop after timeout ! Terminating...")
+        {:stop, {:shutdown, :timeout}, state}
       end
 
       @doc false
@@ -354,7 +368,7 @@ defmodule Staxx.Testchain.EVM do
           ) do
         Logger.debug("#{config.id}: Check if evm JSON RPC became operational")
 
-        case started?(config, internal_state) do
+        case started?(state) do
           true ->
             Logger.debug("#{config.id}: EVM Finally operational !")
 
@@ -369,16 +383,6 @@ defmodule Staxx.Testchain.EVM do
             check_started(self(), retries + 1)
             {:noreply, state}
         end
-      end
-
-      @doc false
-      def handle_info(
-            {_pid, :data, :out, msg},
-            %State{config: config, internal_state: internal_state} = state
-          ) do
-        msg
-        |> handle_msg(config, internal_state)
-        |> handle_action(state)
       end
 
       # @doc false
@@ -482,7 +486,7 @@ defmodule Staxx.Testchain.EVM do
           :active ->
             {:stop, :chain_failure, state}
 
-          :starting ->
+          :initializing ->
             {:stop, {:shutdown, :failed_to_start}, state}
 
           _ ->
@@ -549,22 +553,22 @@ defmodule Staxx.Testchain.EVM do
         do: {:noreply, State.config(state, Map.put(config, :notify_pid, pid))}
 
       @doc false
-      def handle_cast(
-            {:take_snapshot, description},
-            %State{status: :active, locked: false, config: config, internal_state: internal_state} =
-              state
-          ) do
-        Logger.debug("#{config.id} stopping emv before taking snapshot")
-        {:ok, new_internal_state} = stop(config, internal_state)
+      # def handle_cast(
+      #       {:take_snapshot, description},
+      #       %State{status: :active, locked: false, config: config, internal_state: internal_state} =
+      #         state
+      #     ) do
+      #   Logger.debug("#{config.id} stopping emv before taking snapshot")
+      #   {:ok, new_internal_state} = stop(config, internal_state)
 
-        new_state =
-          state
-          |> State.status(:snapshot_taking, config)
-          |> State.task({:take_snapshot, description})
-          |> State.internal_state(new_internal_state)
+      #   new_state =
+      #     state
+      #     |> State.status(:snapshot_taking, config)
+      #     |> State.task({:take_snapshot, description})
+      #     |> State.internal_state(new_internal_state)
 
-        {:noreply, new_state}
-      end
+      #   {:noreply, new_state}
+      # end
 
       @doc false
       def handle_cast({:take_snapshot, _}, state) do
@@ -573,22 +577,22 @@ defmodule Staxx.Testchain.EVM do
       end
 
       @doc false
-      def handle_cast(
-            {:revert_snapshot, snapshot},
-            %State{status: :active, locked: false, config: config, internal_state: internal_state} =
-              state
-          ) do
-        Logger.debug("#{config.id} stopping emv before reverting snapshot")
-        {:ok, new_internal_state} = stop(config, internal_state)
+      # def handle_cast(
+      #       {:revert_snapshot, snapshot},
+      #       %State{status: :active, locked: false, config: config, internal_state: internal_state} =
+      #         state
+      #     ) do
+      #   Logger.debug("#{config.id} stopping emv before reverting snapshot")
+      #   {:ok, new_internal_state} = stop(config, internal_state)
 
-        new_state =
-          state
-          |> State.status(:snapshot_reverting, config)
-          |> State.task({:revert_snapshot, snapshot})
-          |> State.internal_state(new_internal_state)
+      #   new_state =
+      #     state
+      #     |> State.status(:snapshot_reverting, config)
+      #     |> State.task({:revert_snapshot, snapshot})
+      #     |> State.internal_state(new_internal_state)
 
-        {:noreply, new_state}
-      end
+      #   {:noreply, new_state}
+      # end
 
       @doc false
       def handle_cast({:revert_snapshot, _}, state) do
@@ -606,6 +610,8 @@ defmodule Staxx.Testchain.EVM do
             %State{config: config, internal_state: internal_state} = state
           ) do
         Logger.debug("#{config.id} Terminating evm with reason: #{inspect(reason)}")
+
+        # TODO: Rework termination
 
         # I have to make terminate function with 3 params. otherwise it might override
         # `GenServer.terminate/2`
@@ -646,36 +652,32 @@ defmodule Staxx.Testchain.EVM do
       # Default implementation functions for any EVM
       #
       ######
+      @impl EVM
+      def pick_ports([{http_port, _}, {ws_port, _}], _),
+        do: {http_port, ws_port}
+
+      def pick_ports(_, _),
+        do: raise(ArgumentError, "Wrong input ports for EVM")
 
       @impl EVM
-      def get_ports() do
-        http_port = PortReserver.new_unused_port()
-        ws_port = PortReserver.new_unused_port()
+      def get_version() do
+        version()
+        |> Version.parse()
+        |> case do
+          {:ok, version} ->
+            version
 
-        {http_port, ws_port}
+          _ ->
+            Logger.error("#{__MODULE__} Failed to parse version for geth")
+            nil
+        end
       end
-
-      @impl EVM
-      def get_version(), do: nil
 
       @impl EVM
       def migrate_config(config), do: config
 
       @impl EVM
-      def handle_msg(_str, _config, _state), do: :ignore
-
-      @impl EVM
-      def started?(%Config{id: id, http_port: http_port}, _) do
-        Logger.debug("#{id}: Checking if EVM online")
-
-        case JsonRpc.eth_coinbase("http://localhost:#{http_port}") do
-          {:ok, <<"0x", _::binary>>} ->
-            true
-
-          _ ->
-            false
-        end
-      end
+      def pre_stop(_, state), do: state
 
       @impl EVM
       def handle_started(%Config{notify_pid: nil}, _internal_state), do: :ok
@@ -691,7 +693,11 @@ defmodule Staxx.Testchain.EVM do
         do: {:reply, load_accounts(db_path), state}
 
       @impl EVM
-      def version(), do: "x.x.x"
+      def version() do
+        docker_image()
+        |> String.split(":")
+        |> List.last()
+      end
 
       ########
       #
@@ -699,16 +705,29 @@ defmodule Staxx.Testchain.EVM do
       #
       ########
 
+      # Check if EVM started and operational
+      defp started?(%State{config: %Config{id: id}, http_port: http_port}) do
+        Logger.debug("#{id}: Checking if EVM started")
+
+        case JsonRpc.eth_coinbase("http://localhost:#{http_port}") do
+          {:ok, <<"0x", _::binary>>} ->
+            true
+
+          _ ->
+            false
+        end
+      end
+
       # Get chain details by config
-      defp details(%Config{
-             id: id,
-             db_path: db_path,
-             notify_pid: pid,
-             http_port: http_port,
-             ws_port: ws_port,
-             network_id: network_id,
-             gas_limit: gas_limit
-           }) do
+      defp details(%State{config: config, http_port: http_port, ws_port: ws_port}) do
+        %Config{
+          id: id,
+          db_path: db_path,
+          notify_pid: pid,
+          network_id: network_id,
+          gas_limit: gas_limit
+        } = config
+
         # Making request using async to not block scheduler
         [{:ok, coinbase}, {:ok, accounts}] =
           [
@@ -775,11 +794,10 @@ defmodule Staxx.Testchain.EVM do
 
       # Allow to override functions
       defoverridable handle_started: 2,
-                     get_ports: 0,
-                     get_version: 0,
+                     pre_stop: 2,
+                     pick_ports: 2,
                      migrate_config: 1,
-                     started?: 2,
-                     handle_msg: 3,
+                     get_version: 0,
                      version: 0
     end
   end
