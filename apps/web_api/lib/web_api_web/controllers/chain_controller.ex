@@ -133,13 +133,6 @@ defmodule Staxx.WebApiWeb.ChainController do
     end
   end
 
-  def stop(conn, %{"id" => id}) do
-    Proxy.stop(id)
-
-    conn
-    |> json(%{status: 0, details: %{}})
-  end
-
   # Generate path where to store file
   defp copy_snapshot(%Plug.Upload{path: path, filename: name}) do
     destination =

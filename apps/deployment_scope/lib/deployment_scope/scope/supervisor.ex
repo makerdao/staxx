@@ -12,6 +12,7 @@ defmodule Staxx.DeploymentScope.Scope.DeploymentScopeSupervisor do
   require Logger
 
   alias Staxx.DeploymentScope
+  alias Staxx.DeploymentScope.Terminator
   alias Staxx.DeploymentScope.Scope.StackManagerSupervisor
   alias Staxx.DeploymentScope.ScopeRegistry
   alias Staxx.Testchain.Supervisor, as: TestchainSupervisor
@@ -34,14 +35,22 @@ defmodule Staxx.DeploymentScope.Scope.DeploymentScopeSupervisor do
 
     # have to start stack managers here. Because need to be sure that testchain
     # already started, before starting stacks.
-    case res do
-      {:ok, _} ->
-        start_stack_managers(id, stacks)
-        res
+    if {:ok, pid} = res do
+      pid
+      |> Supervisor.which_children()
+      |> Enum.find(fn {_, _, _, [module]} -> module == TestchainSupervisor end)
+      |> case do
+        nil ->
+          Logger.warn("#{id}: No Staxx.Testchain.Supervisor child found...")
 
-      _ ->
-        res
+        {_, pid, _, _} ->
+          Terminator.monitor(pid)
+      end
+
+      start_stack_managers(id, stacks)
     end
+
+    res
   end
 
   @impl true

@@ -44,7 +44,7 @@ defmodule Staxx.Testchain.Supervisor do
       {HealthChecker, id}
     ]
 
-    opts = [strategy: :rest_for_one, max_restarts: 0]
+    opts = [strategy: :rest_for_one]
     Supervisor.init(children, opts)
   end
 
@@ -57,9 +57,10 @@ defmodule Staxx.Testchain.Supervisor do
 
     id
     |> via()
-    |> Supervisor.stop(:normal)
+    |> Supervisor.stop({:shutdown, id})
   end
 
   defp via(id),
+    # do: {:via, Registry, {EVMRegistry, "supervisor_#{id}"}}
     do: {:global, "testchain_supervisor_#{id}"}
 end

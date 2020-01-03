@@ -110,18 +110,9 @@ defmodule Staxx.DeploymentScope do
   @doc """
   Stop supervision tree for deployment scope with given ID
   """
-  @spec stop(binary) :: :ok
-  def stop(id) do
-    case alive?(id) do
-      true ->
-        id
-        |> DeploymentScopeSupervisor.via_tuple()
-        |> Supervisor.stop(:normal)
-
-      false ->
-        :ok
-    end
-  end
+  @spec stop(binary) :: :ok | {:error, term}
+  def stop(id),
+    do: ScopesSupervisor.stop_scope(id)
 
   @doc """
   Check if given deployment scope is alive
