@@ -228,7 +228,6 @@ defmodule Staxx.Docker do
         {:erorr, :timeout}
     end
   end
-  
-  defp receive_exit(_), do: {:error, "unknown process for traping exit"}
 
+  defp receive_exit(_), do: {:error, "unknown process for traping exit"}
 end

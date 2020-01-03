@@ -2,14 +2,14 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth.AccountsCreator do
   @moduledoc """
   Module handles all work related to accounts creation for geth
   """
-  alias Staxx.Docker
-  alias Staxx.Docker.Container
-  alias Staxx.Testchain.EVM.Account
-  alias Staxx.Testchain.EVM.Implementation.Geth
-
   use GenServer
 
   require Logger
+
+  alias Staxx.Docker
+  alias Staxx.Docker.Container
+  alias Staxx.Docker.Struct.SyncResult
+  alias Staxx.Testchain.EVM.Account
 
   @timeout 60_000
 
@@ -32,7 +32,15 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth.AccountsCreator do
         {:reply, account, state}
 
       {:error, err} ->
-        Logger.error("Failed to create account: #{inspect(err)}")
+        Logger.error(fn ->
+          """
+          Failed to import geth account:
+          Path: #{db_path}
+          Error:
+            #{inspect(err)}
+          """
+        end)
+
         {:reply, nil, state}
     end
   end
@@ -75,7 +83,6 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth.AccountsCreator do
       {:ok, account}
     else
       err ->
-        IO.inspect(err)
         # have to recheck if priv key file still exist
         if File.exists?(priv_file) do
           File.rm(priv_file)
@@ -129,41 +136,22 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth.AccountsCreator do
   # Executing `geth accoutn import` command with correct params
   defp execute(db_path, priv_file) do
     %Container{
-      permanent: false,
       image: Application.get_env(:testchain, :geth_docker_image),
       cmd: "account import --datadir #{db_path} --password #{@password_file} #{priv_file}",
       volumes: ["#{db_path}:#{db_path}", "#{password_file()}:#{@password_file}"]
     }
     |> Docker.run_sync()
-    |> IO.inspect()
     |> case do
-      %{status: 0, data: data} ->
+      %SyncResult{status: 0, data: data} ->
         <<"Address: {", address::binary-size(40), _::binary>> =
           data
           |> String.split("\n")
-          |> IO.inspect()
           |> List.last()
 
-        IO.inspect(address)
         {:ok, address}
 
-      %{data: data} ->
-        IO.inspect(data)
-        {:error, "error creating new geth account with private key"}
+      res ->
+        {:error, res}
     end
-
-    # result =
-    #   "#{Geth.executable!()} account import --datadir #{db_path} --password #{password_file()} #{
-    #     priv_file
-    #   } 2>/dev/null"
-    #   |> Porcelain.shell()
-
-    # case result do
-    #   %{status: 0, err: nil, out: <<"Address: {", address::binary-size(40), _::binary>>} ->
-    #     {:ok, address}
-
-    #   _ ->
-    #     {:error, "error creating new geth account with private key"}
-    # end
   end
 end

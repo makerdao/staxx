@@ -13,6 +13,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth do
   """
   use Staxx.Testchain.EVM
 
+  alias Staxx.Docker.Struct.SyncResult
   alias Staxx.Testchain.AccountStore
   alias Staxx.Testchain.EVM.Implementation.Geth.Genesis
   alias Staxx.Testchain.EVM.Implementation.Geth.AccountsCreator
@@ -126,18 +127,17 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth do
   @spec init_chain(binary) :: :ok | {:error, term()}
   def init_chain(db_path) do
     %Container{
-      permanent: false,
       image: Application.get_env(:testchain, :geth_docker_image),
       cmd: "--datadir #{db_path} init #{db_path}/genesis.json",
       volumes: ["#{db_path}:#{db_path}"]
     }
     |> Docker.run_sync()
     |> case do
-      %{status: 0} ->
+      %SyncResult{status: 0} ->
         Logger.debug("#{__MODULE__} geth initialized chain in #{db_path}")
         :ok
 
-      %{status: code} ->
+      %SyncResult{status: code} ->
         Logger.error("#{__MODULE__}: Failed to run `geth init`. exited with code: #{code}")
         {:error, :init_failed}
     end
