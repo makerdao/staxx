@@ -6,11 +6,20 @@ defmodule Staxx.Docker.Adapter.Mock do
 
   require Logger
 
-  alias Staxx.Docker.Struct.Container
+  alias Staxx.Docker.Container
 
   @impl true
   def start(%Container{name: name} = container),
     do: {:ok, %Container{container | id: name}}
+
+  @impl true
+  def run_sync(%Container{}), do: "ok"
+
+  @impl true
+  def logs(id), do: ""
+
+  @impl true
+  def rm(id), do: :ok
 
   @impl true
   def stop(""), do: {:error, "No container id passed"}

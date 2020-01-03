@@ -8,7 +8,8 @@ defmodule Staxx.Docker.EventListener do
   """
   use GenServer
 
-  alias Staxx.Docker.Struct.{Container, Event}
+  alias Staxx.Docker.Container
+  alias Staxx.Docker.Struct.Event
   alias Staxx.EventStream
 
   require Logger
@@ -110,7 +111,12 @@ defmodule Staxx.Docker.EventListener do
         }
 
         if event.event == "die" and event.name do
-          Container.die(event.name)
+          exit_code =
+            event.attributes
+            |> Map.get("exitCode", "1")
+            |> String.to_integer()
+
+          Container.die(event.name, exit_code)
         end
 
         # Logger send docker event to event stream

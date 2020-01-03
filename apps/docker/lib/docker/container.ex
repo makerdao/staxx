@@ -1,4 +1,4 @@
-defmodule Staxx.Docker.Struct.Container do
+defmodule Staxx.Docker.Container do
   @moduledoc """
   Default container structure and worker.
   """
@@ -163,9 +163,12 @@ defmodule Staxx.Docker.Struct.Container do
   end
 
   @doc false
-  def handle_cast(:die, %__MODULE__{id: id} = state) do
-    Logger.debug(fn -> "Container died #{id} PID.\n #{inspect(state)}" end)
-    {:stop, {:shutdown, :died}, state}
+  def handle_cast({:die, exit_code}, %__MODULE__{id: id} = state) do
+    Logger.debug(fn ->
+      "Container died #{id} with exit code #{exit_code}.\n #{inspect(state, pretty: true)}"
+    end)
+
+    {:stop, {:shutdown, exit_code}, state}
   end
 
   def handle_call(:info, _from, state),
@@ -184,11 +187,11 @@ defmodule Staxx.Docker.Struct.Container do
   @doc """
   Send die event from docker to container process by container Name
   """
-  @spec die(binary) :: :ok
-  def die(name) when is_binary(name) do
+  @spec die(binary, pos_integer) :: :ok
+  def die(name, exit_code) when is_binary(name) do
     name
     |> via_tuple()
-    |> GenServer.cast(:die)
+    |> GenServer.cast({:die, exit_code})
   end
 
   @doc """
@@ -198,8 +201,8 @@ defmodule Staxx.Docker.Struct.Container do
 
   Example:
   ```elixir
-  iex(1)> %Staxx.Docker.Struct.Container{ports: [3000]} |> Staxx.Docker.Struct.Container.reserve_ports()
-  %Staxx.Docker.Struct.Container{
+  iex(1)> %Staxx.Docker.Container{ports: [3000]} |> Staxx.Docker.Container.reserve_ports()
+  %Staxx.Docker.Container{
     description: "",
     env: %{},
     id: "",
@@ -280,18 +283,18 @@ defmodule Staxx.Docker.Struct.Container do
     do: port
 end
 
-defimpl Poison.Encoder, for: Staxx.Docker.Struct.Container do
+defimpl Poison.Encoder, for: Staxx.Docker.Container do
   def encode(container, opts) do
     container
-    |> Staxx.Docker.Struct.Container.to_json()
+    |> Staxx.Docker.Container.to_json()
     |> Poison.Encoder.Map.encode(opts)
   end
 end
 
-defimpl Jason.Encoder, for: Staxx.Docker.Struct.Container do
+defimpl Jason.Encoder, for: Staxx.Docker.Container do
   def encode(container, opts) do
     container
-    |> Staxx.Docker.Struct.Container.to_json()
+    |> Staxx.Docker.Container.to_json()
     |> Jason.Encode.map(opts)
   end
 end

@@ -2,6 +2,8 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth.AccountsCreator do
   @moduledoc """
   Module handles all work related to accounts creation for geth
   """
+  alias Staxx.Docker
+  alias Staxx.Docker.Container
   alias Staxx.Testchain.EVM.Account
   alias Staxx.Testchain.EVM.Implementation.Geth
 
@@ -10,6 +12,10 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth.AccountsCreator do
   require Logger
 
   @timeout 60_000
+
+  # account password file inside docker container.
+  # it will be mapped to `AccountsCreator.password_file/0`
+  @password_file "/tmp/account_password"
 
   @doc false
   def start_link(_), do: GenServer.start_link(__MODULE__, nil, [])
@@ -122,18 +128,42 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth.AccountsCreator do
 
   # Executing `geth accoutn import` command with correct params
   defp execute(db_path, priv_file) do
-    result =
-      "#{Geth.executable!()} account import --datadir #{db_path} --password #{password_file()} #{
-        priv_file
-      } 2>/dev/null"
-      |> Porcelain.shell()
+    %Container{
+      permanent: false,
+      image: Application.get_env(:testchain, :geth_docker_image),
+      cmd: "account import --datadir #{db_path} --password #{@password_file} #{priv_file}",
+      volumes: ["#{db_path}:#{db_path}", "#{password_file()}:#{@password_file}"]
+    }
+    |> Docker.run_sync()
+    |> IO.inspect()
+    |> case do
+      %{status: 0, data: data} ->
+        <<"Address: {", address::binary-size(40), _::binary>> =
+          data
+          |> String.split("\n")
+          |> IO.inspect()
+          |> List.last()
 
-    case result do
-      %{status: 0, err: nil, out: <<"Address: {", address::binary-size(40), _::binary>>} ->
+        IO.inspect(address)
         {:ok, address}
 
-      _ ->
+      %{data: data} ->
+        IO.inspect(data)
         {:error, "error creating new geth account with private key"}
     end
+
+    # result =
+    #   "#{Geth.executable!()} account import --datadir #{db_path} --password #{password_file()} #{
+    #     priv_file
+    #   } 2>/dev/null"
+    #   |> Porcelain.shell()
+
+    # case result do
+    #   %{status: 0, err: nil, out: <<"Address: {", address::binary-size(40), _::binary>>} ->
+    #     {:ok, address}
+
+    #   _ ->
+    #     {:error, "error creating new geth account with private key"}
+    # end
   end
 end

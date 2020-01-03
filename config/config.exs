@@ -34,6 +34,9 @@ config :docker, wrapper_file: Path.expand("#{__DIR__}/../apps/docker/priv/wrappe
 # Shuold be set to `false` in cloud env.
 config :docker, dev_mode_allowed: "true"
 
+# Timeout for `Staxx.Docker.run_sync/1` command
+config :docker, sync_timmeout: 180_000
+
 #
 # Event bus app config
 #
@@ -138,7 +141,7 @@ config :testchain, base_path: "/tmp/chains"
 # file from `rel/config/config.exs`
 config :testchain,
   geth_executable: Path.expand("#{__DIR__}/../priv/presets/geth/geth"),
-  geth_docker_image: "test_geth",
+  geth_docker_image: "makerdao/geth_evm:1.8.27",
   # geth_executable: "/tmp/chains/test/go-ethereum/build/bin/geth",
   geth_password_file: Path.expand("#{__DIR__}/../priv/presets/geth/account_password"),
   ganache_executable: Path.expand("#{__DIR__}/../priv/presets/ganache-cli/cli.js"),

@@ -125,16 +125,19 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth do
   """
   @spec init_chain(binary) :: :ok | {:error, term()}
   def init_chain(db_path) do
-    %{status: status, err: nil} =
-      "#{executable!()} --datadir #{db_path} init #{db_path}/genesis.json 2>/dev/null"
-      |> Porcelain.shell()
-
-    case status do
-      0 ->
+    %Container{
+      permanent: false,
+      image: Application.get_env(:testchain, :geth_docker_image),
+      cmd: "--datadir #{db_path} init #{db_path}/genesis.json",
+      volumes: ["#{db_path}:#{db_path}"]
+    }
+    |> Docker.run_sync()
+    |> case do
+      %{status: 0} ->
         Logger.debug("#{__MODULE__} geth initialized chain in #{db_path}")
         :ok
 
-      code ->
+      %{status: code} ->
         Logger.error("#{__MODULE__}: Failed to run `geth init`. exited with code: #{code}")
         {:error, :init_failed}
     end
@@ -216,7 +219,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth do
       "--targetgaslimit=\"#{gas_limit}\"",
       "--password=#{@password_file}",
       get_etherbase(accounts),
-      get_unlock(accounts),
+      get_unlock(accounts)
       # "console"
       # get_output(output)
     ]

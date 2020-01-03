@@ -9,7 +9,7 @@ defmodule Staxx.Testchain.EVM do
   alias Staxx.Testchain.EVM.{Config, Notification}
   alias Staxx.Testchain.EVM.Implementation.{Geth, Ganache}
   alias Staxx.Testchain.AccountStore
-  alias Staxx.Docker.Struct.Container
+  alias Staxx.Docker.Container
 
   # Amount of ms the server is allowed to spend initializing or it will be terminated
   @timeout Application.get_env(:testchain, :kill_timeout, 60_000)
@@ -205,7 +205,7 @@ defmodule Staxx.Testchain.EVM do
       alias Staxx.Testchain.EVMRegistry
       alias Staxx.Testchain.AccountStore
       alias Staxx.Docker
-      alias Staxx.Docker.Struct.Container
+      alias Staxx.Docker.Container
 
       @behaviour EVM
 

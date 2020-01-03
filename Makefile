@@ -52,6 +52,11 @@ ganache-local:
 	@echo "Setting up ganache finished !"
 .PHONY: ganache-local
 
+geth-docker-image: 
+	@echo "Building geth docker image"
+	@docker build -f docker/evm/Dockerfile.geth -t $(DOCKER_ID_USER)/geth_evm:1.8.27 .
+.PHONY: geth-docker-image
+
 geth-local:
 	@echo "Setting up geth"
 	@rm -rf priv/presets/geth_local

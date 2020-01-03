@@ -7,7 +7,7 @@ defmodule Staxx.DeploymentScope do
   require Logger
 
   alias Staxx.Docker
-  alias Staxx.Docker.Struct.Container
+  alias Staxx.Docker.Container
   alias Staxx.Testchain
   alias Staxx.Testchain.Helper
   alias Staxx.DeploymentScope.UserScope

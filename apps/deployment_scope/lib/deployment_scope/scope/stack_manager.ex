@@ -9,7 +9,7 @@ defmodule Staxx.DeploymentScope.Scope.StackManager do
 
   alias Staxx.DeploymentScope
   alias Staxx.Docker
-  alias Staxx.Docker.Struct.Container
+  alias Staxx.Docker.Container
   alias Staxx.DeploymentScope.EVMWorker.Notification
   alias Staxx.DeploymentScope.StackRegistry
   alias Staxx.DeploymentScope.Stack.{ConfigLoader, Config}

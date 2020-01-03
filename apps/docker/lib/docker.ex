@@ -4,7 +4,11 @@ defmodule Staxx.Docker do
   """
   require Logger
 
-  alias Staxx.Docker.Struct.Container
+  alias Staxx.Docker.Container
+  alias Staxx.Docker.Struct.SyncResult
+
+  # Sync docker operation timeout
+  @timeout Application.get_env(:docker, :sync_timmeout, 180_000)
 
   @doc """
   Start new docker container using given details
@@ -16,6 +20,16 @@ defmodule Staxx.Docker do
   Stop running container
   """
   @callback stop(id :: binary) :: :ok | {:error, term}
+
+  @doc """
+  Load logs from container with given ID
+  """
+  @callback logs(id :: binary) :: binary
+
+  @doc """
+  Remove container with given ID
+  """
+  @callback rm(id :: binary) :: :ok | {:error, term}
 
   @doc """
   Create new docker network with given ID for stack
@@ -81,6 +95,40 @@ defmodule Staxx.Docker do
   end
 
   @doc """
+  Run container in sync mode. 
+  Means that system will run container and will wait for it's termination.
+  As a result function will return all output from running container.
+
+  Note: 
+    `dev_mode` is not alowed for such containers and will be set to `false`.
+    `permanent` option will also be set to `false`
+    `ports` will be replaced with `[]`
+  """
+  @spec run_sync(Container.t()) :: SyncResult.t()
+  def run_sync(%Container{name: ""} = container),
+    do: run_sync(%Container{container | name: random_name()})
+
+  def run_sync(%Container{name: name} = container) do
+    Task.async(fn ->
+      # Set trap exit for next Container pid
+      Process.flag(:trap_exit, true)
+
+      %Container{container | permanent: false, dev_mode: true, ports: []}
+      |> Container.start_link()
+      |> receive_exit()
+      |> case do
+        {:ok, exit_code} ->
+          data = logs(name)
+          %SyncResult{status: exit_code, data: data}
+
+        {:error, err} ->
+          %SyncResult{err: err, status: 1}
+      end
+    end)
+    |> Task.await(@timeout)
+  end
+
+  @doc """
   Stop running container
   """
   @spec stop(binary) :: :ok | {:error, term}
@@ -89,6 +137,25 @@ defmodule Staxx.Docker do
 
   def stop(container_id),
     do: adapter().stop(container_id)
+
+  @doc """
+  Load list of logs from docker container
+  """
+  @spec logs(binary) :: binary
+  def logs(""),
+    do: ""
+
+  def logs(id),
+    do: adapter().logs(id)
+
+  @doc """
+  Remove Docker copntainer
+  """
+  @spec rm(binary) :: :ok | {:error, term}
+  def rm(""), do: :ok
+
+  def rm(id),
+    do: adapter().rm(id)
 
   @doc """
   Create new docker network for stack
@@ -147,4 +214,21 @@ defmodule Staxx.Docker do
     Application.get_env(:docker, :adapter) ||
       raise ArgumentError, "`:adapter` required to be configured"
   end
+
+  # Handle docker tap message
+  defp receive_exit({:ok, pid}) do
+    receive do
+      {:EXIT, ^pid, {:shutdown, exit_code}} ->
+        {:ok, exit_code}
+
+      _ ->
+        receive_exit({:ok, pid})
+    after
+      @timeout ->
+        {:erorr, :timeout}
+    end
+  end
+  
+  defp receive_exit(_), do: {:error, "unknown process for traping exit"}
+
 end

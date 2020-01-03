@@ -25,7 +25,7 @@ defmodule Staxx.DeploymentScope.Deployment.Worker do
   alias Staxx.DeploymentScope.DeploymentRegistry
   alias Staxx.DeploymentScope.Deployment.{Config, BaseApi}
   alias Staxx.Docker
-  alias Staxx.Docker.Struct.Container
+  alias Staxx.Docker.Container
 
   @doc """
   Start new deployment process

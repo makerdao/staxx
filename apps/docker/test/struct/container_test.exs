@@ -1,9 +1,9 @@
-defmodule Staxx.Docker.Struct.ContainerTest do
+defmodule Staxx.Docker.ContainerTest do
   use ExUnit.Case
 
   alias Staxx.Docker.ContainerRegistry
   alias Staxx.Docker.PortMapper
-  alias Staxx.Docker.Struct.Container
+  alias Staxx.Docker.Container
 
   test "should start new container and reserve id" do
     name = Faker.String.base64()
