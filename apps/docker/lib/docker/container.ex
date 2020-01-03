@@ -109,6 +109,9 @@ defmodule Staxx.Docker.Container do
   def handle_info({:EXIT, from, :normal}, state) when is_port(from),
     do: {:noreply, state}
 
+  def handle_info({:EXIT, from, :shutdown}, state) when is_port(from),
+    do: {:noreply, state}
+
   @doc false
   def handle_info({:EXIT, _from, reason}, state) do
     Logger.debug(fn ->
@@ -120,7 +123,7 @@ defmodule Staxx.Docker.Container do
       """
     end)
 
-    {:stop, reason, state}
+    {:stop, {:shutdown, reason}, state}
   end
 
   @doc false

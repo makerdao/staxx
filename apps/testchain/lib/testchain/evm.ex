@@ -330,7 +330,7 @@ defmodule Staxx.Testchain.EVM do
 
       @doc false
       def handle_info(
-            {:EXIT, pid, {:shutdown, exit_code}},
+            {:EXIT, pid, reason},
             %State{container_pid: container_pid} = state
           ) do
         case pid do
@@ -341,7 +341,7 @@ defmodule Staxx.Testchain.EVM do
 
               status ->
                 Logger.warn(fn ->
-                  "#{state.config.id}: EVM container terminated... Stopping..."
+                  "#{state.config.id}: EVM container terminated with #{inspect(reason)}... Stopping..."
                 end)
 
                 {:stop, {:shutdown, :failed}, state}
