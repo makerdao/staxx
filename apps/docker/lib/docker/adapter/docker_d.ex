@@ -230,14 +230,21 @@ defmodule Staxx.Docker.Adapter.DockerD do
   end
 
   # If container is in `dev_mode` we don't need to run it with `--rm` falgs.
+  # So ssytem will ignore `rm` flag from `Container.t()`
   # We might need some logs from container
-  defp build_rm(container) do
+  defp build_rm(%Container{rm: rm} = container) do
     case Container.is_dev_mode(container) do
       true ->
         ""
 
       _ ->
-        "--rm"
+        case rm do
+          true ->
+            "--rm"
+
+          _ ->
+            ""
+        end
     end
   end
 

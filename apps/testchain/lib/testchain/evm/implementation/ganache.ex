@@ -30,7 +30,6 @@ defmodule Staxx.Testchain.EVM.Implementation.Ganache do
       description: "#{id}: Ganache EVM",
       cmd: build_command(config, accounts),
       ports: [@http_port],
-      # dev_mode: true,
       volumes: ["#{db_path}:#{db_path}"]
     }
 

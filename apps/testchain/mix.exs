@@ -36,6 +36,7 @@ defmodule Staxx.Testchain.MixProject do
       {:json_rpc, in_umbrella: true},
       {:storage, in_umbrella: true},
       {:docker, in_umbrella: true},
+      {:event_stream, in_umbrella: true},
       {:poison, "~> 3.1"},
       {:porcelain, "~> 2.0"},
       {:poolboy, "~> 1.5.1"},

@@ -72,7 +72,6 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth do
       description: "#{id}: Geth EVM",
       cmd: build_cmd(config, accounts),
       ports: [@http_port, @ws_port],
-      # dev_mode: true,
       volumes: ["#{db_path}:#{db_path}", "#{AccountsCreator.password_file()}:#{@password_file}"]
     }
 

@@ -7,6 +7,7 @@ defmodule Staxx.Testchain.Helper do
 
   alias Staxx.Testchain
   alias Staxx.Testchain.EVM.Config
+  alias Staxx.EventStream.Notification
 
   # List of keys chain need as config
   @evm_config_keys [
@@ -78,6 +79,31 @@ defmodule Staxx.Testchain.Helper do
 
   def fill_missing_config!(%Config{} = config),
     do: fix_path!(config)
+
+  @doc """
+  Send chain started event
+  """
+  @spec notify_started(Testchain.evm_id(), map()) :: :ok
+  def notify_started(id, details),
+    do: Notification.notify(id, :started, details)
+
+  @doc """
+  Send error notification about testchain
+  """
+  @spec notify_error(Testchain.evm_id(), binary) :: :ok
+  def notify_error(id, msg),
+    do: Notification.notify(id, :error, %{message: msg})
+
+  @doc """
+  Send status changed event
+  """
+  @spec notify_status(Testchain.evm_id(), Testchain.EVM.status()) :: :ok
+  def notify_status(id, status),
+    do: Notification.notify(id, :status_changed, %{status: status})
+
+  ########################################
+  # Private functions
+  ########################################
 
   # Expands path like `~/something` to normal path
   defp fix_path!(%{db_path: db_path} = config),

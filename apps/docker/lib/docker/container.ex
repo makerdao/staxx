@@ -22,6 +22,7 @@ defmodule Staxx.Docker.Container do
           ports: [pos_integer | {pos_integer, pos_integer}],
           env: map(),
           dev_mode: boolean(),
+          rm: boolean(),
           volumes: [binary]
         }
 
@@ -35,6 +36,7 @@ defmodule Staxx.Docker.Container do
             ports: [],
             env: %{},
             dev_mode: false,
+            rm: true,
             volumes: []
 
   @doc false
@@ -66,7 +68,11 @@ defmodule Staxx.Docker.Container do
     :telemetry.execute(
       [:staxx, :docker, :container, :start],
       %{image: Map.get(container, :image)},
-      %{id: Map.get(container, :id), dev_mode: Map.get(container, :dev_mode, false)}
+      %{
+        id: Map.get(container, :id),
+        dev_mode: Map.get(container, :dev_mode, false),
+        rm: Map.get(container, :rm)
+      }
     )
 
     # In case of missing container ID
@@ -141,7 +147,11 @@ defmodule Staxx.Docker.Container do
     :telemetry.execute(
       [:staxx, :docker, :container, :stop],
       %{image: Map.get(state, :image)},
-      %{id: Map.get(state, :id), dev_mode: Map.get(state, :dev_mode, false)}
+      %{
+        id: Map.get(state, :id),
+        dev_mode: Map.get(state, :dev_mode, false),
+        rm: Map.get(state, :rm)
+      }
     )
 
     if id do

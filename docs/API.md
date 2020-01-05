@@ -280,7 +280,7 @@ Request payload:
   "network": "2538928139759187250", // <-- Docker network ID (Optional. Same to Stack ID)
   "cmd": "--help", // <-- See Dockerfile CMD for more details (Optional)
   "ports": [5432], // <-- Port list needs to be open for public
-  "dev_mode": false, // <-- ONLY FOR TESTING ! it will run container without removing it after container stop.
+  "dev_mode": false, // <-- ONLY FOR TESTING ! will run container without removing it after stop.
   "env": { // <-- List of ENV variables needs to be set for docker container
     "POSTGRES_PASSWORD": "postgres"
   }

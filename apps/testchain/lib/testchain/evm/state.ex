@@ -16,8 +16,7 @@ defmodule Staxx.Testchain.EVM.State do
   """
 
   alias Staxx.Testchain.EVM
-  alias Staxx.Testchain.EVM.{Config, Notification}
-  alias Staxx.Storage
+  alias Staxx.Testchain.EVM.Config
 
   @type t :: %__MODULE__{
           status: EVM.status(),
@@ -40,50 +39,8 @@ defmodule Staxx.Testchain.EVM.State do
             internal_state: nil
 
   @doc """
-  Set new `container_pid` for evm state
-  """
-  @spec container_pid(t(), pid) :: t()
-  def container_pid(%__MODULE__{} = state, pid),
-    do: %__MODULE__{state | container_pid: pid}
-
-  @doc """
-  Set internal state
-  """
-  @spec internal_state(t(), term()) :: t()
-  def internal_state(%__MODULE__{} = state, internal_state),
-    do: %__MODULE__{state | internal_state: internal_state}
-
-  @doc """
-  Set new status to evm state.
-  And if config is passed and `notify_pid` is set - notification will be sent.
-
-  ```elixir
-  %Staxx.ExChain.EVM.Notification{id: config.id, event: :status_changed, status}
-  ```
-
-  And if chain should not be cleaned after stop - status will be stored using `Storage.store/2`
-  """
-  @spec status(t(), EVM.status(), Config.t()) :: t()
-  def status(%__MODULE__{} = state, status, config \\ %{}) do
-    Notification.send(config, Map.get(config, :id), :status_changed, status)
-
-    unless Map.get(config, :clean_on_stop, true) do
-      Storage.store(config, status)
-    end
-
-    %__MODULE__{state | status: status}
-  end
-
-  @doc """
   Set new scheduled task value
   """
   @spec task(t(), EVM.scheduled_task()) :: t()
   def task(%__MODULE__{} = state, task), do: %__MODULE__{state | task: task}
-
-  @doc """
-  Set new config into state
-  """
-  @spec config(t(), Config.t()) :: t()
-  def config(%__MODULE__{} = state, %Config{} = config),
-    do: %__MODULE__{state | config: config}
 end

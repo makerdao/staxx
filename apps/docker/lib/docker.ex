@@ -100,7 +100,7 @@ defmodule Staxx.Docker do
   As a result function will return all output from running container.
 
   Note: 
-    `dev_mode` is not alowed for such containers and will be set to `false`.
+    `rm` flag will be controlled by system.
     `permanent` option will also be set to `false`
     `ports` will be replaced with `[]`
   """
@@ -113,7 +113,7 @@ defmodule Staxx.Docker do
       # Set trap exit for next Container pid
       Process.flag(:trap_exit, true)
 
-      %Container{container | permanent: false, dev_mode: true, ports: []}
+      %Container{container | permanent: false, rm: false, ports: []}
       |> Container.start_link()
       |> receive_exit()
       |> case do

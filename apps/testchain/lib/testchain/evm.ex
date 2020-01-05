@@ -6,7 +6,8 @@ defmodule Staxx.Testchain.EVM do
   require Logger
 
   alias Staxx.Testchain
-  alias Staxx.Testchain.EVM.{Config, Notification}
+  alias Staxx.Testchain.Helper
+  alias Staxx.Testchain.EVM.Config
   alias Staxx.Testchain.EVM.Implementation.{Geth, Ganache}
   alias Staxx.Testchain.AccountStore
   alias Staxx.Docker.Container
@@ -242,6 +243,9 @@ defmodule Staxx.Testchain.EVM do
         new_config = migrate_config(config)
         version = get_version()
 
+        # Send notification about status change
+        Helper.notify_status(id, :initializing)
+
         {:ok, %State{status: :initializing, config: new_config, version: version},
          {:continue, :start_chain}}
       end
@@ -274,17 +278,22 @@ defmodule Staxx.Testchain.EVM do
             check_started(self())
 
             # Updating EVM state with new values
-            state =
-              %State{state | http_port: http_port, ws_port: ws_port}
-              |> State.config(config)
-              |> State.container_pid(container_pid)
-              |> State.internal_state(internal_state)
+            state = %State{
+              state
+              | http_port: http_port,
+                ws_port: ws_port,
+                config: config,
+                container_pid: container_pid,
+                internal_state: internal_state
+            }
 
             {:noreply, state}
 
           {:error, err} ->
             Logger.error("#{config.id}: on start: #{inspect(err)}")
-            {:stop, {:shutdown, :failed_to_start}, State.status(state, :failed, config)}
+            # Notify status change
+            Helper.notify_status(config.id, :failed)
+            {:stop, {:shutdown, :failed_to_start}, %State{state | status: :failed}}
         end
       end
 
@@ -301,10 +310,10 @@ defmodule Staxx.Testchain.EVM do
         # Terminating container
         :ok = Container.terminate(pid)
 
-        new_state =
-          state
-          |> State.status(:terminating, config)
-          |> State.internal_state(new_internal_state)
+        # Notify status change
+        Helper.notify_status(config.id, :terminating)
+
+        new_state = %State{state | status: :terminating, internal_state: new_internal_state}
 
         # Stop timeout
         {:noreply, new_state, @evm_stop_timeout}
@@ -375,9 +384,11 @@ defmodule Staxx.Testchain.EVM do
 
         Logger.error(msg)
         # Have to notify about error to tell our supervisor to restart evm process
-        Notification.send(config, config.id, :error, %{message: msg})
+        Helper.notify_error(config.id, msg)
+        # Notify status change
+        Helper.notify_status(config.id, :failed)
 
-        {:stop, {:shutdown, :failed_to_check_started}, State.status(state, :failed, config)}
+        {:stop, {:shutdown, :failed_to_check_started}, %State{state | status: :failed}}
       end
 
       @doc false
@@ -391,10 +402,15 @@ defmodule Staxx.Testchain.EVM do
           true ->
             Logger.debug("#{config.id}: EVM Finally operational !")
 
+            # Notify status change
+            Helper.notify_status(config.id, :active)
+            # Notify chain started
+            Helper.notify_started(config.id, details(state))
+
             config
             |> handle_started(internal_state)
             # Marking chain as started and operational
-            |> handle_action(State.status(state, :active, config))
+            |> handle_action(%State{state | status: :active})
 
           false ->
             Logger.debug("#{config.id}: (#{retries}) not operational fully yet...")
@@ -576,26 +592,21 @@ defmodule Staxx.Testchain.EVM do
         # If exit reason is normal we could send notification that evm stopped
         case reason do
           r when r in ~w(normal shutdown)a ->
-            # if termination goes with normal status - we are happy
-            State.status(state, :terminated, config)
             # Clean path for chain after it was terminated
             Testchain.EVM.clean_on_stop(config)
             # Send notification after stop
-            Notification.send(config, config.id, :stopped)
+            Helper.notify_status(config.id, :terminated)
 
           {:shutdown, reason} ->
             # Sending new error notification
-            Notification.send(config, config.id, :error, %{message: "#{inspect(reason)}"})
+            Helper.notify_error(config.id, "#{inspect(reason)}")
             # Termination was not planned. Seems to be failure
-            State.status(state, :failed, config)
+            Helper.notify_status(config.id, :failed)
         end
 
         # Send stop signal to Supervisor
         # Task.async(fn -> TestchainSupervisor.stop(config.id) end)
         spawn(fn -> TestchainSupervisor.stop(config.id) end)
-
-        # We don't care if it was error or success we have to notify that EVM was terminated
-        # Notification.send(config, config.id, :terminated)
       end
 
       @doc """
@@ -643,13 +654,8 @@ defmodule Staxx.Testchain.EVM do
         do: Logger.debug("#{config.id}: Terminating... #{inspect(state, pretty: true)}")
 
       @impl EVM
-      def handle_started(%Config{notify_pid: nil}, _internal_state), do: :ok
-
-      def handle_started(%Config{id: id} = config, _internal_state) do
-        details = details(config)
-        Notification.send(config, id, :started, details)
-        :ignore
-      end
+      def handle_started(_config, _internal_state),
+        do: :ignore
 
       @impl EVM
       def initial_accounts(%Config{db_path: db_path}, state),
@@ -721,18 +727,20 @@ defmodule Staxx.Testchain.EVM do
             {:noreply, state}
 
           {:ok, new_internal_state} ->
-            {:noreply, State.internal_state(state, new_internal_state)}
+            {:noreply, %State{state | internal_state: new_internal_state}}
 
           {:reply, reply, new_internal_state} ->
-            {:reply, reply, State.internal_state(state, new_internal_state)}
+            {:reply, reply, %State{state | internal_state: new_internal_state}}
 
           {:error, err} ->
             Logger.error(
               "#{get_in(state, [:config, :id])}: action failed with error: #{inspect(err)}"
             )
 
+            # Notify status change
+            Helper.notify_status(config.id, :failed)
             # Do we really need to stop ?
-            {:stop, :error, State.status(state, :failed, config)}
+            {:stop, :error, %State{state | status: :failed}}
         end
       end
 
