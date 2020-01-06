@@ -136,6 +136,10 @@ config :testchain, front_url: "localhost"
 # `/tmp/chains/some-id-here`
 config :testchain, base_path: "/tmp/chains"
 
+# Default path where snapshots will be stored for chain
+# chain id will be added as a target folder under this path
+config :testchain, snapshot_base_path: "/tmp/snapshots"
+
 # Default location of account password file.
 # For dev env it will be in related to project root. In Docker it will be replaced with
 # file from `rel/config/config.exs`

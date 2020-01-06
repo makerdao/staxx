@@ -1,4 +1,4 @@
-defmodule Staxx.ExChain.Snapshot.Details do
+defmodule Staxx.Testchain.SnapshotDetails do
   @moduledoc """
   Snapshot details
 
@@ -9,9 +9,11 @@ defmodule Staxx.ExChain.Snapshot.Details do
    - `path` - Path to snapshot file
   """
 
+  alias Staxx.Testchain
+
   @type t :: %__MODULE__{
           id: binary,
-          chain: Staxx.ExChain.evm_type(),
+          chain: Testchain.evm_type(),
           description: binary,
           date: DateTime.t(),
           path: binary
@@ -20,7 +22,7 @@ defmodule Staxx.ExChain.Snapshot.Details do
   defstruct id: "", chain: nil, description: "", date: DateTime.utc_now(), path: ""
 end
 
-defimpl Jason.Encoder, for: Staxx.ExChain.Snapshot.Details do
+defimpl Jason.Encoder, for: Staxx.Testchain.SnapshotDetails do
   def encode(value, opts) do
     value
     |> Map.from_struct()

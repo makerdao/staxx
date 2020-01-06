@@ -12,7 +12,8 @@ defmodule Staxx.DeploymentScope.ChainFactory do
           "block_mine_time" => 0,
           "clean_on_stop" => false,
           "snapshot_id" => nil,
-          "step_id" => 0
+          "deploy_tag" => "",
+          "deploy_step_id" => 0
         },
         "deps" => []
       }

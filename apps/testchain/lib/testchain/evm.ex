@@ -65,17 +65,6 @@ defmodule Staxx.Testchain.EVM do
   #         | {:take_snapshot, description :: binary}
   #         | {:revert_snapshot, SnapshotDetails.t()}
 
-  @typedoc """
-  Default evm action reply message
-  """
-  @type action_reply ::
-          :ok
-          | :ignore
-          | {:ok, state :: any()}
-          | {:noreply, state :: any()}
-          | {:reply, reply :: term(), state :: any()}
-          | {:error, term()}
-
   @doc """
   Callback that should return docker image for EVM
   """
@@ -101,8 +90,9 @@ defmodule Staxx.Testchain.EVM do
 
   @doc """
   Callback will be invoked after EVM started and confirmed it by `started?/2`
+  Result will be internal state that will be stored for later use of implementation
   """
-  @callback on_started(config :: Config.t(), state :: any()) :: action_reply()
+  @callback on_started(config :: Config.t(), state :: any()) :: state :: any()
 
   @doc """
   Callback will be called after EVM container start and system will assign ports to it.
@@ -135,16 +125,6 @@ defmodule Staxx.Testchain.EVM do
   But `on_stop` might be called on tmp EVM stopping (example: makeing/reverting snapshot)
   """
   @callback on_terminate(config :: Config.t(), state :: any()) :: term()
-
-  @doc """
-  Load list of initial accounts
-  Should return list of initial accounts for chain.
-  By default they will be stored into `{db_path}/addresses.json` file in JSON format
-
-  Reply should be in format
-  `{:ok, [Staxx.Testchain.EVM.Account.t()]} | {:error, term()}`
-  """
-  @callback initial_accounts(config :: Config.t(), state :: any()) :: action_reply()
 
   @doc """
   Get parsed version for EVM
@@ -180,6 +160,14 @@ defmodule Staxx.Testchain.EVM do
   end
 
   @doc """
+  `{:via}` notation for process registry
+  """
+  @spec via(Testchain.evm_id()) :: {:via, Registry, {module, Testchain.evm_id()}}
+  def via(id),
+    # do: {:via, Registry, {EVMRegistry, id}}
+    do: {:global, "evm_#{id}"}
+
+  @doc """
   Will clean `db_path` if `clean_on_stop` is set to true
   And will remove container with given name
   Otherwise it will do nothing and will return `:ok`
@@ -206,7 +194,7 @@ defmodule Staxx.Testchain.EVM do
       alias Staxx.Testchain.EVM
       alias Staxx.Testchain.EVM.{Account, Config, State}
       alias Staxx.Testchain.EVMRegistry
-      alias Staxx.Testchain.AccountStore
+      alias Staxx.Testchain.{AccountStore, SnapshotManager}
       alias Staxx.Testchain.Supervisor, as: TestchainSupervisor
       alias Staxx.Docker
       alias Staxx.Docker.Container
@@ -225,7 +213,7 @@ defmodule Staxx.Testchain.EVM do
 
       def start_link(%Config{id: id} = config) do
         GenServer.start_link(__MODULE__, config,
-          name: via(id),
+          name: unquote(__MODULE__).via(id),
           timeout: unquote(@timeout)
         )
       end
@@ -283,7 +271,7 @@ defmodule Staxx.Testchain.EVM do
         # stoping container in sync mode if it's alive
         if Process.alive?(container_pid) do
           Logger.debug(fn -> "#{config.id}: Shutting down container process" end)
-          :ok = Container.terminate(container_pid)
+          :ok = Container.stop(container_pid)
           Logger.debug(fn -> "#{config.id}: Container terminated" end)
         end
 
@@ -310,7 +298,11 @@ defmodule Staxx.Testchain.EVM do
         spawn(fn -> TestchainSupervisor.stop(config.id) end)
       end
 
-      @doc false
+      @doc """
+      Starts EVM. 
+      Called from all initialization process.
+      TODO: More detailed info for implementation
+      """
       def handle_continue(:start_chain, %State{config: config} = state) do
         case start(config) do
           {:ok, %Container{name: ""}, _} ->
@@ -375,23 +367,37 @@ defmodule Staxx.Testchain.EVM do
         end
       end
 
-      @doc false
-      # method will be called after snapshot for evm was taken and EVM switched to `:snapshot_taken` status.
-      # here evm will be started again
-      # def handle_continue(
-      #       :start_after_task,
-      #       %State{status: status, config: config} = state
-      #     )
-      #     when status in ~w(snapshot_taken snapshot_reverted)a do
-      #   Logger.debug("#{config.id} Starting chain after #{status}")
-      #   # Start chain process
-      #   {:ok, new_internal_state} = start(config)
-      #   # Schedule started check
-      #   # Operation is async and `status: :active` will be set later
-      #   # See: `handle_info({:check_started, _})`
-      #   check_started(self())
-      #   {:noreply, State.internal_state(state, new_internal_state)}
-      # end
+      @doc """
+      Callback is called after EVM started and became operational.
+      It checks if we need to run any deployment, otherwise will finish initializing and mark chain as `:ready`
+      """
+      def handle_continue(:chain_active, %State{config: config} = state) do
+        details = details(state)
+        # Notify chain started
+        Helper.notify_started(config.id, details)
+
+        case Config.has_deployment?(config) do
+          false ->
+            Logger.debug(fn ->
+              "#{config.id}: No deployment exist in configuration or started existing testchain. We are ready !"
+            end)
+
+            # TODO: start health checks
+
+            # Notify status change
+            Helper.notify_status(config.id, :ready)
+            {:noreply, %State{state | status: :ready}}
+
+          true ->
+            Logger.debug(fn ->
+              "#{config.id}: We have deployment step to run: #{config.deploy_step_id}"
+            end)
+
+            # Notify status change
+            Helper.notify_status(config.id, :deploying)
+            {:noreply, %State{state | status: :deploying}}
+        end
+      end
 
       @doc false
       def handle_info(
@@ -458,16 +464,15 @@ defmodule Staxx.Testchain.EVM do
         case started?(state) do
           true ->
             Logger.debug("#{config.id}: EVM Finally operational !")
-
             # Notify status change
             Helper.notify_status(config.id, :active)
-            # Notify chain started
-            Helper.notify_started(config.id, details(state))
 
-            config
-            |> on_started(internal_state)
+            # Invoke `on_started/2` to notify EVM implementation about success start
+            internal_state = on_started(config, internal_state)
+
             # Marking chain as started and operational
-            |> handle_action(%State{state | status: :active})
+            {:noreply, %State{state | status: :active, internal_state: internal_state},
+             {:continue, :chain_active}}
 
           false ->
             Logger.debug("#{config.id}: (#{retries}) not operational fully yet...")
@@ -564,17 +569,6 @@ defmodule Staxx.Testchain.EVM do
       end
 
       @doc false
-      def handle_call(
-            :initial_accounts,
-            _from,
-            %State{config: config, internal_state: internal_state} = state
-          ) do
-        config
-        |> initial_accounts(internal_state)
-        |> handle_action(state)
-      end
-
-      @doc false
       def handle_call(:details, _from, %State{config: config} = state) do
         case details(config) do
           %EVM.Process{} = info ->
@@ -586,26 +580,80 @@ defmodule Staxx.Testchain.EVM do
       end
 
       @doc false
-      # def handle_cast(
-      #       {:take_snapshot, description},
-      #       %State{status: :active, locked: false, config: config, internal_state: internal_state} =
-      #         state
-      #     ) do
-      #   Logger.debug("#{config.id} stopping emv before taking snapshot")
-      #   {:ok, new_internal_state} = stop(config, internal_state)
+      def handle_cast(
+            {:take_snapshot, description},
+            %State{status: :ready, config: config, container_pid: container_pid} = state
+          ) do
+        Logger.debug(fn -> "#{config.id}: Stopping EVM before taking snapshot" end)
 
-      #   new_state =
-      #     state
-      #     |> State.status(:snapshot_taking, config)
-      #     |> State.task({:take_snapshot, description})
-      #     |> State.internal_state(new_internal_state)
+        unless Process.alive?(container_pid) do
+          Helper.notify_error(
+            config.id,
+            "#{config.id}: Failed to take snapshot for non runing EVM"
+          )
 
-      #   {:noreply, new_state}
-      # end
+          raise "#{config.id}: Failed to take snapshot for non runing EVM"
+        end
+
+        # Notify status change
+        Helper.notify_status(config.id, :snapshot_taking)
+
+        # stoping container in sync mode if it's alive
+        Logger.debug(fn -> "#{config.id}: Shutting down container process for taking snapshot" end)
+
+        # TODO: pause health check for EVM
+        container = Container.info(container_pid)
+        :ok = Container.stop_temporary(container_pid)
+        Logger.debug(fn -> "#{config.id}: Container terminated for taking snapshot" end)
+
+        %Config{db_path: db_path, type: type} = config
+
+        try do
+          details = SnapshotManager.make_snapshot!(db_path, type, description)
+
+          # Storing all snapshots
+          SnapshotManager.store(details)
+
+          Logger.debug("#{config.id}: Snapshot made, details: #{inspect(details)}")
+
+          # Send notification with newly created snopshot details
+          Helper.notify(config.id, :snapshot_taken, details)
+
+          # Marking container as `existing` so no new container will be created
+          # System will start already existing contianer and all ports/volumes 
+          # will be already configured. So no need to change anything
+          container = %Container{container | existing: true}
+          # Starting given container with EVM
+          {:ok, container_pid} = Container.start_link(container)
+
+          # Notify status change
+          Helper.notify_status(config.id, :snapshot_taken)
+
+          # Schedule started check
+          # Operation is async and `status: :active` will be set later
+          # See: `handle_info({:check_started, _})`
+          check_started(self())
+
+          {:noreply, %State{state | status: :snapshot_taken, container_pid: container_pid}}
+        rescue
+          err ->
+            Logger.error("#{config.id} failed to make snapshot with error #{inspect(err)}")
+            # Send error notification
+            Helper.notify_error(config.id, "failed to make snapshot with error #{inspect(err)}")
+            # Notify status change
+            Helper.notify_status(config.id, :failed)
+
+            {:stop, :failed_take_snapshot, %State{state | status: :failed}}
+        end
+      end
 
       @doc false
-      def handle_cast({:take_snapshot, _}, state) do
-        Logger.error("No way we could take snapshot for non operational or locked evm")
+      def handle_cast({:take_snapshot, _}, %State{config: config} = state) do
+        Logger.error(fn ->
+          "#{config.id}: No way we could take snapshot for non operational EVM"
+        end)
+
+        Helper.notify_error(config.id, "No way we could take snapshot for non operational EVM")
         {:noreply, state}
       end
 
@@ -628,18 +676,14 @@ defmodule Staxx.Testchain.EVM do
       # end
 
       @doc false
-      def handle_cast({:revert_snapshot, _}, state) do
-        Logger.error("No way we could revert snapshot for non operational or locked evm")
+      def handle_cast({:revert_snapshot, _}, %State{config: config} = state) do
+        Logger.error(fn ->
+          "#{config.id}: No way we could revert snapshot for non operational EVM"
+        end)
+
+        Helper.notify_error(config.id, "No way we could revert snapshot for non operational EVM")
         {:noreply, state}
       end
-
-      @doc """
-      `{:via}` notation for process registry
-      """
-      @spec via(Testchain.evm_id()) :: {:via, Registry, {module, Testchain.evm_id()}}
-      def via(id),
-        # do: {:via, Registry, {EVMRegistry, id}}
-        do: {:global, "evm_#{id}"}
 
       ######
       #
@@ -678,12 +722,8 @@ defmodule Staxx.Testchain.EVM do
         do: Logger.debug("#{config.id}: Terminating... #{inspect(state, pretty: true)}")
 
       @impl EVM
-      def on_started(_config, _internal_state),
-        do: :ignore
-
-      @impl EVM
-      def initial_accounts(%Config{db_path: db_path}, state),
-        do: {:reply, load_accounts(db_path), state}
+      def on_started(_config, internal_state),
+        do: internal_state
 
       @impl EVM
       def version() do
@@ -738,33 +778,6 @@ defmodule Staxx.Testchain.EVM do
           rpc_url: "http://#{front_url()}:#{http_port}",
           ws_url: "ws://#{front_url()}:#{ws_port}"
         }
-      end
-
-      # Internal handler for evm actions
-      defp handle_action(reply, %State{config: config} = state) do
-        case reply do
-          :ok ->
-            {:noreply, state}
-
-          :ignore ->
-            {:noreply, state}
-
-          {:ok, new_internal_state} ->
-            {:noreply, %State{state | internal_state: new_internal_state}}
-
-          {:reply, reply, new_internal_state} ->
-            {:reply, reply, %State{state | internal_state: new_internal_state}}
-
-          {:error, err} ->
-            Logger.error(
-              "#{get_in(state, [:config, :id])}: action failed with error: #{inspect(err)}"
-            )
-
-            # Notify status change
-            Helper.notify_status(config.id, :failed)
-            # Do we really need to stop ?
-            {:stop, :error, %State{state | status: :failed}}
-        end
       end
 
       # Send msg to check if evm started

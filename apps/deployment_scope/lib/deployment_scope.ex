@@ -37,8 +37,7 @@ defmodule Staxx.DeploymentScope do
   end
 
   def start(%{"testchain" => %{"config" => config}} = params, email) do
-    %{id: id} =
-      chain_config =
+    chain_config =
       config
       |> Helper.config_from_payload()
       |> Helper.generate_id!()
@@ -56,7 +55,7 @@ defmodule Staxx.DeploymentScope do
       """
     end)
 
-    start(id, chain_config, stacks, email)
+    start(chain_config.id, chain_config, stacks, email)
   end
 
   def start(_, _),

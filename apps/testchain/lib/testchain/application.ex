@@ -11,9 +11,11 @@ defmodule Staxx.Testchain.Application do
 
   def start(_type, _args) do
     check_erlang()
+    check_snapshot_requirements()
 
     # List all child processes to be supervised
     children = [
+      Staxx.Testchain.SnapshotStore,
       Staxx.Testchain.Deployment.Supervisor,
       {Registry, keys: :unique, name: Staxx.Testchain.EVMRegistry},
       :poolboy.child_spec(:worker, AccountsCreator.poolboy_config())
@@ -23,6 +25,21 @@ defmodule Staxx.Testchain.Application do
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Staxx.ExChain.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  # Check if we have everything ready for making snapshots
+  defp check_snapshot_requirements() do
+    unless System.find_executable("tar") do
+      raise "Failed to initialize #{__MODULE__}: No tar executable found in system."
+    end
+
+    path =
+      Application.get_env(:testchain, :snapshot_base_path)
+      |> Path.expand()
+
+    unless File.dir?(path) do
+      :ok = File.mkdir_p!(path)
+    end
   end
 
   defp check_erlang() do

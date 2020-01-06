@@ -17,11 +17,11 @@ defmodule Staxx.Docker.Adapter.DockerD do
   ```
   """
   @impl true
-  @spec start(Container.t()) :: {:ok, Container.t()} | {:error, term}
-  def start(%Container{network: network} = container) do
+  @spec run(Container.t()) :: {:ok, Container.t()} | {:error, term}
+  def run(%Container{network: network} = container) do
     Logger.debug(fn ->
       """
-      Try to start new container:
+      Try to run new container:
         #{inspect(container, pretty: true)}
       """
     end)
@@ -32,7 +32,7 @@ defmodule Staxx.Docker.Adapter.DockerD do
 
     id_or_err =
       container
-      |> build_start_params()
+      |> build_run_params()
       |> exec()
 
     case String.match?(id_or_err, ~r/[a-z0-9]{64}/) do
@@ -49,8 +49,29 @@ defmodule Staxx.Docker.Adapter.DockerD do
         {:ok, container}
 
       false ->
-        Logger.error("Failed to start container with code: #{id_or_err}")
+        Logger.error("Failed to run container with code: #{id_or_err}")
         {:error, id_or_err}
+    end
+  end
+
+  @doc """
+  Starts existing container in system
+  """
+  @impl true
+  @spec start(binary) :: :ok | {:error, term}
+  def start(id_or_name) do
+    [
+      executable!(),
+      "start",
+      id_or_name
+    ]
+    |> exec()
+    |> case do
+      ^id_or_name ->
+        :ok
+
+      data ->
+        {:error, data}
     end
   end
 
@@ -213,7 +234,7 @@ defmodule Staxx.Docker.Adapter.DockerD do
   # Get docker executable
   defp executable!(), do: System.find_executable("docker")
 
-  defp build_start_params(%Container{image: image, cmd: cmd} = container, mode \\ ["-d"]) do
+  defp build_run_params(%Container{image: image, cmd: cmd} = container, mode \\ ["-d"]) do
     [
       executable!(),
       "run",

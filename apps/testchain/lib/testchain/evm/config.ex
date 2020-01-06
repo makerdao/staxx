@@ -15,6 +15,8 @@ defmodule Staxx.Testchain.EVM.Config do
   - `description` - Chain description for storage
   - `container_name` - EVM container name.
   - `snapshot_id` - Snapshot ID that should be loaded on chain start
+  - `deploy_ref` - Deployment scripts git ref
+  - `deploy_step_id` - Deployment scripts step/scenario id
   """
 
   require Logger
@@ -37,7 +39,9 @@ defmodule Staxx.Testchain.EVM.Config do
           clean_on_stop: boolean(),
           description: binary,
           container_name: binary,
-          snapshot_id: nil | binary
+          snapshot_id: nil | binary,
+          deploy_ref: binary,
+          deploy_step_id: pos_integer
         }
 
   defstruct type: :ganache,
@@ -51,7 +55,19 @@ defmodule Staxx.Testchain.EVM.Config do
             clean_on_stop: false,
             description: "",
             container_name: "",
-            snapshot_id: nil
+            snapshot_id: nil,
+            deploy_ref: "",
+            deploy_step_id: 0
+
+  @doc """
+  Check if configuration has deployment task to perform
+  """
+  @spec has_deployment?(t()) :: boolean
+  def has_deployment?(%__MODULE__{existing: true}),
+    do: false
+
+  def has_deployment?(%__MODULE__{deploy_step_id: deploy_step_id}),
+    do: deploy_step_id != 0
 
   @doc """
   Store configuration in testhcian `db_path`.

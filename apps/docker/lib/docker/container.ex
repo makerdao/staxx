@@ -13,6 +13,7 @@ defmodule Staxx.Docker.Container do
 
   @type t :: %__MODULE__{
           permanent: boolean,
+          existing: boolean,
           id: binary,
           image: binary,
           name: binary,
@@ -27,6 +28,7 @@ defmodule Staxx.Docker.Container do
         }
 
   defstruct permanent: true,
+            existing: false,
             id: "",
             image: "",
             name: "",
@@ -60,7 +62,7 @@ defmodule Staxx.Docker.Container do
     do: GenServer.start_link(__MODULE__, container, name: via_tuple(name))
 
   @doc false
-  def init(%__MODULE__{id: ""} = container) do
+  def init(%__MODULE__{} = container) do
     # Enabling trap exit for process
     Process.flag(:trap_exit, true)
 
@@ -76,19 +78,43 @@ defmodule Staxx.Docker.Container do
     )
 
     # In case of missing container ID
-    # it will try to start new container using `Staxx.Docker.start/1`
+    # it will try to start new container using `Staxx.Docker.run/1`
     {:ok, container, {:continue, :start_container}}
   end
 
-  @doc false
-  def init(%__MODULE__{id: id} = container) when is_binary(id) do
-    # Enabling trap exit for process
-    Process.flag(:trap_exit, true)
-    {:ok, container}
+  @doc """
+  Starts already existing container.
+  Will call `Staxx.Docker.start/1` function. 
+  On docker level it will use `docker start name` command for starting.
+  """
+  def handle_continue(:start_container, %__MODULE__{existing: true, name: name} = container) do
+    case Docker.start(name) do
+      :ok ->
+        Logger.debug(fn ->
+          """
+          Started existing container with name: #{name}
+          Details:
+          #{inspect(container, pretty: true)}
+          """
+        end)
+
+        {:noreply, container}
+
+      {:error, msg} ->
+        Logger.error(fn ->
+          "Failed to start existing container with err: #{inspect(msg, pretty: true)}"
+        end)
+
+        {:stop, {:shutdown, :failed_to_start}, container}
+    end
   end
 
-  def handle_continue(:start_container, %__MODULE__{} = container) do
-    case Docker.start(container) do
+  @doc """
+  Starts new container using `Staxx.Docker.run/1` function.
+  On low level it will use `docker run ****` command.
+  """
+  def handle_continue(:start_container, %__MODULE__{existing: false} = container) do
+    case Docker.run(container) do
       {:ok, %__MODULE__{id: id} = started_container} ->
         Logger.debug(fn ->
           """
@@ -161,10 +187,17 @@ defmodule Staxx.Docker.Container do
       Logger.debug(fn -> "Got response from stop container try: #{inspect(res, pretty: true)}" end)
     end
 
-    # Unreserve ports
-    state
-    |> Map.get(:ports, [])
-    |> Enum.each(&free_port/1)
+    case reason do
+      {:shutdown, :temporary} ->
+        Logger.debug(fn -> "Container temporary stop. Ports should not be unlocked !" end)
+        :ok
+
+      _ ->
+        # Unreserve ports
+        state
+        |> Map.get(:ports, [])
+        |> Enum.each(&free_port/1)
+    end
 
     :ok
   end
@@ -185,7 +218,7 @@ defmodule Staxx.Docker.Container do
   @doc """
   Get container information for given name/pid
   """
-  @spec info(pid | binary) :: t()
+  @spec info(GenServer.server() | binary) :: t()
   def info(name) when is_binary(name) do
     name
     |> via_tuple()
@@ -196,17 +229,44 @@ defmodule Staxx.Docker.Container do
     do: GenServer.call(pid, :info)
 
   @doc """
-  Terminate container process by container Name
+  Stops container process by container Name or PID.
+  Exit reason does matter only for temporary stop.
+  If reason will be `{:shutdown, :temporary}` system wouldn't free container ports
   """
-  @spec terminate(pid | binary) :: :ok
-  def terminate(name) when is_binary(name) do
+  @spec stop(GenServer.server() | binary, any()) :: :ok
+  def stop(server, reason \\ :shutdown)
+
+  def stop(name, reason) when is_binary(name) do
     name
     |> via_tuple()
-    |> GenServer.stop(:shutdown)
+    |> GenServer.stop(reason)
   end
 
-  def terminate(pid),
-    do: GenServer.stop(pid, :shutdown)
+  def stop(pid, reason),
+    do: GenServer.stop(pid, reason)
+
+  @doc """
+  Terminates container but allocated `ports` wouldn't be unlocked for usage.
+
+  Usefull for cases like take/revert snapshot where termporary stop is needed
+  but you need to start container again using `%Container{existing: true}`
+  with already allocated `ports`.
+  """
+  @spec stop_temporary(GenServer.server() | binary) :: :ok | {:error, term}
+  def stop_temporary(server) do
+    :ok = stop(server, {:shutdown, :temporary})
+
+    # because EVM handles `{:EXIT, pid, reason}` we have to catch it here
+    # otherwise EVM will decide that container failed and something wrong
+    # and as result will terminate whole supervision tree for deployment scope
+    receive do
+      {:EXIT, _pid, {:shutdown, :temporary}} ->
+        :ok
+    after
+      180_000 ->
+        {:error, :timeut_stoping_container}
+    end
+  end
 
   @doc """
   Send die event from docker to container process by container Name

@@ -11,9 +11,14 @@ defmodule Staxx.Docker do
   @timeout Application.get_env(:docker, :sync_timmeout, 180_000)
 
   @doc """
+  Start existing container in system
+  """
+  @callback start(id_or_name :: binary) :: :ok | {:error, term}
+
+  @doc """
   Start new docker container using given details
   """
-  @callback start(container :: Container.t()) ::
+  @callback run(container :: Container.t()) ::
               {:ok, Container.t()} | {:error, term}
 
   @doc """
@@ -63,30 +68,37 @@ defmodule Staxx.Docker do
   def dev_mode_allowed?(),
     do: Application.get_env(:docker, :dev_mode_allowed) == "true"
 
+  @doc """
+  Starts existing container in system
+  """
+  @spec start(binary) :: :ok | {:error, term}
+  def start(id_or_name),
+    do: adapter().start(id_or_name)
+
   # docker run --name=postgres-vdb -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres
-  @spec start(Container.t()) ::
+  @spec run(Container.t()) ::
           {:ok, Container.t()} | {:error, term}
-  def start(%Container{id: id}) when bit_size(id) > 0,
+  def run(%Container{id: id}) when bit_size(id) > 0,
     do: {:error, "Could not start container with id"}
 
-  def start(%Container{image: ""}),
+  def run(%Container{image: ""}),
     do: {:error, "Could not start container without image"}
 
-  # def start(%Container{network: ""}),
+  # def run(%Container{network: ""}),
   #   do: {:error, "Could not start container without network"}
 
-  def start(%Container{name: ""} = container),
-    do: start(%Container{container | name: random_name()})
+  def run(%Container{name: ""} = container),
+    do: run(%Container{container | name: random_name()})
 
-  def start(%Container{} = container) do
+  def run(%Container{} = container) do
     container = Container.reserve_ports(container)
 
-    case adapter().start(container) do
+    case adapter().run(container) do
       {:ok, updated} ->
         {:ok, updated}
 
       {:error, msg} ->
-        # Have to free ports if start failed
+        # Have to free ports if starting process failed
         container
         |> Container.free_ports()
 

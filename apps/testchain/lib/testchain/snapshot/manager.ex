@@ -1,39 +1,16 @@
-defmodule Staxx.ExChain.SnapshotManager do
+defmodule Staxx.Testchain.SnapshotManager do
   @moduledoc """
   Module that manages snapshoting by copy/paste chain DB folders.
   It could wrap everything to one archive file
   """
-
-  use GenServer
   require Logger
 
-  alias Staxx.ExChain
-  alias Staxx.ExChain.Snapshot.Details, as: SnapshotDetails
-  alias Porcelain.Result
-  alias Staxx.Storage.SnapshotStore
+  alias Staxx.Testchain
+  alias Staxx.Testchain.SnapshotDetails
+  alias Staxx.Testchain.SnapshotStore
 
   # Snapshot taking/restoring timeout
   @timeout 30_000
-
-  @doc false
-  def start_link(_) do
-    unless System.find_executable("tar") do
-      raise "Failed to initialize #{__MODULE__}: No tar executable found in system."
-    end
-
-    path =
-      Application.get_env(:ex_chain, :snapshot_base_path)
-      |> Path.expand()
-
-    unless File.dir?(path) do
-      :ok = File.mkdir_p!(path)
-    end
-
-    GenServer.start_link(__MODULE__, nil, name: __MODULE__)
-  end
-
-  @doc false
-  def init(_), do: {:ok, nil}
 
   @doc """
   Check if given snapshot details are correct and snapshot actually exists
@@ -45,9 +22,9 @@ defmodule Staxx.ExChain.SnapshotManager do
   @doc """
   Create a snapshot and store it into local DB (DETS for now)
   """
-  @spec make_snapshot!(binary, ExChain.evm_type(), binary) :: SnapshotDetails.t()
+  @spec make_snapshot!(binary, Testchain.evm_type(), binary) :: SnapshotDetails.t()
   def make_snapshot!(from, chain_type, description \\ "") do
-    Logger.debug("Making snapshot for #{from} with description: #{description}")
+    Logger.debug(fn -> "Making snapshot for #{from} with description: #{description}" end)
 
     unless File.dir?(from) do
       raise ArgumentError, message: "path does not exist"
@@ -91,7 +68,7 @@ defmodule Staxx.ExChain.SnapshotManager do
     do: raise(ArgumentError, message: "Wrong snapshot restore path passed")
 
   def restore_snapshot!(%SnapshotDetails{id: id, path: from}, to) do
-    Logger.debug("Restoring snapshot #{id} from #{from} to #{to}")
+    Logger.debug(fn -> "Restoring snapshot #{id} from #{from} to #{to}" end)
 
     unless File.exists?(to) do
       :ok = File.mkdir_p!(to)
@@ -122,11 +99,12 @@ defmodule Staxx.ExChain.SnapshotManager do
   def compress(from, to) do
     Logger.debug("Compressing path: #{from} to #{to}")
 
-    command = "tar -czvf #{to} -C #{from} . > /dev/null 2>&1"
+    # Building params for tar command
+    params = ["-czvf", to, "-C", from, "."]
 
     with true <- String.ends_with?(to, ".tgz"),
          false <- File.exists?(to),
-         %Result{err: nil, status: 0} <- Porcelain.shell(command, out: nil) do
+         {_, 0} <- System.cmd("tar", params, stderr_to_stdout: true) do
       {:ok, to}
     else
       false ->
@@ -135,7 +113,7 @@ defmodule Staxx.ExChain.SnapshotManager do
       true ->
         {:error, "Archive already exist: #{to}"}
 
-      %Result{status: status, err: err} ->
+      {err, status} ->
         {:error, "Failed with status: #{inspect(status)} and error: #{inspect(err)}"}
 
       res ->
@@ -152,22 +130,20 @@ defmodule Staxx.ExChain.SnapshotManager do
   def extract(_, ""), do: {:error, "Wrong extracting path for snapshot passed"}
 
   def extract(from, to) do
-    Logger.debug("Extracting #{from} to #{to}")
+    Logger.debug(fn -> "Extracting #{from} to #{to}" end)
 
-    command = "tar -xzvf #{from} -C #{to} > /dev/null 2>&1"
+    # Building params for uncompressing tar
+    params = ["-xzvf", from, "-C", to]
 
     unless File.exists?(to) do
       File.mkdir_p(to)
     end
 
-    case Porcelain.shell(command, out: nil) do
-      %Result{err: nil, status: 0} ->
+    case System.cmd("tar", params, stderr_to_stdout: true) do
+      {_, 0} ->
         {:ok, to}
 
-      %Result{err: nil, status: nil} ->
-        {:ok, to}
-
-      %Result{status: status, err: err} ->
+      {err, status} ->
         {:error, "Failed with status: #{inspect(status)} and error: #{inspect(err)}"}
     end
   end
@@ -248,11 +224,12 @@ defmodule Staxx.ExChain.SnapshotManager do
   """
   @spec generate_snapshot_id() :: binary
   def generate_snapshot_id() do
-    id = ExChain.unique_id()
+    id = Testchain.unique_id()
 
-    with nil <- SnapshotStore.by_id(id) do
-      id
-    else
+    case SnapshotStore.by_id(id) do
+      nil ->
+        id
+
       _ ->
         generate_snapshot_id()
     end
@@ -260,7 +237,7 @@ defmodule Staxx.ExChain.SnapshotManager do
 
   # Build path by snapshot id
   defp build_path(id) do
-    :ex_chain
+    :testchain
     |> Application.get_env(:snapshot_base_path)
     |> Path.expand()
     |> Path.join("#{id}.tgz")

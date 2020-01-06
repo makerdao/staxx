@@ -5,7 +5,7 @@ defmodule Staxx.Testchain do
 
   require Logger
 
-  alias Staxx.Testchain.EVMRegistry
+  alias Staxx.Testchain.EVM
   alias Staxx.Storage
 
   @data_file_name "evm_data.bin"
@@ -46,6 +46,38 @@ defmodule Staxx.Testchain do
         unique_id()
     end
   end
+
+  @doc """
+  Generates new chain snapshot and places it into given path
+  If path does not exist - system will try to create this path
+
+  **Note** this spanshot will be taken based on chain files.
+
+  Function will return `:ok` and will notify system after snapshot will be made.
+  So you will have to wait for `:snapshot_taken` event and `:status_changed` with `%{status: :ready}`
+  to catch finish of snapshot taking process.
+  Also all snapshot details will be sent as data to `:snapshot_taken` event.
+  """
+  @spec take_snapshot(evm_id(), binary) :: :ok | {:error, term()}
+  def take_snapshot(id, description \\ ""),
+    do: GenServer.cast(get_pid!(id), {:take_snapshot, description})
+
+  # @doc """
+  # Revert previously generated snapshot.
+  # For `ganache` chain you could provide `id` for others - path to snapshot
+  # """
+  # @spec revert_snapshot(evm_id(), Staxx.ExChain.Snapshot.Details.t()) :: :ok | {:error, term()}
+  # def revert_snapshot(id, %Staxx.ExChain.Snapshot.Details{} = snapshot) do
+  #   case Staxx.ExChain.SnapshotManager.exists?(snapshot) do
+  #     false ->
+  #       {:error, "Snapshot not exist"}
+
+  #     true ->
+  #       GenServer.cast(get_pid!(id), {:revert_snapshot, snapshot})
+  #   end
+  # end
+
+  # def revert_snapshot(_id, _), do: {:error, "Wrong snapshot details"}
 
   @doc """
   Write any additional information to `evm_data.json` file into chain DB path.
@@ -118,12 +150,19 @@ defmodule Staxx.Testchain do
 
   # Try lo load pid by given id
   defp get_pid(id) do
-    case Registry.lookup(EVMRegistry, id) do
-      [{pid, _}] ->
-        pid
+    id
+    |> EVM.via()
+    |> GenServer.whereis()
+  end
 
-      _ ->
-        nil
+  # Same as `get_pid\1` but will raise in case of issue
+  defp get_pid!(id) do
+    case get_pid(id) do
+      nil ->
+        raise "No pid found"
+
+      pid ->
+        pid
     end
   end
 end

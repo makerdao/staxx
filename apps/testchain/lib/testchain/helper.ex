@@ -19,7 +19,9 @@ defmodule Staxx.Testchain.Helper do
     :clean_on_stop,
     :description,
     :snapshot_id,
-    :clean_on_stop
+    :clean_on_stop,
+    :deploy_ref,
+    :deploy_step_id
   ]
 
   @doc """
@@ -35,8 +37,8 @@ defmodule Staxx.Testchain.Helper do
       clean_on_stop: Map.get(payload, "clean_on_stop", false),
       description: Map.get(payload, "description", ""),
       snapshot_id: Map.get(payload, "snapshot_id"),
-      deploy_tag: Map.get(payload, "deploy_tag"),
-      step_id: Map.get(payload, "step_id", 0)
+      deploy_ref: Map.get(payload, "deploy_ref"),
+      deploy_step_id: Map.get(payload, "deploy_step_id", 0)
     }
   end
 
@@ -97,6 +99,13 @@ defmodule Staxx.Testchain.Helper do
 
   def fill_missing_config!(%Config{} = config),
     do: fix_path!(config)
+
+  @doc """
+  Send chain started event
+  """
+  @spec notify(Testchain.evm_id(), Notification.event(), map()) :: :ok
+  def notify(id, event, details),
+    do: Notification.notify(id, event, details)
 
   @doc """
   Send chain started event

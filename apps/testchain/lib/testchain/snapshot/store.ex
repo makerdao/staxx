@@ -1,9 +1,14 @@
-defmodule Staxx.Storage.SnapshotStore do
+defmodule Staxx.Testchain.SnapshotStore do
   @moduledoc """
   Module that handle snapshots storage
+
+  TODO: rework with adapter pattern
   """
   use GenServer
   require Logger
+
+  alias Staxx.Testchain
+  alias Staxx.Testchain.SnapshotDetails
 
   # DB file name
   @table "snapshots"
@@ -31,15 +36,15 @@ defmodule Staxx.Storage.SnapshotStore do
   @doc """
   Store new snapshot into local DB
   """
-  @spec store(Staxx.ExChain.Snapshot.Details.t()) :: :ok | {:error, term()}
-  def store(%{__struct__: Staxx.ExChain.Snapshot.Details, id: id, chain: chain} = snapshot),
+  @spec store(SnapshotDetails.t()) :: :ok | {:error, term()}
+  def store(%SnapshotDetails{id: id, chain: chain} = snapshot),
     do: :dets.insert(table(), {id, chain, snapshot})
 
   @doc """
   Load snapshot details by id
   In case of error it might raise an exception
   """
-  @spec by_id(binary) :: Staxx.ExChain.Snapshot.Details.t() | nil
+  @spec by_id(binary) :: SnapshotDetails.t() | nil
   def by_id(id) do
     case :dets.lookup(table(), id) do
       [] ->
@@ -53,7 +58,7 @@ defmodule Staxx.Storage.SnapshotStore do
   @doc """
   Load list of existing snapshots by chain type
   """
-  @spec by_chain(Staxx.ExChain.evm_type()) :: [Staxx.ExChain.Snapshot.Details.t()]
+  @spec by_chain(Testchain.evm_type()) :: [SnapshotDetails.t()]
   def by_chain(chain) do
     table()
     |> :dets.match({:_, chain, :"$1"})

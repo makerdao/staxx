@@ -28,7 +28,7 @@ defmodule Staxx.Docker.ContainerTest do
              ContainerRegistry
              |> Registry.lookup(name)
 
-    assert :ok = Container.terminate(name)
+    assert :ok = Container.stop(name)
 
     assert_receive {:DOWN, _, :process, ^pid, :normal}
   end
@@ -51,7 +51,7 @@ defmodule Staxx.Docker.ContainerTest do
     Process.monitor(pid)
 
     assert PortMapper.reserved?(port)
-    assert :ok = Container.terminate(name)
+    assert :ok = Container.stop(name)
 
     assert_receive {:DOWN, _, :process, ^pid, :normal}
 
@@ -76,7 +76,7 @@ defmodule Staxx.Docker.ContainerTest do
 
     Process.monitor(pid)
 
-    assert :ok = Container.terminate(name)
+    assert :ok = Container.stop(name)
 
     assert_receive {:DOWN, _, :process, ^pid, :normal}
   end
