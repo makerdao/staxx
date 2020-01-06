@@ -57,7 +57,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth.AccountsCreator do
 
   Will create new account using:
    - newly generated private key
-   - password from file configured in `Application.get_env(:ex_chain, :geth_password_file)`
+   - password from file configured in `Application.get_env(:testchain, :geth_password_file)`
    - `db_path` given as an input argument
 
   It will use `geth account import` command.

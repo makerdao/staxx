@@ -23,7 +23,7 @@ defmodule Staxx.Testchain.EVM.Process do
             rpc_url: "",
             ws_url: "",
             gas_limit: 6_000_000,
-            network_id: Application.get_env(:ex_chain, :default_chain_id)
+            network_id: Application.get_env(:testchain, :default_chain_id)
 end
 
 defimpl Jason.Encoder, for: Staxx.Testchain.EVM.Process do

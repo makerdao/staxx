@@ -10,7 +10,7 @@ defmodule Staxx.DeploymentScope.Scope.StackManager do
   alias Staxx.DeploymentScope
   alias Staxx.Docker
   alias Staxx.Docker.Container
-  alias Staxx.DeploymentScope.EVMWorker.Notification
+  alias Staxx.EventStream.Notification
   alias Staxx.DeploymentScope.StackRegistry
   alias Staxx.DeploymentScope.Stack.{ConfigLoader, Config}
 
@@ -286,7 +286,7 @@ defmodule Staxx.DeploymentScope.Scope.StackManager do
 
   defp notify_status(%State{scope_id: id, name: name}, status),
     do:
-      Notification.send_to_event_bus(id, "stack:status", %{
+      Notification.notify(id, "stack:status", %{
         scope_id: id,
         stack_name: name,
         status: status

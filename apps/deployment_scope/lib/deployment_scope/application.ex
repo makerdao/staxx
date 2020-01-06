@@ -14,9 +14,7 @@ defmodule Staxx.DeploymentScope.Application do
       Staxx.DeploymentScope.ScopesSupervisor,
       Staxx.DeploymentScope.Stack.ConfigLoader,
       # User <-> Chain mapper, DETS based GenServer
-      Staxx.DeploymentScope.UserScope,
-      # EVM & deployment integration
-      Staxx.DeploymentScope.EVMWorker.Storage
+      Staxx.DeploymentScope.UserScope
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

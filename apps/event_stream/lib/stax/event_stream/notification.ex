@@ -28,6 +28,7 @@ defmodule Staxx.EventStream.Notification do
           :error
           | :started
           | :status_changed
+          | binary
 
   @typedoc """
   Default Notification structure.

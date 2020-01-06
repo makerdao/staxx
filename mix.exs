@@ -24,15 +24,8 @@ defmodule Staxx.MixProject do
           metrix: :permanent,
           proxy: :permanent,
           web_api: :permanent,
-          ex_chain: :load
-        ]
-      ],
-      ex_testchain: [
-        include_executables_for: [:unix],
-        applications: [
-          ex_chain: :permanent,
           json_rpc: :permanent,
-          storage: :permanent
+          testchain: :permanent
         ]
       ]
     ]

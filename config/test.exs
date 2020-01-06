@@ -14,23 +14,15 @@ config :docker, adapter: Staxx.Docker.Adapter.Mock
 
 config :deployment_scope, stacks_dir: "#{__DIR__}/../priv/test/stacks"
 
-config :my_app, Staxx.Store.Repo, pool: Ecto.Adapters.SQL.Sandbox
+config :store, Staxx.Store.Repo, pool: Ecto.Adapters.SQL.Sandbox
 
 #
 # Metrics
 #
 config :metrix, run_prometheus: false
 
-config :proxy, ex_chain_adapter: Staxx.Proxy.ExChain.FakeExChain
-config :proxy, node_manager_adapter: Staxx.Proxy.NodeManager.FakeNodeManager
-
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
 config :web_api, Staxx.WebApiWeb.Endpoint,
   http: [port: 4002],
   server: false
-
-config :ex_chain,
-  ganache_executable:
-    System.get_env("GANACHE_EXECUTABLE") ||
-      Path.expand("#{__DIR__}/../priv/presets/ganache-cli/cli.js")

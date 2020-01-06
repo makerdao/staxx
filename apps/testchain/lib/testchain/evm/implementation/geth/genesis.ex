@@ -5,7 +5,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth.Genesis do
   Module is responsible for generating new `genesis.json`
 
   Here are set of settings for new genesis:
-   - `chain_id` - chain Id (Default: `Application.get_env(:ex_chain, :default_chain_id)`)
+   - `chain_id` - chain Id (Default: `Application.get_env(:testchain, :default_chain_id)`)
    - `difficulty` - calc difficulty (Default: `1`)
    - `gas_limit` - gas limit for chain (Default: `6_000_000`)
    - `accounts` - List of accounts
@@ -36,7 +36,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth.Genesis do
           accounts: [Account.t()]
         }
 
-  defstruct chain_id: Application.get_env(:ex_chain, :default_chain_id),
+  defstruct chain_id: Application.get_env(:testchain, :default_chain_id),
             difficulty: 0,
             gas_limit: 16_000_000,
             period: 0,

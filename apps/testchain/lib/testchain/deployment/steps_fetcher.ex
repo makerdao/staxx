@@ -2,7 +2,7 @@ defmodule Staxx.Testchain.Deployment.StepsFetcher do
   @moduledoc """
   Module will fetch list of steps from deployment service
   Fetching might be triggered by timeout (automatically) or manually
-  by calling `Proxy.Deploy.StepsFetcher.reload/0`
+  by calling `Staxx.Testchain.Deploy.StepsFetcher.reload/0`
   """
   use GenServer
   alias Staxx.Testchain.Deployment.BaseApi

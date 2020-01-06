@@ -9,10 +9,6 @@ config :logger,
 #   [level_lower_than: :warn]
 # ]
 
-config :proxy, ex_chain_adapter: Staxx.Proxy.ExChain.Remote
-# Node manager
-config :proxy, node_manager_adapter: Staxx.Proxy.NodeManager.Remote
-
 config :docker, adapter: Staxx.Docker.Adapter.DockerD
 
 config :deployment_scope, stacks_dir: "/tmp/stacks"

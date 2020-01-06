@@ -136,8 +136,8 @@ defmodule Staxx.WebApiWeb.ChainController do
   # Generate path where to store file
   defp copy_snapshot(%Plug.Upload{path: path, filename: name}) do
     destination =
-      :proxy
-      |> Application.get_env(:snapshot_path)
+      :testchain
+      |> Application.get_env(:snapshot_base_path)
       |> Path.join(name)
 
     case File.exists?(destination) do

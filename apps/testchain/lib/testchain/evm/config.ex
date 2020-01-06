@@ -6,7 +6,7 @@ defmodule Staxx.Testchain.EVM.Config do
   - `type` - EVM type. (Default: `:ganache`)
   - `id` - Random unique internal process identificator. Example: `"11296068888839073704"`. If empty system will generate it automatically
   - `existing` - Identifies if we need to start already existing chain. In that case all other options except `id` will be ignored.
-  - `network_id` - Network ID (Default: `Application.get_env(:deployment, :default_chain_id)`)
+  - `network_id` - Network ID (Default: `Application.get_env(:testchain, :default_chain_id)`)
   - `db_path` - Specify a path to a directory to save the chain database
   - `block_mine_time` - Block period to use in developer mode (0 = mine only if transaction pending) (default: 0)
   - `gas_limit` - The block gas limit (defaults to `9000000000000`)
@@ -47,7 +47,7 @@ defmodule Staxx.Testchain.EVM.Config do
   defstruct type: :ganache,
             id: nil,
             existing: false,
-            network_id: Application.get_env(:ex_chain, :default_chain_id, 999),
+            network_id: Application.get_env(:testchain, :default_chain_id, 999),
             db_path: "",
             block_mine_time: 0,
             gas_limit: 9_000_000_000_000,
