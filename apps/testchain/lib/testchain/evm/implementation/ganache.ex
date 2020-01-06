@@ -26,7 +26,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Ganache do
     container = %Container{
       permanent: true,
       image: docker_image(),
-      name: Docker.random_name(),
+      name: config.container_name,
       description: "#{id}: Ganache EVM",
       cmd: build_command(config, accounts),
       ports: [@http_port],

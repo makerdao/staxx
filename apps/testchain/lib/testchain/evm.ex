@@ -100,6 +100,11 @@ defmodule Staxx.Testchain.EVM do
   @callback start(config :: Config.t()) :: {:ok, Container.t(), state :: any()} | {:error, term()}
 
   @doc """
+  Callback will be invoked after EVM started and confirmed it by `started?/2`
+  """
+  @callback on_started(config :: Config.t(), state :: any()) :: action_reply()
+
+  @doc """
   Callback will be called after EVM container start and system will assign ports to it.
   It have to pick correct ports from given ports list.
   Ports information might be found in `Staxx.Docker.Container.t()`.
@@ -111,20 +116,23 @@ defmodule Staxx.Testchain.EVM do
 
   @doc """
   This callback will be called when system will need to stop EVM.
-  Just before actual EVM termination this function will be called.
+  Just before final EVM termination this function will be called as well.
   So it's nice place to stop some custom work you are doing on EVM.
+
+  Note: This callback might be called several times during EVM life.
+  On snapshot taking/revering EVM will be stopped and `on_stop/2` will be invoked.
+  If you need final EVM termination consider using `on_terminate/2` callback
 
   Result value should be updated internal state
   """
-  @callback pre_stop(config :: Config.t(), state :: any()) :: any()
+  @callback on_stop(config :: Config.t(), state :: any()) :: any()
 
   @doc """
-  Callback will be invoked after EVM started and confirmed it by `started?/2`
-  """
-  @callback handle_started(config :: Config.t(), state :: any()) :: action_reply()
+  This callback is called just before the Process goes down. 
+  This is a good place for closing connections.
 
-  @doc """
-  This callback is called just before the Process goes down. This is a good place for closing connections.
+  Difference with `on_stop` is that `on_terminate` will be called on final EVM termination process.
+  But `on_stop` might be called on tmp EVM stopping (example: makeing/reverting snapshot)
   """
   @callback on_terminate(config :: Config.t(), state :: any()) :: term()
 
@@ -149,7 +157,7 @@ defmodule Staxx.Testchain.EVM do
   @callback version() :: binary
 
   @doc """
-  Child specification for supervising given `Testchain.EVM` module
+  Child specification for supervising given `Staxx.Testchain.EVM` module
   """
   @spec child_spec(Config.t()) :: :supervisor.child_spec()
   def child_spec(%Config{type: :geth} = config), do: child_spec(Geth, config)
@@ -159,7 +167,7 @@ defmodule Staxx.Testchain.EVM do
   def child_spec(%Config{type: _}), do: {:error, :unsuported_evm_type}
 
   @doc """
-  Child specification for supervising given `Chain.EVM` module
+  Child specification for supervising given `Staxx.Testchain.EVM` module
   """
   @spec child_spec(module(), Config.t()) :: :supervisor.child_spec()
   def child_spec(module, %Config{id: id} = config) do
@@ -178,15 +186,13 @@ defmodule Staxx.Testchain.EVM do
 
   Note: Container remove error will be ignored.
   """
-  @spec clean_on_stop(Config.t(), binary) :: :ok | {:error, term()}
-  def clean_on_stop(config, container_name \\ "")
+  @spec clean_on_stop(Config.t()) :: :ok | {:error, term()}
+  def clean_on_stop(config)
 
-  def clean_on_stop(%Config{clean_on_stop: false}, _), do: :ok
+  def clean_on_stop(%Config{clean_on_stop: false}), do: :ok
 
-  def clean_on_stop(%Config{id: id, clean_on_stop: true, db_path: db_path}, container_name) do
-    rm_container(id, container_name)
-    clean(id, db_path)
-  end
+  def clean_on_stop(%Config{id: id, clean_on_stop: true, db_path: db_path}),
+    do: clean(id, db_path)
 
   defmacro __using__(_opt) do
     # credo:disable-for-next-line
@@ -226,8 +232,13 @@ defmodule Staxx.Testchain.EVM do
 
       @doc false
       def init(%Config{id: id, db_path: db_path, existing: true} = config) do
-        IO.inspect(config)
-        raise "Not implemented"
+        version = get_version()
+
+        # Send notification about status change
+        Helper.notify_status(id, :initializing)
+
+        {:ok, %State{status: :initializing, config: config, version: version},
+         {:continue, :start_chain}}
       end
 
       @doc false
@@ -238,7 +249,12 @@ defmodule Staxx.Testchain.EVM do
           :ok = File.mkdir_p!(db_path)
         end
 
-        new_config = migrate_config(config)
+        # Binding newly created docker container name
+        new_config =
+          config
+          |> Map.put(:container_name, Docker.random_name())
+          |> migrate_config()
+
         version = get_version()
 
         # Send notification about status change
@@ -254,7 +270,6 @@ defmodule Staxx.Testchain.EVM do
             %State{
               config: config,
               internal_state: internal_state,
-              container_name: container_name,
               container_pid: container_pid
             } = state
           ) do
@@ -275,8 +290,11 @@ defmodule Staxx.Testchain.EVM do
         # If exit reason is normal we could send notification that evm stopped
         case reason do
           r when r in ~w(normal shutdown)a ->
+            # Removing stopped container
+            rm_container(config.id, config.container_name)
+
             # Clean path for chain after it was terminated
-            EVM.clean_on_stop(config, container_name)
+            EVM.clean_on_stop(config)
             # Send notification after stop
             Helper.notify_status(config.id, :terminated)
 
@@ -331,6 +349,10 @@ defmodule Staxx.Testchain.EVM do
 
             # Storing testchain configuration because it wouldn't change anymore
             Logger.debug(fn -> "#{config.id}: Storing initial configuration for chain" end)
+
+            # Updating config with container name
+            config = %Config{config | container_name: container_name}
+            # Storing new config
             Config.store(config)
 
             # Updating EVM state with new values
@@ -339,7 +361,6 @@ defmodule Staxx.Testchain.EVM do
               | http_port: http_port,
                 ws_port: ws_port,
                 config: config,
-                container_name: container_name,
                 container_pid: container_pid,
                 internal_state: internal_state
             }
@@ -352,28 +373,6 @@ defmodule Staxx.Testchain.EVM do
             Helper.notify_status(config.id, :failed)
             {:stop, {:shutdown, :failed_to_start}, %State{state | status: :failed}}
         end
-      end
-
-      @doc false
-      def handle_continue(
-            :stop,
-            %State{config: config, container_pid: pid, internal_state: internal_state} = state
-          ) do
-        Logger.debug(fn -> "#{config.id}: Stopping EVM container." end)
-
-        # Calling pre stop function to stop something.
-        new_internal_state = pre_stop(config, internal_state)
-
-        # Terminating container
-        :ok = Container.terminate(pid)
-
-        # Notify status change
-        Helper.notify_status(config.id, :terminating)
-
-        new_state = %State{state | status: :terminating, internal_state: new_internal_state}
-
-        # Stop timeout
-        {:noreply, new_state, @evm_stop_timeout}
       end
 
       @doc false
@@ -466,7 +465,7 @@ defmodule Staxx.Testchain.EVM do
             Helper.notify_started(config.id, details(state))
 
             config
-            |> handle_started(internal_state)
+            |> on_started(internal_state)
             # Marking chain as started and operational
             |> handle_action(%State{state | status: :active})
 
@@ -634,10 +633,6 @@ defmodule Staxx.Testchain.EVM do
         {:noreply, state}
       end
 
-      @doc false
-      def handle_cast(:stop, %State{} = state),
-        do: {:noreply, state, {:continue, :stop}}
-
       @doc """
       `{:via}` notation for process registry
       """
@@ -676,14 +671,14 @@ defmodule Staxx.Testchain.EVM do
       def migrate_config(config), do: config
 
       @impl EVM
-      def pre_stop(_, state), do: state
+      def on_stop(_, state), do: state
 
       @impl EVM
       def on_terminate(config, state),
         do: Logger.debug("#{config.id}: Terminating... #{inspect(state, pretty: true)}")
 
       @impl EVM
-      def handle_started(_config, _internal_state),
+      def on_started(_config, _internal_state),
         do: :ignore
 
       @impl EVM
@@ -791,13 +786,30 @@ defmodule Staxx.Testchain.EVM do
       # Get front url for chain
       defp front_url(), do: Application.get_env(:testchain, :front_url)
 
+      defp rm_container(_id, ""), do: :ok
+
+      # Remove container after termination
+      defp rm_container(id, name) do
+        Logger.debug(fn -> "#{id}: Removing container #{name}" end)
+
+        case Docker.rm(name) do
+          :ok ->
+            Logger.debug(fn -> "#{id}: Container removed." end)
+            :ok
+
+          {:error, err} ->
+            Logger.error(fn -> "#{id}: Failed to remove container #{name}: #{inspect(err)}" end)
+            {:error, err}
+        end
+      end
+
       # Allow to override functions
-      defoverridable handle_started: 2,
-                     pre_stop: 2,
-                     pick_ports: 2,
+      defoverridable pick_ports: 2,
                      migrate_config: 1,
                      get_version: 0,
                      version: 0,
+                     on_started: 2,
+                     on_stop: 2,
                      on_terminate: 2
     end
   end
@@ -805,22 +817,6 @@ defmodule Staxx.Testchain.EVM do
   ####################################################
   # Staxx.Testchain.EVM private functions
   ####################################################
-
-  defp rm_container(_id, ""), do: :ok
-
-  defp rm_container(id, name) do
-    Logger.debug(fn -> "#{id}: Removing container #{name}" end)
-
-    case Docker.rm(name) do
-      :ok ->
-        Logger.debug(fn -> "#{id}: Container removed." end)
-        :ok
-
-      {:error, err} ->
-        Logger.error(fn -> "#{id}: Failed to remove container #{name}: #{inspect(err)}" end)
-        {:error, err}
-    end
-  end
 
   # Clean given path
   defp clean(_id, ""), do: :ok

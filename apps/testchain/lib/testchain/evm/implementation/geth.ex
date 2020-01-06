@@ -68,7 +68,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth do
     container = %Container{
       permanent: true,
       image: docker_image(),
-      name: Docker.random_name(),
+      name: config.container_name,
       description: "#{id}: Geth EVM",
       cmd: build_cmd(config, accounts),
       ports: [@http_port, @ws_port],

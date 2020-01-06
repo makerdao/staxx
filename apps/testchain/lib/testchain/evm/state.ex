@@ -9,7 +9,6 @@ defmodule Staxx.Testchain.EVM.State do
    - `ws_port` - WS JSONRPC port, in case of `nil` - port will be randomly assigned
     (for ganache it will be ignored and `http_port` will be used) (Default: `nil`)
    - `task` - Task scheduled for execution after chain stop
-   - `container_name` - EVM container name. System will need to remove/work with it even if `container_pid` dead
    - `container_pid` - EVM container pid in system.
    - `config` - default configuration for chain. Not available in implemented callback functions
    - `internal_state` - state for chain implementation
@@ -27,7 +26,6 @@ defmodule Staxx.Testchain.EVM.State do
           version: Version.t() | nil,
           task: EVM.scheduled_task(),
           config: Config.t(),
-          container_name: binary,
           container_pid: pid,
           internal_state: term()
         }
@@ -38,7 +36,6 @@ defmodule Staxx.Testchain.EVM.State do
             version: nil,
             task: nil,
             config: nil,
-            container_name: "",
             container_pid: nil,
             internal_state: nil
 

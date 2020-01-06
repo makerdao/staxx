@@ -13,6 +13,7 @@ defmodule Staxx.Testchain.EVM.Config do
   - `accounts` - How many accoutn should be created on start (Default: `1`)
   - `clean_on_stop` - Clean up `db_path` after chain is stopped. (Default: `false`)
   - `description` - Chain description for storage
+  - `container_name` - EVM container name.
   - `snapshot_id` - Snapshot ID that should be loaded on chain start
   """
 
@@ -35,6 +36,7 @@ defmodule Staxx.Testchain.EVM.Config do
           accounts: non_neg_integer(),
           clean_on_stop: boolean(),
           description: binary,
+          container_name: binary,
           snapshot_id: nil | binary
         }
 
@@ -48,6 +50,7 @@ defmodule Staxx.Testchain.EVM.Config do
             accounts: 1,
             clean_on_stop: false,
             description: "",
+            container_name: "",
             snapshot_id: nil
 
   @doc """
@@ -66,7 +69,13 @@ defmodule Staxx.Testchain.EVM.Config do
   @doc """
   Load configuration from given path
   """
-  @spec load(binary) :: {:ok, t()} | {:error, term}
+  @spec load(t() | binary) :: {:ok, t()} | {:error, term}
+  def load(%__MODULE__{db_path: ""}),
+    do: {:error, "no db_path exist in config for loading"}
+
+  def load(%__MODULE__{db_path: db_path}),
+    do: load(db_path)
+
   def load(db_path) do
     db_path
     |> Path.join(@config_file_name)

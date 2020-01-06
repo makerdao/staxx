@@ -67,15 +67,22 @@ defmodule Staxx.Testchain.Helper do
   end
 
   @doc """
-  Create new configuration for existing testchain.
+  Loads configuration for existing testchain.
   """
-  @spec load_exitsing_chain_config(Testchain.evm_id()) :: Config.t()
+  @spec load_exitsing_chain_config(Testchain.evm_id()) :: {:ok, Config.t()} | {:error, term}
   def load_exitsing_chain_config(id) do
     %Config{
-      id: id,
-      existing: true
+      id: id
     }
     |> fill_missing_config!()
+    |> Config.load()
+    |> case do
+      {:ok, config} ->
+        {:ok, %Config{config | existing: true}}
+
+      err ->
+        err
+    end
   end
 
   @doc """

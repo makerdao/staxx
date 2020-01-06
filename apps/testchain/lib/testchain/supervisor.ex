@@ -44,8 +44,20 @@ defmodule Staxx.Testchain.Supervisor do
   def init({id, existing_id}) when is_binary(existing_id) do
     existing_id
     |> Helper.load_exitsing_chain_config()
-    |> EVM.child_spec()
-    |> do_init(id)
+    |> case do
+      {:ok, config} ->
+        config
+        |> EVM.child_spec()
+        |> do_init(id)
+
+      {:error, err} ->
+        Logger.error(fn ->
+          "#{id}: Failed to load configuration for existing chain: #{inspect(err)}"
+        end)
+
+        Helper.notify_error(id, "Failed to load configuration for existing chain")
+        {:stop, :fail_to_load_config}
+    end
   end
 
   @doc """
