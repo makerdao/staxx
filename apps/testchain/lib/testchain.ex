@@ -6,6 +6,7 @@ defmodule Staxx.Testchain do
   require Logger
 
   alias Staxx.Testchain.EVM
+  alias Staxx.Testchain.{SnapshotDetails, SnapshotManager}
   alias Staxx.Storage
 
   @data_file_name "evm_data.bin"
@@ -62,22 +63,34 @@ defmodule Staxx.Testchain do
   def take_snapshot(id, description \\ ""),
     do: GenServer.cast(get_pid!(id), {:take_snapshot, description})
 
-  # @doc """
-  # Revert previously generated snapshot.
-  # For `ganache` chain you could provide `id` for others - path to snapshot
-  # """
-  # @spec revert_snapshot(evm_id(), Staxx.ExChain.Snapshot.Details.t()) :: :ok | {:error, term()}
-  # def revert_snapshot(id, %Staxx.ExChain.Snapshot.Details{} = snapshot) do
-  #   case Staxx.ExChain.SnapshotManager.exists?(snapshot) do
-  #     false ->
-  #       {:error, "Snapshot not exist"}
+  @doc """
+  Revert previously generated snapshot.
+  For `ganache` chain you could provide `id` for others - path to snapshot
+  """
+  @spec revert_snapshot(evm_id(), SnapshotDetails.t() | binary) :: :ok | {:error, term()}
+  def revert_snapshot(id, snapshot_id) when is_binary(snapshot_id) do
+    snapshot_id
+    |> SnapshotManager.by_id()
+    |> case do
+      nil ->
+        {:error, "No snapshot exist with id: #{snapshot_id}"}
 
-  #     true ->
-  #       GenServer.cast(get_pid!(id), {:revert_snapshot, snapshot})
-  #   end
-  # end
+      %SnapshotDetails{} = details ->
+        revert_snapshot(id, details)
+    end
+  end
 
-  # def revert_snapshot(_id, _), do: {:error, "Wrong snapshot details"}
+  def revert_snapshot(id, %SnapshotDetails{} = snapshot) do
+    case SnapshotManager.exists?(snapshot) do
+      false ->
+        {:error, "Snapshot not exist"}
+
+      true ->
+        GenServer.cast(get_pid!(id), {:revert_snapshot, snapshot})
+    end
+  end
+
+  def revert_snapshot(_id, _), do: {:error, "Wrong snapshot details"}
 
   @doc """
   Write any additional information to `evm_data.json` file into chain DB path.

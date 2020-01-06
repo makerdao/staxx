@@ -658,22 +658,71 @@ defmodule Staxx.Testchain.EVM do
       end
 
       @doc false
-      # def handle_cast(
-      #       {:revert_snapshot, snapshot},
-      #       %State{status: :active, locked: false, config: config, internal_state: internal_state} =
-      #         state
-      #     ) do
-      #   Logger.debug("#{config.id} stopping emv before reverting snapshot")
-      #   {:ok, new_internal_state} = stop(config, internal_state)
+      def handle_cast(
+            {:revert_snapshot, snapshot},
+            %State{status: :ready, config: config, container_pid: container_pid} = state
+          ) do
+        Logger.debug(fn -> "#{config.id}: Stopping EVM before reverting snapshot" end)
 
-      #   new_state =
-      #     state
-      #     |> State.status(:snapshot_reverting, config)
-      #     |> State.task({:revert_snapshot, snapshot})
-      #     |> State.internal_state(new_internal_state)
+        unless Process.alive?(container_pid) do
+          Helper.notify_error(
+            config.id,
+            "#{config.id}: Failed to revert snapshot for non runing EVM"
+          )
 
-      #   {:noreply, new_state}
-      # end
+          raise "#{config.id}: Failed to revert snapshot for non runing EVM"
+        end
+
+        # Notify status change
+        Helper.notify_status(config.id, :snapshot_reverting)
+
+        # stoping container in sync mode if it's alive
+        Logger.debug(fn ->
+          "#{config.id}: Shutting down container process for reverting snapshot"
+        end)
+
+        # TODO: pause health check for EVM
+        container = Container.info(container_pid)
+        :ok = Container.stop_temporary(container_pid)
+        Logger.debug(fn -> "#{config.id}: Container terminated for reverting snapshot" end)
+
+        %Config{db_path: db_path, type: type} = config
+
+        try do
+          details = SnapshotManager.restore_snapshot!(snapshot, db_path)
+
+          Logger.debug("#{config.id}: Snapshot reverted, details: #{inspect(snapshot)}")
+
+          # Send notification with newly created snopshot details
+          Helper.notify(config.id, :snapshot_reverted, snapshot)
+
+          # Marking container as `existing` so no new container will be created
+          # System will start already existing contianer and all ports/volumes 
+          # will be already configured. So no need to change anything
+          container = %Container{container | existing: true}
+          # Starting given container with EVM
+          {:ok, container_pid} = Container.start_link(container)
+
+          # Notify status change
+          Helper.notify_status(config.id, :snapshot_reverted)
+
+          # Schedule started check
+          # Operation is async and `status: :active` will be set later
+          # See: `handle_info({:check_started, _})`
+          check_started(self())
+
+          {:noreply, %State{state | status: :snapshot_reverted, container_pid: container_pid}}
+        rescue
+          err ->
+            Logger.error("#{config.id} failed to revert snapshot with error #{inspect(err)}")
+            # Send error notification
+            Helper.notify_error(config.id, "failed to revert snapshot with error #{inspect(err)}")
+            # Notify status change
+            Helper.notify_status(config.id, :failed)
+
+            {:stop, :failed_revert_snapshot, %State{state | status: :failed}}
+        end
+      end
 
       @doc false
       def handle_cast({:revert_snapshot, _}, %State{config: config} = state) do
