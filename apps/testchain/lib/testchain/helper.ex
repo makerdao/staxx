@@ -7,6 +7,8 @@ defmodule Staxx.Testchain.Helper do
 
   alias Staxx.Testchain
   alias Staxx.Testchain.EVM.Config
+  alias Staxx.Testchain.Deployment.Config, as: DeploymentConfig
+  alias Staxx.Testchain.Deployment.Worker, as: DeploymentWorker
   alias Staxx.EventStream.Notification
 
   # List of keys chain need as config
@@ -99,6 +101,29 @@ defmodule Staxx.Testchain.Helper do
 
   def fill_missing_config!(%Config{} = config),
     do: fix_path!(config)
+
+  @doc """
+  Run deployment worker for newly started EVM
+  """
+  @spec run_deployment(Testchain.evm_id(), GenServer.server(), binary, 1..9, map()) ::
+          {:ok, term} | {:error, term}
+  def run_deployment(id, evm_pid, git_ref, step_id, %{
+        rpc_url: rpc_url,
+        coinbase: coinbase
+      }) do
+    %DeploymentConfig{
+      evm_pid: evm_pid,
+      scope_id: id,
+      step_id: step_id,
+      git_ref: git_ref,
+      rpc_url: rpc_url,
+      coinbase: coinbase
+    }
+    |> DeploymentWorker.start_link()
+  end
+
+  def run_deployment(_state, _evm_pid, _git_ref, _step_id, _details),
+    do: {:error, "No chain details exist"}
 
   @doc """
   Send chain started event

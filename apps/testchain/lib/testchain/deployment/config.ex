@@ -7,6 +7,7 @@ defmodule Staxx.Testchain.Deployment.Config do
   @deployment_scripts_repo_url "https://github.com/makerdao/dss-deploy-scripts"
 
   @type t :: %__MODULE__{
+          evm_pid: GenServer.server(),
           request_id: binary,
           scope_id: binary,
           step_id: pos_integer,
@@ -17,7 +18,9 @@ defmodule Staxx.Testchain.Deployment.Config do
           git_url: binary
         }
 
-  defstruct request_id: "",
+  @enforce_keys [:evm_pid, :scope_id]
+  defstruct evm_pid: nil,
+            request_id: "",
             scope_id: "",
             step_id: 0,
             rpc_url: "",

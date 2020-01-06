@@ -1,4 +1,4 @@
-defmodule Staxx.Testchain.HealthChecker do
+defmodule Staxx.Testchain.EVM.HealthChecker do
   @moduledoc """
   Process that will check health of EVM periodically.
   GenServer will have some timeout for health checks but for some special cases
@@ -40,17 +40,14 @@ defmodule Staxx.Testchain.HealthChecker do
 
   @doc false
   def handle_info(:check, {id, :active}) do
-    Logger.debug(fn -> "#{id}: Checking EVM health" end)
-
     case do_health_check(id) do
       :ok ->
-        Logger.debug(fn -> "#{id}: Health check passed sucessfuly." end)
+        {:noreply, {id, :active}, set_timeout()}
 
       err ->
         Logger.error(fn -> "#{id}: Health Check failed: #{inspect(err, pretty: true)}" end)
+        {:noreply, {id, :active}, set_timeout()}
     end
-
-    {:noreply, {id, :active}, set_timeout()}
   end
 
   def handle_info(:check, {id, _}) do
@@ -59,6 +56,16 @@ defmodule Staxx.Testchain.HealthChecker do
   end
 
   defp do_health_check(_id) do
+    # TODO: pass http_port and make real check
+
+    # case JsonRpc.eth_coinbase("http://localhost:#{http_port}") do
+    #   {:ok, <<"0x", _::binary>>} ->
+    #     :ok
+
+    #   _ ->
+    #     Logger.error(fn -> "#{id}: Failed to check health for EVM" end)
+    #     :ok
+    # end
     :ok
   end
 

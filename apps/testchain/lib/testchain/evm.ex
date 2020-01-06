@@ -182,6 +182,20 @@ defmodule Staxx.Testchain.EVM do
   def clean_on_stop(%Config{id: id, clean_on_stop: true, db_path: db_path}),
     do: clean(id, db_path)
 
+  @doc """
+  Notify EVM process that deployment finally finished
+  """
+  @spec handle_deployment_success(GenServer.server(), term) :: :ok
+  def handle_deployment_success(server, data),
+    do: GenServer.cast(server, {:deployment_success, data})
+
+  @doc """
+  Notify EVM process that deployment failed
+  """
+  @spec handle_deployment_failed(GenServer.server(), term) :: :ok
+  def handle_deployment_failed(server, data),
+    do: GenServer.cast(server, {:deployment_failed, data})
+
   defmacro __using__(_opt) do
     # credo:disable-for-next-line
     quote do
@@ -196,10 +210,14 @@ defmodule Staxx.Testchain.EVM do
       alias Staxx.Testchain.EVMRegistry
       alias Staxx.Testchain.{AccountStore, SnapshotManager}
       alias Staxx.Testchain.Supervisor, as: TestchainSupervisor
+      alias Staxx.Testchain.Deployment.StepsFetcher
       alias Staxx.Docker
       alias Staxx.Docker.Container
 
       @behaviour EVM
+
+      # Default deployment git reference
+      @default_deploy_ref Application.get_env(:testchain, :default_deployment_scripts_git_ref)
 
       # maximum amount of checks for evm started
       # system checks if evm started every 200ms
@@ -395,37 +413,87 @@ defmodule Staxx.Testchain.EVM do
 
             # Notify status change
             Helper.notify_status(config.id, :deploying)
-            {:noreply, %State{state | status: :deploying}}
+
+            {:noreply, %State{state | status: :deploying},
+             {:continue, {:run_deployment, details}}}
+        end
+      end
+
+      @doc """
+      Will start new deployment worker that will run deployment on deployment service
+      """
+      def handle_continue(
+            {:run_deployment, details},
+            %State{config: config, status: :deploying} = state
+          ) do
+        %Config{id: id, deploy_step_id: deploy_step} = config
+
+        Logger.debug(fn ->
+          "#{config.id}: New EVM started successfully, have deployment step to perform: #{
+            deploy_step
+          }"
+        end)
+
+        # Load step details
+        with step when is_map(step) <- StepsFetcher.get(deploy_step),
+             hash <- Map.get(config, :deploy_ref, @default_deploy_ref),
+             {:ok, pid} <- Helper.run_deployment(id, self(), hash, deploy_step, details) do
+          Logger.debug(fn ->
+            "#{id}: Deployment process scheduled, worker pid: #{inspect(pid)} !"
+          end)
+
+          # Collecting telemetry
+          :telemetry.execute(
+            [:staxx, :chain, :deployment, :started],
+            # %{request_id: request_id},
+            %{},
+            %{id: id, step_id: deploy_step}
+          )
+
+          # TODO: Store chain details
+
+          # state
+          # |> Record.from_state()
+          # |> Record.chain_details(details)
+          # |> Record.deploy_step(step)
+          # |> Record.deploy_hash(hash)
+          # |> Record.store()
+
+          {:noreply, state}
+        else
+          err ->
+            Logger.error(
+              "#{id}: Failed to fetch steps from deployment service. Deploy ommited #{
+                inspect(err)
+              }"
+            )
+
+            Helper.notify_error(id, "failed to start deployment process")
+            Helper.notify_status(id, :failed)
+            {:stop, {:shutdown, :failed}, %State{state | status: :failed}}
         end
       end
 
       @doc false
-      def handle_info(
-            {:EXIT, pid, reason},
-            %State{container_pid: container_pid} = state
-          ) do
-        case pid do
-          ^container_pid ->
-            case Map.get(state, :status) do
-              :terminating ->
-                Logger.debug(fn -> "#{state.config.id}: EVM container terminates." end)
-                {:stop, :normal, state}
+      def handle_info({:EXIT, pid, reason}, %State{container_pid: container_pid} = state)
+          when pid == container_pid do
+        # Checking current status
+        case Map.get(state, :status) do
+          :terminating ->
+            Logger.debug(fn -> "#{state.config.id}: EVM container terminates." end)
+            {:stop, :normal, state}
 
-              status ->
-                Logger.warn(fn ->
-                  "#{state.config.id}: EVM container terminated with #{inspect(reason)}... Stopping..."
-                end)
+          status ->
+            Logger.warn(fn ->
+              "#{state.config.id}: EVM container terminated with #{inspect(reason)}... Stopping..."
+            end)
 
-                {:stop, {:shutdown, :failed}, state}
-            end
-
-          _ ->
-            {:noreply, state}
+            {:stop, {:shutdown, :failed}, state}
         end
       end
 
       def handle_info({:EXIT, _, _} = msg, %State{config: config} = state) do
-        Logger.warn(fn -> "#{config.id} EVM process handled unknown :EXIT #{inspect(msg)}" end)
+        Logger.debug(fn -> "#{config.id} EVM process handled unknown :EXIT #{inspect(msg)}" end)
         {:noreply, state}
       end
 
@@ -662,6 +730,34 @@ defmodule Staxx.Testchain.EVM do
 
         Helper.notify_error(config.id, "No way we could revert snapshot for non operational EVM")
         {:noreply, state}
+      end
+
+      @doc """
+      Handling deployment process success
+      """
+      def handle_cast({:deployment_success, data}, %State{config: config} = state) do
+        Logger.debug(fn -> "#{config.id}: Deployment process finished successfuly !" end)
+
+        # TODO: save result for deployment
+        Helper.notify_status(config.id, :deployment_success)
+        Helper.notify(config.id, :deployment_success, data)
+        Helper.notify_status(config.id, :ready)
+
+        {:noreply, %State{state | status: :ready}}
+      end
+
+      @doc """
+      Handling deployment process success
+      """
+      def handle_cast({:deployment_failed, data}, %State{config: config} = state) do
+        Logger.debug(fn -> "#{config.id}: Deployment process failed !" end)
+        Helper.notify_status(config.id, :deployment_failed)
+        Helper.notify(config.id, :deployment_failed, inspect(data))
+
+        # Marking chain as ready. Because may be we need to make other calls to EVM
+        Helper.notify_status(config.id, :ready)
+
+        {:noreply, %State{state | status: :ready}}
       end
 
       ######

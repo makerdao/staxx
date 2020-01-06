@@ -13,7 +13,7 @@ defmodule Staxx.Testchain.Deployment.Worker do
   - chain details (coinbase, gas limit, rpc_url)
 
   """
-  use GenServer, restart: :transient
+  use GenServer, restart: :temporary
 
   # Timeout 20 mins in ms
   @timeout 20 * 60 * 60 * 1000
@@ -21,7 +21,7 @@ defmodule Staxx.Testchain.Deployment.Worker do
   require Logger
 
   alias Staxx.DeploymentScope
-  alias Staxx.DeploymentScope.EVMWorker
+  alias Staxx.Testchain.EVM
   alias Staxx.Testchain.DeploymentRegistry
   alias Staxx.Testchain.Deployment.{Config, BaseApi}
   alias Staxx.Docker
@@ -66,6 +66,8 @@ defmodule Staxx.Testchain.Deployment.Worker do
 
   @doc false
   def handle_continue(:spawn_worker, %Config{scope_id: id} = config) do
+    # TODO may be run in sync mode ? 
+
     config
     |> build_container()
     |> Container.start_link()
@@ -84,16 +86,28 @@ defmodule Staxx.Testchain.Deployment.Worker do
   end
 
   @doc false
-  def handle_cast({:failed, data}, %Config{scope_id: id, request_id: request_id} = config) do
-    Logger.debug("Chain #{id} need to handle deployment request")
-    EVMWorker.handle_deployment_failure(id, request_id, data)
+  def handle_cast({:failed, data}, %Config{evm_pid: pid, scope_id: id} = config) do
+    Logger.debug(fn ->
+      """
+      Chain #{id} need to handle deployment failure
+      #{inspect(data, pretty: true)}
+      """
+    end)
+
+    EVM.handle_deployment_failed(pid, data)
     {:stop, :normal, config}
   end
 
   @doc false
-  def handle_cast({:finished, result}, %Config{scope_id: id, request_id: request_id} = config) do
-    Logger.debug("Chain #{id} need to handle deployment request")
-    EVMWorker.handle_deployment(id, request_id, result)
+  def handle_cast({:finished, result}, %Config{evm_pid: pid, scope_id: id} = config) do
+    Logger.debug(fn ->
+      """
+      Chain #{id} need to handle deployment finish:
+      #{inspect(result, pretty: true)}
+      """
+    end)
+
+    EVM.handle_deployment_success(pid, result)
     {:stop, :normal, config}
   end
 

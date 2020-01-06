@@ -13,7 +13,7 @@ defmodule Staxx.Testchain.Supervisor do
 
   alias Staxx.Testchain
   alias Staxx.Testchain.Helper
-  alias Staxx.Testchain.HealthChecker
+  alias Staxx.Testchain.EVM.HealthChecker
   alias Staxx.Testchain.EVM
 
   @doc false

@@ -11,7 +11,7 @@ defmodule Staxx.DeploymentScope.EVMWorker.ChainHelper do
   alias Staxx.DeploymentScope.EVMWorker.State
   alias Staxx.DeploymentScope.EVMWorker.Storage.Record
   alias Staxx.DeploymentScope.Deployment.StepsFetcher
-  alias Staxx.DeploymentScope.Deployment.Config, as: DeploymentConfig
+  # alias Staxx.DeploymentScope.Deployment.Config, as: DeploymentConfig
   alias Staxx.DeploymentScope.Deployment.Worker, as: DeploymentWorker
 
   # List of events that should be resend to event bus
@@ -217,7 +217,7 @@ defmodule Staxx.DeploymentScope.EVMWorker.ChainHelper do
         rpc_url: rpc_url,
         coinbase: coinbase
       }) do
-    %DeploymentConfig{
+    %{
       scope_id: id,
       step_id: step_id,
       git_ref: tag,

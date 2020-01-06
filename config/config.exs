@@ -23,7 +23,6 @@ config :deployment_scope, deployment_timeout: 1_800_000
 config :deployment_scope, action_timeout: 600_000
 config :deployment_scope, deployment_worker_image: "makerdao/testchain-deployment-worker:dev"
 config :deployment_scope, nats: %{host: "nats.local", port: 4222}
-config :deployment_scope, default_deployment_scripts_git_ref: "tags/staxx-deploy"
 
 #
 # Docker configs
@@ -139,6 +138,9 @@ config :testchain, base_path: "/tmp/chains"
 # Default path where snapshots will be stored for chain
 # chain id will be added as a target folder under this path
 config :testchain, snapshot_base_path: "/tmp/snapshots"
+
+# Default deployment scripts git ref
+config :testchain, default_deployment_scripts_git_ref: "refs/tags/staxx-testrunner"
 
 # Default location of account password file.
 # For dev env it will be in related to project root. In Docker it will be replaced with
