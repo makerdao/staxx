@@ -59,11 +59,11 @@ defmodule Staxx.Docker.Adapter.DockerD do
   """
   @impl true
   @spec logs(binary) :: binary
-  def logs(id) do
+  def logs(id_or_name) do
     [
       executable!(),
       "logs",
-      id
+      id_or_name
     ]
     |> exec()
   end
@@ -73,16 +73,16 @@ defmodule Staxx.Docker.Adapter.DockerD do
   """
   @impl true
   @spec rm(binary) :: :ok | {:error, term}
-  def rm(id) do
+  def rm(id_or_name) do
     [
       executable!(),
       "rm",
       "-f",
-      id
+      id_or_name
     ]
     |> exec()
     |> case do
-      ^id ->
+      ^id_or_name ->
         :ok
 
       data ->
@@ -97,10 +97,10 @@ defmodule Staxx.Docker.Adapter.DockerD do
   @spec stop(binary) :: :ok | {:error, term}
   def stop(""), do: {:error, "No container id passed"}
 
-  def stop(container_id) do
-    Logger.debug("Stopping container #{container_id}")
+  def stop(id_or_name) do
+    Logger.debug("Stopping container #{id_or_name}")
 
-    case System.cmd(executable!(), ["stop", container_id]) do
+    case System.cmd(executable!(), ["stop", id_or_name]) do
       {id, 0} ->
         {:ok, String.replace(id, "\n", "")}
 

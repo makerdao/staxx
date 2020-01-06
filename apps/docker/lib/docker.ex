@@ -19,17 +19,17 @@ defmodule Staxx.Docker do
   @doc """
   Stop running container
   """
-  @callback stop(id :: binary) :: :ok | {:error, term}
+  @callback stop(id_or_name :: binary) :: :ok | {:error, term}
 
   @doc """
   Load logs from container with given ID
   """
-  @callback logs(id :: binary) :: binary
+  @callback logs(id_or_name :: binary) :: binary
 
   @doc """
-  Remove container with given ID
+  Remove container with given ID or name
   """
-  @callback rm(id :: binary) :: :ok | {:error, term}
+  @callback rm(id_or_name :: binary) :: :ok | {:error, term}
 
   @doc """
   Create new docker network with given ID for stack
@@ -137,8 +137,8 @@ defmodule Staxx.Docker do
   def stop(""),
     do: {:error, "No container id passed"}
 
-  def stop(container_id),
-    do: adapter().stop(container_id)
+  def stop(id_or_name),
+    do: adapter().stop(id_or_name)
 
   @doc """
   Load list of logs from docker container
@@ -147,17 +147,17 @@ defmodule Staxx.Docker do
   def logs(""),
     do: ""
 
-  def logs(id),
-    do: adapter().logs(id)
+  def logs(id_or_name),
+    do: adapter().logs(id_or_name)
 
   @doc """
-  Remove Docker copntainer
+  Remove Docker container
   """
   @spec rm(binary) :: :ok | {:error, term}
   def rm(""), do: :ok
 
-  def rm(id),
-    do: adapter().rm(id)
+  def rm(id_or_name),
+    do: adapter().rm(id_or_name)
 
   @doc """
   Create new docker network for stack

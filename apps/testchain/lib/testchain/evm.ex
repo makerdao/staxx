@@ -10,6 +10,7 @@ defmodule Staxx.Testchain.EVM do
   alias Staxx.Testchain.EVM.Config
   alias Staxx.Testchain.EVM.Implementation.{Geth, Ganache}
   alias Staxx.Testchain.AccountStore
+  alias Staxx.Docker
   alias Staxx.Docker.Container
 
   # Amount of ms the server is allowed to spend initializing or it will be terminated
@@ -172,28 +173,19 @@ defmodule Staxx.Testchain.EVM do
 
   @doc """
   Will clean `db_path` if `clean_on_stop` is set to true
+  And will remove container with given name
   Otherwise it will do nothing and will return `:ok`
+
+  Note: Container remove error will be ignored.
   """
-  @spec clean_on_stop(Config.t()) :: :ok | {:error, term()}
-  def clean_on_stop(%Config{clean_on_stop: false}), do: :ok
+  @spec clean_on_stop(Config.t(), binary) :: :ok | {:error, term()}
+  def clean_on_stop(config, container_name \\ "")
 
-  def clean_on_stop(%Config{id: id, clean_on_stop: true, db_path: db_path}),
-    do: clean(id, db_path)
+  def clean_on_stop(%Config{clean_on_stop: false}, _), do: :ok
 
-  @doc """
-  Cleans given path
-  """
-  @spec clean(ExChain.evm_id(), binary) :: :ok | {:error, term}
-  def clean(id, db_path) do
-    case File.rm_rf(db_path) do
-      {:error, err} ->
-        Logger.error("#{id}: Failed to clean up #{db_path} with error: #{inspect(err)}")
-        {:error, err}
-
-      _ ->
-        Logger.debug("#{id}: Cleaned path after termination #{db_path}")
-        :ok
-    end
+  def clean_on_stop(%Config{id: id, clean_on_stop: true, db_path: db_path}, container_name) do
+    rm_container(id, container_name)
+    clean(id, db_path)
   end
 
   defmacro __using__(_opt) do
@@ -251,9 +243,59 @@ defmodule Staxx.Testchain.EVM do
       end
 
       @doc false
+      def terminate(
+            reason,
+            %State{
+              config: config,
+              internal_state: internal_state,
+              container_name: container_name,
+              container_pid: container_pid
+            } = state
+          ) do
+        Logger.debug(fn -> "#{config.id}: Terminating evm with reason: #{inspect(reason)}" end)
+        # Send notification about termnating
+        Helper.notify_status(config.id, :terminating)
+        # invoking callback for implementation
+        # Note: we will totally ignore result
+        on_terminate(config, internal_state)
+
+        # stoping container in sync mode if it's alive
+        if Process.alive?(container_pid) do
+          Logger.debug(fn -> "#{config.id}: Shutting down container process" end)
+          :ok = Container.terminate(container_pid)
+          Logger.debug(fn -> "#{config.id}: Container terminated" end)
+        end
+
+        # If exit reason is normal we could send notification that evm stopped
+        case reason do
+          r when r in ~w(normal shutdown)a ->
+            # Clean path for chain after it was terminated
+            EVM.clean_on_stop(config, container_name)
+            # Send notification after stop
+            Helper.notify_status(config.id, :terminated)
+
+          {:shutdown, reason} ->
+            # Sending new error notification
+            Helper.notify_error(config.id, "#{inspect(reason)}")
+            # Termination was not planned. Seems to be failure
+            Helper.notify_status(config.id, :failed)
+        end
+
+        # Send stop signal to Supervisor
+        # Task.async(fn -> TestchainSupervisor.stop(config.id) end)
+        spawn(fn -> TestchainSupervisor.stop(config.id) end)
+      end
+
+      @doc false
       def handle_continue(:start_chain, %State{config: config} = state) do
         case start(config) do
-          {:ok, %Container{} = container, internal_state} ->
+          {:ok, %Container{name: ""}, _} ->
+            Logger.error(fn -> "#{config.id}: No container name for EVM container..." end)
+            # Notify status change
+            Helper.notify_status(config.id, :failed)
+            {:stop, {:shutdown, :failed_to_start}, %State{state | status: :failed}}
+
+          {:ok, %Container{name: container_name} = container, internal_state} ->
             Logger.debug(fn ->
               """
               #{config.id}: Chain initialization finished successfully ! 
@@ -263,6 +305,10 @@ defmodule Staxx.Testchain.EVM do
 
             # Handling Container termination
             Process.flag(:trap_exit, true)
+            # Disable removing container after stop.
+            # We might need to stop it and start again (ex: snapshots)
+            # Container will be removed after termination. See: `terminate/2`
+            container = %Container{container | rm: false}
             # Starting given container with EVM
             {:ok, container_pid} = Container.start_link(container)
 
@@ -283,6 +329,7 @@ defmodule Staxx.Testchain.EVM do
               | http_port: http_port,
                 ws_port: ws_port,
                 config: config,
+                container_name: container_name,
                 container_pid: container_pid,
                 internal_state: internal_state
             }
@@ -581,46 +628,6 @@ defmodule Staxx.Testchain.EVM do
       def handle_cast(:stop, %State{} = state),
         do: {:noreply, state, {:continue, :stop}}
 
-      @doc false
-      def terminate(
-            reason,
-            %State{config: config, internal_state: internal_state, container_pid: container_pid} =
-              state
-          ) do
-        Logger.debug(fn -> "#{config.id}: Terminating evm with reason: #{inspect(reason)}" end)
-        # Send notification about termnating
-        Helper.notify_status(config.id, :terminating)
-        # invoking callback for implementation
-        # Note: we will totally ignore result
-        on_terminate(config, internal_state)
-
-        # stoping container in sync mode if it's alive
-        if Process.alive?(container_pid) do
-          Logger.debug(fn -> "#{config.id}: Shutting down container process" end)
-          :ok = Container.terminate(container_pid)
-          Logger.debug(fn -> "#{config.id}: Coontainer terminated" end)
-        end
-
-        # If exit reason is normal we could send notification that evm stopped
-        case reason do
-          r when r in ~w(normal shutdown)a ->
-            # Clean path for chain after it was terminated
-            Testchain.EVM.clean_on_stop(config)
-            # Send notification after stop
-            Helper.notify_status(config.id, :terminated)
-
-          {:shutdown, reason} ->
-            # Sending new error notification
-            Helper.notify_error(config.id, "#{inspect(reason)}")
-            # Termination was not planned. Seems to be failure
-            Helper.notify_status(config.id, :failed)
-        end
-
-        # Send stop signal to Supervisor
-        # Task.async(fn -> TestchainSupervisor.stop(config.id) end)
-        spawn(fn -> TestchainSupervisor.stop(config.id) end)
-      end
-
       @doc """
       `{:via}` notation for process registry
       """
@@ -782,6 +789,43 @@ defmodule Staxx.Testchain.EVM do
                      get_version: 0,
                      version: 0,
                      on_terminate: 2
+    end
+  end
+
+  ####################################################
+  # Staxx.Testchain.EVM private functions
+  ####################################################
+
+  defp rm_container(_id, ""), do: :ok
+
+  defp rm_container(id, name) do
+    Logger.debug(fn -> "#{id}: Removing container #{name}" end)
+
+    case Docker.rm(name) do
+      :ok ->
+        Logger.debug(fn -> "#{id}: Container removed." end)
+        :ok
+
+      {:error, err} ->
+        Logger.error(fn -> "#{id}: Failed to remove container #{name}: #{inspect(err)}" end)
+        {:error, err}
+    end
+  end
+
+  # Clean given path
+  defp clean(_id, ""), do: :ok
+
+  defp clean(id, db_path) do
+    Logger.debug(fn -> "#{id}: Removing data files #{db_path}" end)
+
+    case File.rm_rf(db_path) do
+      {:error, err} ->
+        Logger.error("#{id}: Failed to clean up #{db_path} with error: #{inspect(err)}")
+        {:error, err}
+
+      _ ->
+        Logger.debug("#{id}: Cleaned path after termination #{db_path}")
+        :ok
     end
   end
 end
