@@ -67,6 +67,18 @@ defmodule Staxx.Testchain.Helper do
   end
 
   @doc """
+  Create new configuration for existing testchain.
+  """
+  @spec load_exitsing_chain_config(Testchain.evm_id()) :: Config.t()
+  def load_exitsing_chain_config(id) do
+    %Config{
+      id: id,
+      existing: true
+    }
+    |> fill_missing_config!()
+  end
+
+  @doc """
   Fill missing config values like `db_path` or others that are not required
   """
   @spec fill_missing_config!(Config.t()) :: Config.t()
@@ -99,6 +111,31 @@ defmodule Staxx.Testchain.Helper do
   @spec notify_status(Testchain.evm_id(), Testchain.EVM.status()) :: :ok
   def notify_status(id, status),
     do: Notification.notify(id, :status_changed, %{status: status})
+
+  @doc """
+  Write given structure into file
+  """
+  @spec write_term_to_file(binary, term) :: :ok | {:error, term()}
+  def write_term_to_file(file, data) do
+    file
+    |> File.write(:erlang.term_to_binary(data))
+  end
+
+  @doc """
+  Read term from given file and decode it to initial struct
+  """
+  @spec read_term_from_file(binary) :: {:ok, term} | {:error, term()}
+  def read_term_from_file(file) do
+    with true <- File.exists?(file),
+         {:ok, content} <- File.read(file),
+         res <- :erlang.binary_to_term(content, [:safe]) do
+      {:ok, res}
+    else
+      err ->
+        Logger.error(fn -> "Failed to read file #{file}: #{inspect(err)}" end)
+        {:error, "failed to load data from #{file}"}
+    end
+  end
 
   ########################################
   # Private functions

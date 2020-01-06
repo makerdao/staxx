@@ -22,19 +22,19 @@ defmodule Staxx.DeploymentScope do
   @spec start(map, binary) :: {:ok, binary} | {:error, term}
   def start(params, email \\ "")
 
-  # def start(%{"testchain" => %{"config" => %{"id" => id}}} = params, email) do
-  #   stacks = Map.drop(params, ["testchain"])
+  def start(%{"testchain" => %{"config" => %{"id" => id}}} = params, email) do
+    stacks = Map.drop(params, ["testchain"])
 
-  #   Logger.debug(fn ->
-  #     """
-  #     Starting deployment scope with existing chain #{id}
-  #     Config:
-  #     #{inspect(stacks, pretty: true)}
-  #     """
-  #   end)
+    Logger.debug(fn ->
+      """
+      Starting deployment scope with existing chain #{id}
+      Config:
+      #{inspect(stacks, pretty: true)}
+      """
+    end)
 
-  #   start(id, id, stacks, email)
-  # end
+    start(id, id, stacks, email)
+  end
 
   def start(%{"testchain" => %{"config" => config}} = params, email) do
     %{id: id} =
@@ -66,12 +66,12 @@ defmodule Staxx.DeploymentScope do
   Start supervision tree for new deployment scope
   """
   @spec start(binary, binary | map, map, binary) :: {:ok, Testchain.evm_id()} | {:error, term}
-  def start(id, chain_config, stacks, email \\ "") when is_binary(id) do
+  def start(id, chain_config_or_id, stacks, email \\ "") when is_binary(id) do
     modules = get_stack_names(stacks)
     Logger.debug("Starting new deployment scope with modules: #{inspect(modules)}")
 
     with :ok <- validate_stacks(modules),
-         {:ok, pid} <- ScopesSupervisor.start_scope({id, chain_config, stacks}) do
+         {:ok, pid} <- ScopesSupervisor.start_scope({id, chain_config_or_id, stacks}) do
       Logger.debug("Started chain supervisor tree #{inspect(pid)} for stack #{id}")
 
       unless email == "" do

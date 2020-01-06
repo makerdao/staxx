@@ -6,6 +6,8 @@ defmodule Staxx.Testchain.AccountStore do
   Needed for snapshoting. To be able to restore accounts/priv keys after snapshot restorage
   """
 
+  alias Staxx.Testchain.Helper
+
   # file where list of initial accounts will be stored
   @file_name "initial_addresses"
 
@@ -16,7 +18,7 @@ defmodule Staxx.Testchain.AccountStore do
   def store(db_path, list) do
     db_path
     |> Path.join(@file_name)
-    |> File.write(:erlang.term_to_binary(list))
+    |> Helper.write_term_to_file(list)
   end
 
   @doc """
@@ -24,16 +26,9 @@ defmodule Staxx.Testchain.AccountStore do
   """
   @spec load(binary) :: {:ok, [map]} | {:error, term()}
   def load(db_path) do
-    file = Path.join(db_path, @file_name)
-
-    with true <- File.exists?(file),
-         {:ok, content} <- File.read(file),
-         res <- :erlang.binary_to_term(content, [:safe]) do
-      {:ok, res}
-    else
-      _ ->
-        {:error, "failed to load addresses from #{db_path}"}
-    end
+    db_path
+    |> Path.join(@file_name)
+    |> Helper.read_term_from_file()
   end
 
   @doc """

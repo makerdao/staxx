@@ -225,7 +225,13 @@ defmodule Staxx.Testchain.EVM do
       end
 
       @doc false
-      def init(%Config{id: id, db_path: db_path} = config) do
+      def init(%Config{id: id, db_path: db_path, existing: true} = config) do
+        IO.inspect(config)
+        raise "Not implemented"
+      end
+
+      @doc false
+      def init(%Config{id: id, db_path: db_path, existing: false} = config) do
         # Check DB path existense
         unless File.exists?(db_path) do
           Logger.debug("#{id}: #{db_path} not exist, creating...")
@@ -322,6 +328,10 @@ defmodule Staxx.Testchain.EVM do
             # Operation is async and `status: :active` will be set later
             # See: `handle_info({:check_started, _})`
             check_started(self())
+
+            # Storing testchain configuration because it wouldn't change anymore
+            Logger.debug(fn -> "#{config.id}: Storing initial configuration for chain" end)
+            Config.store(config)
 
             # Updating EVM state with new values
             state = %State{

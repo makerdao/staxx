@@ -34,18 +34,18 @@ defmodule Staxx.Testchain.Supervisor do
 
   @impl true
   def init({id, chain_config}) when is_map(chain_config) do
-    evm_spec =
-      chain_config
-      |> Helper.to_evm_config()
-      |> EVM.child_spec()
+    chain_config
+    |> Helper.to_evm_config()
+    |> EVM.child_spec()
+    |> do_init(id)
+  end
 
-    children = [
-      evm_spec,
-      {HealthChecker, id}
-    ]
-
-    opts = [strategy: :rest_for_one]
-    Supervisor.init(children, opts)
+  @impl true
+  def init({id, existing_id}) when is_binary(existing_id) do
+    existing_id
+    |> Helper.load_exitsing_chain_config()
+    |> EVM.child_spec()
+    |> do_init(id)
   end
 
   @doc """
@@ -58,6 +58,17 @@ defmodule Staxx.Testchain.Supervisor do
     id
     |> via()
     |> Supervisor.stop({:shutdown, id})
+  end
+
+  # Does Supervisor initialisation
+  defp do_init(evm_spec, id) do
+    children = [
+      evm_spec,
+      {HealthChecker, id}
+    ]
+
+    opts = [strategy: :rest_for_one]
+    Supervisor.init(children, opts)
   end
 
   defp via(id),
