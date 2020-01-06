@@ -1,6 +1,6 @@
 defmodule Staxx.Testchain.EVM do
   @moduledoc """
-  EVM abscraction. Each EVMs have to implement this abstraction.
+  EVM abscraction. Each EVM have to implement this abstraction.
   """
 
   require Logger
@@ -346,6 +346,7 @@ defmodule Staxx.Testchain.EVM do
           ^container_pid ->
             case Map.get(state, :status) do
               :terminating ->
+                Logger.debug(fn -> "#{state.config.id}: EVM container terminates." end)
                 {:stop, :normal, state}
 
               status ->
@@ -583,11 +584,22 @@ defmodule Staxx.Testchain.EVM do
       @doc false
       def terminate(
             reason,
-            %State{config: config, internal_state: internal_state} = state
+            %State{config: config, internal_state: internal_state, container_pid: container_pid} =
+              state
           ) do
-        Logger.debug("#{config.id} Terminating evm with reason: #{inspect(reason)}")
-
+        Logger.debug(fn -> "#{config.id}: Terminating evm with reason: #{inspect(reason)}" end)
+        # Send notification about termnating
+        Helper.notify_status(config.id, :terminating)
+        # invoking callback for implementation
+        # Note: we will totally ignore result
         on_terminate(config, internal_state)
+
+        # stoping container in sync mode if it's alive
+        if Process.alive?(container_pid) do
+          Logger.debug(fn -> "#{config.id}: Shutting down container process" end)
+          :ok = Container.terminate(container_pid)
+          Logger.debug(fn -> "#{config.id}: Coontainer terminated" end)
+        end
 
         # If exit reason is normal we could send notification that evm stopped
         case reason do
@@ -692,7 +704,6 @@ defmodule Staxx.Testchain.EVM do
         %Config{
           id: id,
           db_path: db_path,
-          notify_pid: pid,
           network_id: network_id,
           gas_limit: gas_limit
         } = config

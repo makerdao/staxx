@@ -1,4 +1,4 @@
-defmodule Staxx.DeploymentScope.Deployment.Worker do
+defmodule Staxx.Testchain.Deployment.Worker do
   @moduledoc """
   Wroker that will controll deployment process flow.
   It will spawn new deployment worker (docker container) with all reaquired info
@@ -22,8 +22,8 @@ defmodule Staxx.DeploymentScope.Deployment.Worker do
 
   alias Staxx.DeploymentScope
   alias Staxx.DeploymentScope.EVMWorker
-  alias Staxx.DeploymentScope.DeploymentRegistry
-  alias Staxx.DeploymentScope.Deployment.{Config, BaseApi}
+  alias Staxx.Testchain.DeploymentRegistry
+  alias Staxx.Testchain.Deployment.{Config, BaseApi}
   alias Staxx.Docker
   alias Staxx.Docker.Container
 

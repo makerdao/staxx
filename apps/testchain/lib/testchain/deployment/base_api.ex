@@ -1,4 +1,4 @@
-defmodule Staxx.DeploymentScope.Deployment.BaseApi do
+defmodule Staxx.Testchain.Deployment.BaseApi do
   @moduledoc """
   Module represents basic http layer for deployment service
   """

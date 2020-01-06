@@ -1,4 +1,4 @@
-defmodule Staxx.DeploymentScope.Deployment.Config do
+defmodule Staxx.Testchain.Deployment.Config do
   @moduledoc """
   Configuration for deployment process
   """

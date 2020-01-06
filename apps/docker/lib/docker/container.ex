@@ -170,12 +170,6 @@ defmodule Staxx.Docker.Container do
   end
 
   @doc false
-  def handle_cast(:terminate, %__MODULE__{id: id} = state) do
-    Logger.debug(fn -> "Terminating container #{id} PID.\n #{inspect(state)}" end)
-    {:stop, :normal, state}
-  end
-
-  @doc false
   def handle_cast({:die, exit_code}, %__MODULE__{id: id} = state) do
     Logger.debug(fn ->
       "Container died #{id} with exit code #{exit_code}.\n #{inspect(state, pretty: true)}"
@@ -208,11 +202,11 @@ defmodule Staxx.Docker.Container do
   def terminate(name) when is_binary(name) do
     name
     |> via_tuple()
-    |> GenServer.cast(:terminate)
+    |> GenServer.stop(:shutdown)
   end
 
   def terminate(pid),
-    do: GenServer.cast(pid, :terminate)
+    do: GenServer.stop(pid, :shutdown)
 
   @doc """
   Send die event from docker to container process by container Name

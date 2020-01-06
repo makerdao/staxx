@@ -13,7 +13,6 @@ defmodule Staxx.Testchain.Helper do
   @evm_config_keys [
     :id,
     :type,
-    :notify_pid,
     :accounts,
     :network_id,
     :block_mine_time,
