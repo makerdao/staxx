@@ -73,7 +73,7 @@ defmodule Staxx.Testchain.SnapshotStore do
 
   # Get DB path
   defp db_path() do
-    :storage
+    :testchain
     |> Application.get_env(:dets_db_path)
     |> Path.expand()
   end

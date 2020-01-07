@@ -22,10 +22,10 @@ defmodule Staxx.MixProject do
           docker: :permanent,
           event_stream: :permanent,
           metrix: :permanent,
-          proxy: :permanent,
           web_api: :permanent,
           json_rpc: :permanent,
-          testchain: :permanent
+          testchain: :permanent,
+          store: :permanent
         ]
       ]
     ]

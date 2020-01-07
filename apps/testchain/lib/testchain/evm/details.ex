@@ -17,6 +17,7 @@ defmodule Staxx.Testchain.EVM.Details do
           network_id: pos_integer()
         }
 
+  @derive Jason.Encoder
   @enforce_keys [:id]
   defstruct id: nil,
             coinbase: "",
@@ -27,10 +28,10 @@ defmodule Staxx.Testchain.EVM.Details do
             network_id: Application.get_env(:testchain, :default_chain_id)
 end
 
-defimpl Jason.Encoder, for: Staxx.Testchain.EVM.Details do
-  def encode(value, opts) do
-    value
-    |> Map.from_struct()
-    |> Jason.Encode.map(opts)
-  end
-end
+# defimpl Jason.Encoder, for: Staxx.Testchain.EVM.Details do
+#   def encode(value, opts) do
+#     value
+#     |> Map.from_struct()
+#     |> Jason.Encode.map(opts)
+#   end
+# end

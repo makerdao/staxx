@@ -44,6 +44,7 @@ defmodule Staxx.Testchain.EVM.Config do
           deploy_step_id: pos_integer
         }
 
+  @derive Jason.Encoder
   defstruct type: :ganache,
             id: nil,
             existing: false,

@@ -7,7 +7,7 @@ defmodule Staxx.Testchain do
 
   alias Staxx.Testchain.EVM
   alias Staxx.Testchain.{SnapshotDetails, SnapshotManager}
-  alias Staxx.Storage
+  alias Staxx.Store.Models.Chain, as: ChainRecord
 
   @data_file_name "evm_data.bin"
 
@@ -39,7 +39,7 @@ defmodule Staxx.Testchain do
     new_unique_id = to_string(new_unique_id)
 
     with nil <- get_pid(new_unique_id),
-         nil <- Storage.get(new_unique_id),
+         nil <- ChainRecord.get(new_unique_id),
          false <- File.exists?(evm_db_path(new_unique_id)) do
       new_unique_id
     else

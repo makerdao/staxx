@@ -7,11 +7,13 @@ defmodule Staxx.Testchain.EVM do
 
   alias Staxx.Testchain
   alias Staxx.Testchain.Helper
+  alias Staxx.Testchain.Deployment.Result, as: DeploymentResult
   alias Staxx.Testchain.EVM.Config
   alias Staxx.Testchain.EVM.Implementation.{Geth, Ganache}
   alias Staxx.Testchain.AccountStore
   alias Staxx.Docker
   alias Staxx.Docker.Container
+  alias Staxx.Store.Models.Chain, as: ChainRecord
 
   # Amount of ms the server is allowed to spend initializing or it will be terminated
   @timeout Application.get_env(:testchain, :kill_timeout, 60_000)
@@ -51,19 +53,6 @@ defmodule Staxx.Testchain.EVM do
           | :snapshot_reverted
           | :failed
           | :ready
-
-  # @typedoc """
-  # Task that should be performed.
-
-  # Some tasks require chain to be stopped before performing
-  # like, taking/reverting snapshots, changing initial evm configs.
-  # such tasks should be set into `State.task` and after evm termination
-  # system will perform this task and try to start chain again
-  # """
-  # @type scheduled_task ::
-  #         nil
-  #         | {:take_snapshot, description :: binary}
-  #         | {:revert_snapshot, SnapshotDetails.t()}
 
   @doc """
   Callback that should return docker image for EVM
@@ -185,9 +174,9 @@ defmodule Staxx.Testchain.EVM do
   @doc """
   Notify EVM process that deployment finally finished
   """
-  @spec handle_deployment_success(GenServer.server(), term) :: :ok
-  def handle_deployment_success(server, data),
-    do: GenServer.cast(server, {:deployment_success, data})
+  @spec handle_deployment_success(GenServer.server(), DeploymentResult.t()) :: :ok
+  def handle_deployment_success(server, result),
+    do: GenServer.cast(server, {:deployment_success, result})
 
   @doc """
   Notify EVM process that deployment failed
@@ -210,9 +199,11 @@ defmodule Staxx.Testchain.EVM do
       alias Staxx.Testchain.EVMRegistry
       alias Staxx.Testchain.{AccountStore, SnapshotManager}
       alias Staxx.Testchain.Supervisor, as: TestchainSupervisor
+      alias Staxx.Testchain.Deployment.Result, as: DeploymentResult
       alias Staxx.Testchain.Deployment.StepsFetcher
       alias Staxx.Docker
       alias Staxx.Docker.Container
+      alias Staxx.Store.Models.Chain, as: ChainRecord
 
       @behaviour EVM
 
@@ -256,17 +247,20 @@ defmodule Staxx.Testchain.EVM do
         end
 
         # Binding newly created docker container name
-        new_config =
+        config =
           config
           |> Map.put(:container_name, Docker.random_name())
           |> migrate_config()
 
         version = get_version()
 
+        # Writing chain to DB
+        Helper.insert_or_update(id, config, :initializing)
+
         # Send notification about status change
         Helper.notify_status(id, :initializing)
 
-        {:ok, %State{status: :initializing, config: new_config, version: version},
+        {:ok, %State{status: :initializing, config: config, version: version},
          {:continue, :start_chain}}
       end
 
@@ -312,7 +306,6 @@ defmodule Staxx.Testchain.EVM do
         end
 
         # Send stop signal to Supervisor
-        # Task.async(fn -> TestchainSupervisor.stop(config.id) end)
         spawn(fn -> TestchainSupervisor.stop(config.id) end)
       end
 
@@ -393,6 +386,9 @@ defmodule Staxx.Testchain.EVM do
         details = details(state)
         # Notify chain started
         Helper.notify_started(config.id, details)
+
+        # Saving details
+        Helper.store_chain_details(config.id, details)
 
         case Config.has_deployment?(config) do
           false ->
@@ -735,12 +731,18 @@ defmodule Staxx.Testchain.EVM do
       @doc """
       Handling deployment process success
       """
-      def handle_cast({:deployment_success, data}, %State{config: config} = state) do
+      def handle_cast(
+            {:deployment_success, %DeploymentResult{} = result},
+            %State{config: config} = state
+          ) do
         Logger.debug(fn -> "#{config.id}: Deployment process finished successfuly !" end)
 
-        # TODO: save result for deployment
+        # Storing deployment result to DB
+        Helper.store_deployment_result(config.id, result)
+
+        # Sending required notifications
         Helper.notify_status(config.id, :deployment_success)
-        Helper.notify(config.id, :deployment_success, data)
+        Helper.notify(config.id, :deployment_success, result)
         Helper.notify_status(config.id, :ready)
 
         {:noreply, %State{state | status: :ready}}
@@ -910,6 +912,9 @@ defmodule Staxx.Testchain.EVM do
   defp clean(_id, ""), do: :ok
 
   defp clean(id, db_path) do
+    Logger.debug(fn -> "#{id}: Removing data from DB" end)
+    ChainRecord.delete(id)
+
     Logger.debug(fn -> "#{id}: Removing data files #{db_path}" end)
 
     case File.rm_rf(db_path) do

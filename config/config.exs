@@ -91,9 +91,6 @@ config :logger, :console,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
 
-config :storage, provider: Staxx.Storage.Provider.Dets
-config :storage, dets_db_path: "/tmp/chains"
-
 # This configuration is loaded before any dependency and is restricted
 # to this project. If another project depends on this project, this
 # file won't be loaded nor affect the parent project. For this reason,
@@ -120,6 +117,9 @@ config :testchain, front_url: "localhost"
 # `/tmp/chains/some-id-here`
 config :testchain, base_path: "/tmp/chains"
 
+# DB path where all list of chain workers will be stored
+config :testchain, dets_db_path: "/tmp/chains"
+
 # Default chainId that will be assigned to chain if it was not passed
 # as parameter for chain on start
 config :testchain, default_chain_id: 999
@@ -135,12 +135,8 @@ config :testchain, default_deployment_scripts_git_ref: "refs/tags/staxx-testrunn
 # For dev env it will be in related to project root. In Docker it will be replaced with
 # file from `rel/config/config.exs`
 config :testchain,
-  geth_executable: Path.expand("#{__DIR__}/../priv/presets/geth/geth"),
   geth_docker_image: "makerdao/geth_evm:1.8.27",
-  # geth_executable: "/tmp/chains/test/go-ethereum/build/bin/geth",
   geth_password_file: Path.expand("#{__DIR__}/../priv/presets/geth/account_password"),
-  ganache_docker_image: "makerdao/ganache_evm:6.7.0",
-  ganache_executable: Path.expand("#{__DIR__}/../priv/presets/ganache-cli/cli.js"),
-  ganache_wrapper_file: Path.expand("#{__DIR__}/../priv/presets/ganache/wrapper.sh")
+  ganache_docker_image: "makerdao/ganache_evm:6.7.0"
 
 import_config "#{Mix.env()}.exs"

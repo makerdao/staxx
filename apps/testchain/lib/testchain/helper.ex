@@ -6,10 +6,13 @@ defmodule Staxx.Testchain.Helper do
   require Logger
 
   alias Staxx.Testchain
+  alias Staxx.Testchain.EVM
   alias Staxx.Testchain.EVM.Config
+  alias Staxx.Testchain.Deployment.Result, as: DeploymentResult
   alias Staxx.Testchain.Deployment.Config, as: DeploymentConfig
   alias Staxx.Testchain.Deployment.Worker, as: DeploymentWorker
   alias Staxx.EventStream.Notification
+  alias Staxx.Store.Models.Chain, as: ChainRecord
 
   # List of keys chain need as config
   @evm_config_keys [
@@ -90,6 +93,70 @@ defmodule Staxx.Testchain.Helper do
   end
 
   @doc """
+  Store chain details in DB.
+  Might show error in console but actuially erorr will be ignored
+  """
+  @spec store_chain_details(Testchain.evm_id(), EVM.Details.t()) :: :ok
+  def store_chain_details(id, %EVM.Details{} = details) do
+    # Storing chain details
+    id
+    |> ChainRecord.set(%{details: details})
+    |> case do
+      {:ok, _} ->
+        Logger.debug(fn -> "#{id}: Stored chain details" end)
+
+      {:error, err} ->
+        Logger.error(fn ->
+          "#{id}: Failed to store chain details: #{inspect(err)}"
+        end)
+    end
+  end
+
+  @doc """
+  Store deployment result into DB. 
+  Might show error in console but actuially erorr will be ignored
+  """
+  @spec store_deployment_result(Testchain.evm_id(), DeploymentResult.t()) :: :ok
+  def store_deployment_result(id, %DeploymentResult{} = result) do
+    # Storing deployment result
+    id
+    |> ChainRecord.set(%{deployment: result})
+    |> case do
+      {:ok, _} ->
+        Logger.debug(fn -> "#{id}: Stored deployment success details" end)
+
+      {:error, err} ->
+        Logger.error(fn ->
+          "#{id}: Failed to store deployment result: #{inspect(err)}"
+        end)
+    end
+  end
+
+  @doc """
+  Insert new chain record or updates existing one
+  """
+  @spec insert_or_update(Testchain.evm_id(), Config.t(), EVM.status()) ::
+          {:ok, map()} | {:error, term}
+  def insert_or_update(id, %Config{type: type, description: description} = config, status) do
+    title =
+      case description do
+        "" ->
+          id
+
+        _ ->
+          description
+      end
+
+    id
+    |> ChainRecord.insert_or_update(%{
+      node_type: Atom.to_string(type),
+      title: title,
+      config: config,
+      status: Atom.to_string(status)
+    })
+  end
+
+  @doc """
   Fill missing config values like `db_path` or others that are not required
   """
   @spec fill_missing_config!(Config.t()) :: Config.t()
@@ -136,8 +203,12 @@ defmodule Staxx.Testchain.Helper do
   Send chain started event
   """
   @spec notify_started(Testchain.evm_id(), map()) :: :ok
-  def notify_started(id, details),
-    do: Notification.notify(id, :started, details)
+  def notify_started(id, details) do
+    Notification.notify(id, :started, details)
+
+    ChainRecord.set(id, %{details: details})
+    :ok
+  end
 
   @doc """
   Send error notification about testchain
@@ -150,8 +221,12 @@ defmodule Staxx.Testchain.Helper do
   Send status changed event
   """
   @spec notify_status(Testchain.evm_id(), Testchain.EVM.status()) :: :ok
-  def notify_status(id, status),
-    do: Notification.notify(id, :status_changed, %{status: status})
+  def notify_status(id, status) do
+    Notification.notify(id, :status_changed, %{status: status})
+    ChainRecord.set_status(id, status)
+
+    :ok
+  end
 
   @doc """
   Write given structure into file

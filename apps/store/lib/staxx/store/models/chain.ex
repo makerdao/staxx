@@ -11,21 +11,20 @@ defmodule Staxx.Store.Models.Chain do
   alias Staxx.Store.Models.User
 
   @type t :: %__MODULE__{
-          uuid: binary,
           # user_id: pos_integer | nil,
           chain_id: binary,
           title: binary,
           node_type: atom | binary,
           status: atom | binary,
-          config: map | nil
+          config: map,
+          details: map,
+          deployment: map
         }
 
   @derive Jason.Encoder
 
-  @primary_key {:uuid, :binary_id, autogenerate: true}
-  # @foreign_key_type :binary_id
+  @primary_key {:chain_id, :string, []}
   schema "chains" do
-    field(:chain_id, :string, unique: true)
     field(:title, :string)
     field(:node_type, :string)
     field(:status, :string, default: "initializing")
@@ -61,6 +60,22 @@ defmodule Staxx.Store.Models.Chain do
   end
 
   @doc """
+  Set field for chain
+  """
+  @spec set(binary, map) :: {:ok, t()} | {:error, term}
+  def set(id, params) do
+    case get(id) do
+      nil ->
+        {:error, :not_found}
+
+      chain ->
+        chain
+        |> changeset(params)
+        |> Repo.update()
+    end
+  end
+
+  @doc """
   Create new user in system
   """
   @spec create(map) :: {:ok, t()} | {:error, term}
@@ -71,19 +86,9 @@ defmodule Staxx.Store.Models.Chain do
   end
 
   @doc """
-  Udpate user in system
-  """
-  @spec update(t(), map) :: {:ok, t()} | {:error, term}
-  def update(%__MODULE__{} = user, data) do
-    user
-    |> changeset(data)
-    |> Repo.insert_or_update()
-  end
-
-  @doc """
   Load user from DB
   """
-  @spec get(pos_integer) :: t() | nil
+  @spec get(binary) :: t() | nil
   def get(id) do
     __MODULE__
     |> Repo.get(id)
@@ -98,5 +103,49 @@ defmodule Staxx.Store.Models.Chain do
     |> limit(^limit)
     |> offset(^offset)
     |> Repo.all()
+  end
+
+  @doc """
+  Delete chain from DB
+  """
+  @spec delete(binary) :: {integer(), nil | [term()]}
+  def delete(id) do
+    __MODULE__
+    |> where(chain_id: ^id)
+    |> Repo.delete_all()
+  end
+
+  @doc """
+  Create new chain record or updates existing
+  """
+  @spec insert_or_update(binary, map()) :: {:ok, t()} | {:error, term}
+  def insert_or_update(id, data) do
+    id
+    |> get()
+    |> case do
+      nil ->
+        %__MODULE__{chain_id: id}
+
+      chain ->
+        chain
+    end
+    |> changeset(data)
+    |> Repo.insert_or_update()
+  end
+
+  @doc """
+  Updates status for chain
+  """
+  @spec set_status(binary, atom | binary, map()) :: {integer(), nil | [term()]}
+  def set_status(id, status, data \\ %{})
+
+  def set_status(id, status, data) when is_atom(status),
+    do: set_status(id, Atom.to_string(status), data)
+
+  def set_status(id, status, _data) do
+    __MODULE__
+    |> where(chain_id: ^id)
+    |> update(set: [status: ^status])
+    |> Repo.update_all([])
   end
 end

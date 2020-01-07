@@ -34,9 +34,9 @@ defmodule Staxx.Testchain.MixProject do
   defp deps do
     [
       {:json_rpc, in_umbrella: true},
-      {:storage, in_umbrella: true},
       {:docker, in_umbrella: true},
       {:event_stream, in_umbrella: true},
+      {:store, in_umbrella: true},
       {:poison, "~> 3.1"},
       {:poolboy, "~> 1.5.1"},
       {:ksha3, "~> 1.0.0", git: "https://github.com/onyxrev/ksha3.git", branch: "master"},

@@ -23,7 +23,7 @@ defmodule Staxx.Testchain.Deployment.Worker do
   alias Staxx.DeploymentScope
   alias Staxx.Testchain.EVM
   alias Staxx.Testchain.DeploymentRegistry
-  alias Staxx.Testchain.Deployment.{Config, BaseApi}
+  alias Staxx.Testchain.Deployment.{Config, BaseApi, Result}
   alias Staxx.Docker
   alias Staxx.Docker.Container
 
@@ -99,7 +99,16 @@ defmodule Staxx.Testchain.Deployment.Worker do
   end
 
   @doc false
-  def handle_cast({:finished, result}, %Config{evm_pid: pid, scope_id: id} = config) do
+  def handle_cast(
+        {:finished, result},
+        %Config{
+          evm_pid: pid,
+          scope_id: id,
+          step_id: step_id,
+          git_ref: git_ref,
+          request_id: request_id
+        } = config
+      ) do
     Logger.debug(fn ->
       """
       Chain #{id} need to handle deployment finish:
@@ -107,7 +116,14 @@ defmodule Staxx.Testchain.Deployment.Worker do
       """
     end)
 
-    EVM.handle_deployment_success(pid, result)
+    deployment_result = %Result{
+      request_id: request_id,
+      step_id: step_id,
+      git_ref: git_ref,
+      result: result
+    }
+
+    EVM.handle_deployment_success(pid, deployment_result)
     {:stop, :normal, config}
   end
 
