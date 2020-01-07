@@ -30,6 +30,8 @@ defmodule Staxx.Store.Models.Chain do
     field(:node_type, :string)
     field(:status, :string, default: "initializing")
     field(:config, :map, default: %{})
+    field(:details, :map, default: %{})
+    field(:deployment, :map, default: %{})
 
     belongs_to(:user, User)
 
@@ -42,7 +44,9 @@ defmodule Staxx.Store.Models.Chain do
     :title,
     :node_type,
     :status,
-    :config
+    :config,
+    :details,
+    :deployment
   ]
 
   @doc """

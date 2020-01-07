@@ -38,7 +38,6 @@ defmodule Staxx.Testchain.MixProject do
       {:docker, in_umbrella: true},
       {:event_stream, in_umbrella: true},
       {:poison, "~> 3.1"},
-      {:porcelain, "~> 2.0"},
       {:poolboy, "~> 1.5.1"},
       {:ksha3, "~> 1.0.0", git: "https://github.com/onyxrev/ksha3.git", branch: "master"},
       {:ethereum_wallet, github: "onyxrev/ethereum_wallet_elixir"},

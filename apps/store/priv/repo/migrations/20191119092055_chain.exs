@@ -10,6 +10,8 @@ defmodule Staxx.Store.Repo.Migrations.Chain do
       add(:node_type, :string)
       add(:status, :string, default: "initializing")
       add(:config, :map)
+      add(:details, :map)
+      add(:deployment, :map)
 
       timestamps()
     end
