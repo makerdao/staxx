@@ -1,6 +1,7 @@
-defmodule Staxx.Testchain.EVM.Process do
+defmodule Staxx.Testchain.EVM.Details do
   @moduledoc """
-  EVM Process identifier
+  EVM Details
+  Contain list of EVM operational values
   """
 
   alias Staxx.Testchain
@@ -26,7 +27,7 @@ defmodule Staxx.Testchain.EVM.Process do
             network_id: Application.get_env(:testchain, :default_chain_id)
 end
 
-defimpl Jason.Encoder, for: Staxx.Testchain.EVM.Process do
+defimpl Jason.Encoder, for: Staxx.Testchain.EVM.Details do
   def encode(value, opts) do
     value
     |> Map.from_struct()

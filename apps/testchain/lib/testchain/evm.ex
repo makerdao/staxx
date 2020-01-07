@@ -569,7 +569,7 @@ defmodule Staxx.Testchain.EVM do
       @doc false
       def handle_call(:details, _from, %State{config: config} = state) do
         case details(config) do
-          %EVM.Process{} = info ->
+          %EVM.Details{} = info ->
             {:reply, {:ok, info}, state}
 
           _ ->
@@ -844,7 +844,7 @@ defmodule Staxx.Testchain.EVM do
           ]
           |> Enum.map(&Task.await/1)
 
-        %EVM.Process{
+        %EVM.Details{
           id: id,
           network_id: network_id,
           coinbase: coinbase,
