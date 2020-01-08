@@ -312,7 +312,6 @@ defmodule Staxx.Testchain.EVM do
       @doc """
       Starts EVM. 
       Called from all initialization process.
-      TODO: More detailed info for implementation
       """
       def handle_continue(:start_chain, %State{config: config} = state) do
         case start(config) do

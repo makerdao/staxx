@@ -259,8 +259,8 @@ defmodule Staxx.Testchain.Helper do
   @doc """
   Returns path to DETS files directory
   """
-  @spec db_path :: binary
-  def db_path() do
+  @spec dets_db_path() :: binary
+  def dets_db_path() do
     :testchain
     |> Application.get_env(:dets_db_path)
     |> Path.expand()
@@ -271,7 +271,7 @@ defmodule Staxx.Testchain.Helper do
   """
   @spec snapshots_table :: any()
   def snapshots_table() do
-    db_path()
+    dets_db_path()
     |> Path.join(@snapshots_table)
     |> String.to_atom()
   end
