@@ -1,7 +1,3 @@
-EVM_NAME ?= ex_evm
-EVM_VSN ?= v6.2.4
-EX_TESTCHAIN_APP_NAME ?= ex_testchain
-EX_TESTCHAIN_APP_VSN ?= 0.1.0
 APP_NAME ?= staxx
 APP_VSN ?= 0.1.0
 BUILD ?= `git rev-parse --short HEAD`
@@ -10,7 +6,10 @@ DOCKER_ID_USER ?= makerdao
 MIX_ENV ?= prod
 TAG ?= latest
 DEPLOYMENT_WORKER_IMAGE ?= "makerdao/testchain-deployment-worker:$(TAG)"
-GETH_TAG ?= v1.8.27
+GETH_IMAGE ?= geth_evm
+GETH_TAG ?= 1.8.27
+GANACHE_IMAGE ?= ganache_evm
+GANACHE_TAG ?= 6.7.0
 GETH_VDB_TAG ?= v1.10-alpha.0
 
 help:
@@ -31,19 +30,6 @@ docker-deps:
 	@docker pull $(DEPLOYMENT_WORKER_IMAGE)
 .PHONY: docker-deps
 
-deps: ## Load all required deps for project
-	@mix do deps.get, deps.compile
-	@echo "Fixing chmod for EVM executables"
-	@chmod +x priv/presets/ganache/wrapper.sh
-	@chmod +x priv/presets/geth/geth_vdb
-.PHONY: deps
-
-ganache-fetch:
-	@echo "Setting up ganache"
-	@rm -rf priv/presets/ganache-cli
-	@git clone --branch v6.6.0 https://github.com/trufflesuite/ganache-cli.git priv/presets/ganache-cli
-.PHONY: ganache-fetch
-
 ganache-local:
 	@echo "Setting up ganache"
 	@rm -rf priv/presets/ganache-cli
@@ -54,19 +40,19 @@ ganache-local:
 
 ganache-docker-image:
 	@echo "Building ganache docker image"
-	@docker build -f docker/evm/Dockerfile.ganache -t $(DOCKER_ID_USER)/ganache_evm:6.7.0 .
+	@docker build -f docker/evm/Dockerfile.ganache -t $(DOCKER_ID_USER)/$(GANACHE_IMAGE):$(GANACHE_TAG) .
 .PHONY: ganache-docker-image
 
 geth-docker-image:
 	@echo "Building geth docker image"
-	@docker build -f docker/evm/Dockerfile.geth -t $(DOCKER_ID_USER)/geth_evm:1.8.27 .
+	@docker build -f docker/evm/Dockerfile.geth -t $(DOCKER_ID_USER)/$(GETH_IMAGE):$(GETH_TAG) .
 .PHONY: geth-docker-image
 
 geth-local:
 	@echo "Setting up geth"
 	@rm -rf priv/presets/geth_local
 	@rm -f priv/presets/geth/geth
-	@git clone --single-branch --branch $(GETH_TAG) https://github.com/ethereum/go-ethereum.git priv/presets/geth_local
+	@git clone --single-branch --branch v$(GETH_TAG) https://github.com/ethereum/go-ethereum.git priv/presets/geth_local
 	@cd priv/presets/geth_local && \
 		sed -i -e 's/GasLimit:   6283185,/GasLimit:   0xffffffffffffffff,/g' core/genesis.go && \
 		sed -i -e 's/MaxCodeSize = 24576/MaxCodeSize = 1000000/g' params/protocol_params.go && \
@@ -92,35 +78,13 @@ geth-vdb-local:
 	@echo "Setting up geth finished 'priv/presets/geth/geth_vdb' !"
 .PHONY: geth-vdb-local
 
-evm-local: ganache-local geth-local geth-vdb-local
-	@echo "Built all EVMs"
-.PHONY: geth-vdb-local
-
 docker-push:
 	@echo "Pushing Staxx docker image"
 	@docker push $(DOCKER_ID_USER)/$(APP_NAME):$(TAG)
-	@echo "Pushing ex_evm & ex_testchain docker image"
-	@docker push $(DOCKER_ID_USER)/$(EVM_NAME):$(TAG)
-	@docker push $(DOCKER_ID_USER)/$(EX_TESTCHAIN_APP_NAME):$(TAG)
+	@echo "Pushing evm docker iamges"
+	@docker push $(DOCKER_ID_USER)/$(GANACHE_IMAGE):$(GANACHE_TAG)
+	@docker push $(DOCKER_ID_USER)/$(GETH_IMAGE):$(GETH_TAG)
 .PHONY: docker-push
-
-build-evm: ## Build the Docker image for geth/ganache/other evm
-	@docker build -f ./docker/Dockerfile.evm \
-		--build-arg ALPINE_VERSION=$(ALPINE_VERSION) \
-		--build-arg GETH_TAG=$(GETH_TAG) \
-		-t $(DOCKER_ID_USER)/$(EVM_NAME):$(EVM_VSN)-$(BUILD) \
-		-t $(DOCKER_ID_USER)/$(EVM_NAME):$(TAG) .
-.PHONY: build-evm
-
-build-chain: ## Build elixir application with testchain and WS API
-	@docker build -f ./docker/Dockerfile.ex_chain \
-		--build-arg ALPINE_VERSION=$(ALPINE_VERSION) \
-		--build-arg APP_NAME=$(EX_TESTCHAIN_APP_NAME) \
-		--build-arg APP_VSN=$(EX_TESTCHAIN_APP_VSN) \
-		--build-arg EVM_IMAGE=$(DOCKER_ID_USER)/$(EVM_NAME):$(TAG) \
-		-t $(DOCKER_ID_USER)/$(EX_TESTCHAIN_APP_NAME):$(EX_TESTCHAIN_APP_VSN)-$(BUILD) \
-		-t $(DOCKER_ID_USER)/$(EX_TESTCHAIN_APP_NAME):$(TAG) .
-.PHONY: build-chain
 
 build: ## Build elixir application with testchain and WS API
 	@docker build -f ./docker/Dockerfile \
