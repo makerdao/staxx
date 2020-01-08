@@ -98,12 +98,6 @@
                 .receive('error', console.error)
             }
 
-            function deploy(id, step) {
-              chain(id).push('deploy', { step })
-                .receive('ok', () => console.log('Deployment process started'))
-                .receive('error', console.error)
-            }
-
             function take_snapshot(id, description = '') {
                 chain(id).push('take_snapshot', { description: description })
                     .receive('ok', () => console.log('Snapshot for chain %s started', id))
@@ -137,18 +131,23 @@
                 .receive('ok', (data) => console.log('Connected to API channel', data))
                 .receive('error', console.error)
 
-            function start(chain, step_id = 0, deploy_tag = null) {
-                const options = {
-                    type: chain, // For now "geth" or "ganache". (If omited - "ganache" will be used)
-                    accounts: 2, // Number of account to be created on chain start
-                    block_mine_time: 0, // how often new block should be mined (0 - instamine)
-                    clean_on_stop: true, // Will delete chain db folder after chain stop
-                    snapshot_id: null,
-                    deploy_tag,
-                    step_id: step_id
-                }
+            function start(chain, step_id = 0, deploy_tag = "refs/tags/staxx-testrunner") {
+                const config = {
+                    "testchain": {
+                        "config": {
+                            "type": chain,
+                            "accounts": 2,
+                            "block_mine_time": 0,
+                            "clean_on_stop": true,
+                            "snapshot_id": null,
+                            "deploy_ref": deploy_tag,
+                            "deploy_step_id": step_id
+                        },
+                        "deps": []
+                    }
+                };
 
-                api.push('start', options)
+                api.push('start', config)
                     .receive('ok', ({id: id}) => {
                         console.log('Created new chain', id)
                         start_channel(id)
@@ -158,7 +157,16 @@
             }
 
             function start_existing(id) {
-                api.push('start_existing', { id })
+                const config = {
+                    "testchain": {
+                        "config": {
+                            "id": id
+                        },
+                        "deps": []
+                    }
+                }
+
+                api.push('start_existing', config)
                     .receive('ok', ({id: id}) => {
                         console.log('Starting existing chain', id)
                         start_channel(id)

@@ -242,6 +242,12 @@ defmodule Staxx.Testchain.Helper do
   @spec notify_status(Testchain.evm_id(), Testchain.EVM.status()) :: :ok
   def notify_status(id, status) do
     Notification.notify(id, :status_changed, %{status: status})
+    # In case of ready status we need to send additional `:ready` event.
+    if status == :ready do
+      Notification.notify(id, :ready)
+    end
+
+    # Saving status change in DB
     ChainRecord.set_status(id, status)
 
     :ok
