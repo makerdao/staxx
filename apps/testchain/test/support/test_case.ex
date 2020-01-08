@@ -11,7 +11,7 @@ defmodule Staxx.Testchain.TestCase do
   @table "snapshots"
 
   def clean_snapshots_table(_context) do
-    :storage
+    :testchain
     |> Application.get_env(:dets_db_path)
     |> Path.expand()
     |> Path.join(@table)
