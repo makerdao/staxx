@@ -52,12 +52,12 @@ ganache-local:
 	@echo "Setting up ganache finished !"
 .PHONY: ganache-local
 
-ganache-docker-image: 
+ganache-docker-image:
 	@echo "Building ganache docker image"
 	@docker build -f docker/evm/Dockerfile.ganache -t $(DOCKER_ID_USER)/ganache_evm:6.7.0 .
 .PHONY: ganache-docker-image
 
-geth-docker-image: 
+geth-docker-image:
 	@echo "Building geth docker image"
 	@docker build -f docker/evm/Dockerfile.geth -t $(DOCKER_ID_USER)/geth_evm:1.8.27 .
 .PHONY: geth-docker-image
