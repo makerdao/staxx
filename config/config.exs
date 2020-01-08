@@ -81,8 +81,8 @@ config :web_api, Staxx.WebApiWeb.Endpoint,
   pubsub: [name: Staxx.WebApi.PubSub, adapter: Phoenix.PubSub.PG2]
 
 # Use Jason for JSON parsing in Phoenix
-# config :phoenix, :json_library, Jason
-config :phoenix, :json_library, Poison
+config :phoenix, :json_library, Jason
+# config :phoenix, :json_library, Poison
 
 # Configures Elixir's Logger
 config :logger, truncate: :infinity

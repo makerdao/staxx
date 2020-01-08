@@ -13,11 +13,13 @@ defmodule Staxx.Testchain.Helper do
   alias Staxx.Testchain.Deployment.Worker, as: DeploymentWorker
   alias Staxx.EventStream.Notification
   alias Staxx.Store.Models.Chain, as: ChainRecord
+  alias Staxx.Store.Models.User, as: UserRecord
 
   # List of keys chain need as config
   @evm_config_keys [
     :id,
     :type,
+    :email,
     :accounts,
     :network_id,
     :block_mine_time,
@@ -150,9 +152,23 @@ defmodule Staxx.Testchain.Helper do
           description
       end
 
+    # Loading user from DB
+    user_id =
+      config
+      |> Map.get(:email)
+      |> get_user()
+      |> case do
+        nil ->
+          nil
+
+        %UserRecord{id: id} ->
+          id
+      end
+
     id
     |> ChainRecord.insert_or_update(%{
       node_type: Atom.to_string(type),
+      user_id: user_id,
       title: title,
       config: config,
       status: Atom.to_string(status)
@@ -283,4 +299,30 @@ defmodule Staxx.Testchain.Helper do
   # Expands path like `~/something` to normal path
   defp fix_path!(%{db_path: db_path} = config),
     do: %Config{config | db_path: Path.expand(db_path)}
+
+  # Load user from DB will create new one
+  defp get_user(""), do: nil
+
+  defp get_user(nil), do: nil
+
+  defp get_user(email) do
+    email
+    |> UserRecord.by_email()
+    |> case do
+      nil ->
+        %{email: email}
+        |> UserRecord.create()
+        |> case do
+          {:ok, user} ->
+            user
+
+          {:error, err} ->
+            Logger.error(fn -> "Failed to create user record for #{email}: #{inspect(err)}" end)
+            nil
+        end
+
+      user ->
+        user
+    end
+  end
 end

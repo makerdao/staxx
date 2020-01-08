@@ -49,6 +49,39 @@ defmodule Staxx.Testchain do
   end
 
   @doc """
+  Check if testchain is alive and running
+  """
+  @spec alive?(evm_id()) :: boolean()
+  def alive?(id) do
+    id
+    |> get_pid()
+    |> case do
+      nil ->
+        false
+
+      pid ->
+        Process.alive?(pid)
+    end
+  end
+
+  @doc """
+  Removes chain data if chain is already stopped.
+  If chain is running - error will be returned.
+  """
+  @spec remove(evm_id()) :: :ok | {:error, term}
+  def remove(id) do
+    id
+    |> alive?()
+    |> case do
+      true ->
+        {:error, "chain have to be stopped for removing data"}
+
+      false ->
+        EVM.clean(id)
+    end
+  end
+
+  @doc """
   Generates new chain snapshot and places it into given path
   If path does not exist - system will try to create this path
 
