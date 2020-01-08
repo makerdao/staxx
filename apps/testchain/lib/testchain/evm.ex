@@ -129,6 +129,8 @@ defmodule Staxx.Testchain.EVM do
   Child specification for supervising given `Staxx.Testchain.EVM` module
   """
   @spec child_spec(Config.t()) :: :supervisor.child_spec()
+  def child_spec(%Config{id: nil}), do: {:error, :no_id_provided}
+
   def child_spec(%Config{type: :geth} = config), do: child_spec(Geth, config)
 
   def child_spec(%Config{type: :ganache} = config), do: child_spec(Ganache, config)

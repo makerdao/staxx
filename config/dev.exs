@@ -1,7 +1,5 @@
 import Config
 
-config :docker, adapter: Staxx.Docker.Adapter.DockerD
-
 config :deployment_scope, stacks_dir: "/tmp/stacks"
 
 # For development, we disable any cache and enable

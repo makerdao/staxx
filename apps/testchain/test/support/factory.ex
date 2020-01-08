@@ -1,6 +1,7 @@
 defmodule Staxx.Testchain.Factory do
-  import Faker
+  alias Staxx.Testchain
   alias Staxx.Testchain.SnapshotDetails
+  alias Staxx.Testchain.EVM.{Config}
 
   @doc """
   Builds and returns randomly filled SnapshotDetails struct.
@@ -14,6 +15,18 @@ defmodule Staxx.Testchain.Factory do
       path: Faker.String.base64(),
       chain: chain_type,
       date: DateTime.utc_now()
+    }
+  end
+
+  def build_evm_config(type \\ :geth) do
+    id = Testchain.unique_id()
+
+    %Config{
+      id: id,
+      type: type,
+      description: Faker.String.base64(),
+      clean_on_stop: true,
+      db_path: Testchain.evm_db_path(id)
     }
   end
 end

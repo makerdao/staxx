@@ -154,6 +154,7 @@ defmodule Staxx.Testchain do
 
   @doc """
   Read all additional information that is stored with chain
+  In case of file missing `{:ok, nil}` will be returned
   """
   @spec read_external_data(evm_id()) :: {:ok, nil | map} | {:error, term}
   def read_external_data(id) do
@@ -192,6 +193,22 @@ defmodule Staxx.Testchain do
     Application.get_env(:testchain, :base_path, "/tmp")
     |> Path.expand()
     |> Path.join(id)
+  end
+
+  @doc """
+  Staxx host
+  """
+  @spec host() :: binary
+  def host(),
+    do: Application.get_env(:testchain, :host, "host.docker.internal")
+
+  @doc """
+  Get NATS url
+  """
+  @spec nats_url() :: binary
+  def nats_url() do
+    %{host: host, port: port} = Application.get_env(:testchain, :nats)
+    "nats://#{host}:#{port}"
   end
 
   # Try lo load pid by given id

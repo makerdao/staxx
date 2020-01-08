@@ -16,9 +16,6 @@ defmodule Staxx.Docker.Adapter.Mock do
     do: {:ok, %Container{container | id: name}}
 
   @impl true
-  def run_sync(%Container{}), do: "ok"
-
-  @impl true
   def logs(_id), do: ""
 
   @impl true
@@ -39,4 +36,7 @@ defmodule Staxx.Docker.Adapter.Mock do
 
   @impl true
   def join_network(id, _container_id), do: {:ok, id}
+
+  @impl true
+  def get_nats_network(), do: "nats"
 end

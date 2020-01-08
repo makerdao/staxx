@@ -4,6 +4,8 @@ defmodule Staxx.Testchain.SnapshotStoreTest do
   alias Staxx.Testchain.SnapshotDetails
   alias Staxx.Testchain.SnapshotStore
 
+  @moduletag :testchain
+
   describe "Snapshots store tests :: " do
     test "should succesfully store snapshot" do
       assert :ok == SnapshotStore.store(build_snapshot_details())

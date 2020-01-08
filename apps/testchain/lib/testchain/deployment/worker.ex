@@ -20,7 +20,7 @@ defmodule Staxx.Testchain.Deployment.Worker do
 
   require Logger
 
-  alias Staxx.DeploymentScope
+  alias Staxx.Testchain
   alias Staxx.Testchain.EVM
   alias Staxx.Testchain.DeploymentRegistry
   alias Staxx.Testchain.Deployment.{Config, BaseApi, Result}
@@ -66,7 +66,7 @@ defmodule Staxx.Testchain.Deployment.Worker do
 
   @doc false
   def handle_continue(:spawn_worker, %Config{scope_id: id} = config) do
-    # TODO may be run in sync mode ? 
+    # TODO may be run in sync mode ?
 
     config
     |> build_container()
@@ -185,8 +185,8 @@ defmodule Staxx.Testchain.Deployment.Worker do
         "REPO_URL" => git_url,
         "REPO_REF" => git_ref,
         "SCENARIO_NR" => step_id,
-        "TCD_GATEWAY" => "host=#{DeploymentScope.host()}",
-        "TCD_NATS" => "servers=#{DeploymentScope.nats_url()}"
+        "TCD_GATEWAY" => "host=#{Testchain.host()}",
+        "TCD_NATS" => "servers=#{Testchain.nats_url()}"
       }
     }
   end
