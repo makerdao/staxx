@@ -7,22 +7,20 @@ defmodule Staxx.WebApiWeb.ApiChannel do
 
   require Logger
 
-  alias Staxx.Proxy
-  alias Staxx.DeploymentScope.EVMWorker.Storage
-  alias Staxx.DeploymentScope.EVMWorker.ChainHelper
+  alias Staxx.Testchain
+  alias Staxx.DeploymentScope
+  alias Staxx.Testchain.SnapshotManager
+  alias Staxx.Store.Models.Chain, as: ChainRecord
 
   def join(_, _, socket), do: {:ok, %{message: "Welcome to ExTestchain !"}, socket}
 
   @doc """
   Start existing chain
   """
-  def handle_in("start_existing", %{"id" => id}, socket) do
-    Logger.error(fn -> "Removed totally. Need to rework !" end)
-
-    case Proxy.start(id) do
-      {:ok, id} ->
-        {:reply, {:ok, %{id: id}}, socket}
-
+  def handle_in("start_existing", payload, socket) do
+    with {:ok, id} <- DeploymentScope.start(payload) do
+      {:reply, {:ok, %{id: id}}, socket}
+    else
       {:error, err} ->
         {:reply, {:error, %{message: err}}, socket}
     end
@@ -32,14 +30,9 @@ defmodule Staxx.WebApiWeb.ApiChannel do
   Start new chain handler
   """
   def handle_in("start", payload, socket) do
-    config = ChainHelper.config_from_payload(payload)
-
-    Logger.error(fn -> "Removed totally. Need to rework !" end)
-
-    case Proxy.start(config) do
-      {:ok, id} ->
-        {:reply, {:ok, %{id: id}}, socket}
-
+    with {:ok, id} <- DeploymentScope.start(payload) do
+      {:reply, {:ok, %{id: id}}, socket}
+    else
       {:error, err} ->
         {:reply, {:error, %{message: err}}, socket}
     end
@@ -52,13 +45,13 @@ defmodule Staxx.WebApiWeb.ApiChannel do
     list =
       chain
       |> String.to_atom()
-      |> Proxy.snapshot_list()
+      |> SnapshotManager.by_chain()
 
     {:reply, {:ok, %{snapshots: list}}, socket}
   end
 
   def handle_in("list_chains", _, socket) do
-    case Proxy.chain_list() do
+    case ChainRecord.list() do
       list when is_list(list) ->
         {:reply, {:ok, %{chains: list}}, socket}
 
@@ -69,8 +62,7 @@ defmodule Staxx.WebApiWeb.ApiChannel do
   end
 
   def handle_in("remove_chain", %{"id" => id}, socket) do
-    with :ok <- Proxy.clean(id),
-         _ <- Storage.delete(id) do
+    with :ok <- Testchain.remove(id) do
       {:reply, {:ok, %{message: "Chain removed"}}, socket}
     else
       _ ->
