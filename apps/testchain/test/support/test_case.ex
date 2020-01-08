@@ -1,5 +1,6 @@
 defmodule Staxx.Testchain.TestCase do
   use ExUnit.CaseTemplate
+  alias Staxx.Testchain.Helper
   @moduledoc false
   using do
     quote do
@@ -8,18 +9,17 @@ defmodule Staxx.Testchain.TestCase do
     end
   end
 
-  @table "snapshots"
-
+  @doc """
+  Cleans DETS snapshots table
+  """
+  @spec clean_snapshots_table(any) :: :ok
   def clean_snapshots_table(_context) do
-    :testchain
-    |> Application.get_env(:dets_db_path)
-    |> Path.expand()
-    |> Path.join(@table)
-    |> String.to_atom()
+    Helper.snapshots_table()
     |> :dets.delete_all_objects()
 
     :ok
   end
 
+  # Clean snapshots table before each test
   setup :clean_snapshots_table
 end

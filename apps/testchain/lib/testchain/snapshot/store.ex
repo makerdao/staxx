@@ -9,9 +9,7 @@ defmodule Staxx.Testchain.SnapshotStore do
 
   alias Staxx.Testchain
   alias Staxx.Testchain.SnapshotDetails
-
-  # DB file name
-  @table "snapshots"
+  alias Staxx.Testchain.Helper
 
   @doc false
   def start_link(_) do
@@ -20,17 +18,17 @@ defmodule Staxx.Testchain.SnapshotStore do
 
   @doc false
   def init(:ok) do
-    unless File.dir?(db_path()) do
-      File.mkdir(db_path())
+    unless File.dir?(Helper.db_path()) do
+      File.mkdir(Helper.db_path())
     end
 
-    :dets.open_file(table(), type: :set)
+    :dets.open_file(Helper.snapshots_table(), type: :set)
   end
 
   @doc false
   def terminate(_, _) do
     Logger.debug("#{__MODULE__} terminating... Closing DETS...")
-    :dets.close(table())
+    :dets.close(Helper.snapshots_table())
   end
 
   @doc """
@@ -38,7 +36,7 @@ defmodule Staxx.Testchain.SnapshotStore do
   """
   @spec store(SnapshotDetails.t()) :: :ok | {:error, term()}
   def store(%SnapshotDetails{id: id, chain: chain} = snapshot),
-    do: :dets.insert(table(), {id, chain, snapshot})
+    do: :dets.insert(Helper.snapshots_table(), {id, chain, snapshot})
 
   @doc """
   Load snapshot details by id
@@ -46,7 +44,7 @@ defmodule Staxx.Testchain.SnapshotStore do
   """
   @spec by_id(binary) :: SnapshotDetails.t() | nil
   def by_id(id) do
-    case :dets.lookup(table(), id) do
+    case :dets.lookup(Helper.snapshots_table(), id) do
       [] ->
         nil
 
@@ -60,7 +58,7 @@ defmodule Staxx.Testchain.SnapshotStore do
   """
   @spec by_chain(Testchain.evm_type()) :: [SnapshotDetails.t()]
   def by_chain(chain) do
-    table()
+    Helper.snapshots_table()
     |> :dets.match({:_, chain, :"$1"})
     |> Enum.map(fn [snap] -> snap end)
   end
@@ -69,19 +67,5 @@ defmodule Staxx.Testchain.SnapshotStore do
   Remove snapshot details from local DB
   """
   @spec remove(binary) :: :ok
-  def remove(id), do: :dets.delete(table(), id)
-
-  # Get DB path
-  defp db_path() do
-    :testchain
-    |> Application.get_env(:dets_db_path)
-    |> Path.expand()
-  end
-
-  # Get full table path
-  defp table() do
-    db_path()
-    |> Path.join(@table)
-    |> String.to_atom()
-  end
+  def remove(id), do: :dets.delete(Helper.snapshots_table(), id)
 end

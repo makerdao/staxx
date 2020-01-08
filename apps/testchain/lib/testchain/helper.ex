@@ -29,6 +29,9 @@ defmodule Staxx.Testchain.Helper do
     :deploy_step_id
   ]
 
+  # Snapshots table name used as DETS file name
+  @snapshots_table "snapshots"
+
   @doc """
   Convert payload (from POST) to valid chain config
   """
@@ -113,7 +116,7 @@ defmodule Staxx.Testchain.Helper do
   end
 
   @doc """
-  Store deployment result into DB. 
+  Store deployment result into DB.
   Might show error in console but actuially erorr will be ignored
   """
   @spec store_deployment_result(Testchain.evm_id(), DeploymentResult.t()) :: :ok
@@ -251,6 +254,26 @@ defmodule Staxx.Testchain.Helper do
         Logger.error(fn -> "Failed to read file #{file}: #{inspect(err)}" end)
         {:error, "failed to load data from #{file}"}
     end
+  end
+
+  @doc """
+  Returns path to DETS files directory
+  """
+  @spec db_path :: binary
+  def db_path() do
+    :testchain
+    |> Application.get_env(:dets_db_path)
+    |> Path.expand()
+  end
+
+  @doc """
+  Returns path to DETS file for snapshots table
+  """
+  @spec snapshots_table :: any()
+  def snapshots_table() do
+    db_path()
+    |> Path.join(@snapshots_table)
+    |> String.to_atom()
   end
 
   ########################################
