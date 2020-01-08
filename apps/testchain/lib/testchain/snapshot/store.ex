@@ -18,8 +18,8 @@ defmodule Staxx.Testchain.SnapshotStore do
 
   @doc false
   def init(:ok) do
-    unless File.dir?(Helper.db_path()) do
-      File.mkdir(Helper.db_path())
+    unless File.dir?(Helper.dets_db_path()) do
+      File.mkdir(Helper.dets_db_path())
     end
 
     :dets.open_file(Helper.snapshots_table(), type: :set)

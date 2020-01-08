@@ -5,6 +5,7 @@ defmodule Staxx.Testchain.EVM.Config do
   Options:
   - `type` - EVM type. (Default: `:ganache`)
   - `id` - Random unique internal process identificator. Example: `"11296068888839073704"`. If empty system will generate it automatically
+  - `email` - User email
   - `existing` - Identifies if we need to start already existing chain. In that case all other options except `id` will be ignored.
   - `network_id` - Network ID (Default: `Application.get_env(:testchain, :default_chain_id)`)
   - `db_path` - Specify a path to a directory to save the chain database
@@ -30,6 +31,7 @@ defmodule Staxx.Testchain.EVM.Config do
   @type t :: %__MODULE__{
           type: Testchain.evm_type(),
           id: Testchain.evm_id() | nil,
+          email: binary(),
           existing: boolean(),
           network_id: non_neg_integer(),
           db_path: binary(),
@@ -47,6 +49,7 @@ defmodule Staxx.Testchain.EVM.Config do
   @derive Jason.Encoder
   defstruct type: :ganache,
             id: nil,
+            email: "",
             existing: false,
             network_id: Application.get_env(:testchain, :default_chain_id, 999),
             db_path: "",
