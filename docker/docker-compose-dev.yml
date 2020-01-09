@@ -21,8 +21,8 @@ services:
   db:
     image: 'postgres:11-alpine'
     environment:
-      - POSTGRES_USER=staxx
-      - POSTGRES_PASSWORD=staxx
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
     ports:
       - "5432:5432"
   staxx:
@@ -93,29 +93,29 @@ services:
       TESTCHAIN_SERVICE_WS_URL: ws://localhost:4000/socket
     networks:
      - net1
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    volumes:
-        - ./metrics_config/prometheus.yml:/etc/prometheus/prometheus.yml
-    # command:
-        # - '-config.file=/etc/prometheus/prometheus.yml'
-    ports:
-        - '9090:9090'
-    networks:
-      - net1
-  grafana:
-    image: grafana/grafana
-    container_name: grafana
-    depends_on:
-      - prometheus
-    ports:
-      - "3001:3000"
-    volumes:
-      # - ./grafana/grafana.ini:/etc/grafana/grafana.ini
-      - ./metrics_config/grafana/datasource.yaml:/etc/grafana/provisioning/datasources/datasource.yaml
-    networks:
-      - net1
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   container_name: prometheus
+  #   volumes:
+  #       - ./metrics_config/prometheus.yml:/etc/prometheus/prometheus.yml
+  #   # command:
+  #       # - '-config.file=/etc/prometheus/prometheus.yml'
+  #   ports:
+  #       - '9090:9090'
+  #   networks:
+  #     - net1
+  # grafana:
+  #   image: grafana/grafana
+  #   container_name: grafana
+  #   depends_on:
+  #     - prometheus
+  #   ports:
+  #     - "3001:3000"
+  #   volumes:
+  #     # - ./grafana/grafana.ini:/etc/grafana/grafana.ini
+  #     - ./metrics_config/grafana/datasource.yaml:/etc/grafana/provisioning/datasources/datasource.yaml
+  #   networks:
+  #     - net1
 
 # We're using custom network setup, as it ships with a DNS
 # system which allows containers to communicate by hostnames.

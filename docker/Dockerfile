@@ -1,7 +1,7 @@
 # The version of Alpine to use for the final image
 ARG ALPINE_VERSION=3.9
 
-FROM elixir:1.9.0-alpine as builder
+FROM elixir:1.9-alpine as builder
 
 # The following are build arguments used to change variable parts of the image.
 # The name of your application/release (required)
@@ -33,11 +33,10 @@ COPY mix.* ./
 COPY apps/deployment_scope/mix.* ./apps/deployment_scope/
 COPY apps/docker/mix.* ./apps/docker/
 COPY apps/event_stream/mix.* ./apps/event_stream/
-COPY apps/ex_chain/mix.* ./apps/ex_chain/
 COPY apps/json_rpc/mix.* ./apps/json_rpc/
 COPY apps/metrix/mix.* ./apps/metrix/
-COPY apps/proxy/mix.* ./apps/proxy/
-COPY apps/storage/mix.* ./apps/storage/
+COPY apps/store/mix.* ./apps/store/
+COPY apps/testchain/mix.* ./apps/testchain/
 COPY apps/web_api/mix.* ./apps/web_api/
 
 RUN mix do deps.get, deps.compile

@@ -19,6 +19,10 @@ config :deployment_scope, stacks_dir: "#{__DIR__}/../priv/test/stacks"
 
 config :store, Staxx.Store.Repo, pool: Ecto.Adapters.SQL.Sandbox
 
+config :store, Staxx.Store.Repo,
+  username: System.get_env("POSTGRES_USER", "postgres"),
+  database: System.get_env("POSTGRES_DB", "staxx_test")
+
 #
 # Metrics
 #
@@ -29,7 +33,3 @@ config :metrix, run_prometheus: false
 config :web_api, Staxx.WebApiWeb.Endpoint,
   http: [port: 4002],
   server: false
-
-config :store, Staxx.Store.Repo,
-  username: System.get_env("POSTGRES_USER", "postgres"),
-  database: System.get_env("POSTGRES_DB", "staxx_test")

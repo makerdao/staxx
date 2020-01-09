@@ -55,8 +55,8 @@ config :event_stream, nats_docker_events_topic: "Prefix.Docker.Events"
 # Store configs
 #
 config :store, Staxx.Store.Repo,
-  username: System.get_env("POSTGRES_USER", "staxx"),
-  password: System.get_env("POSTGRES_PASSWORD", "staxx"),
+  username: System.get_env("POSTGRES_USER", "postgres"),
+  password: System.get_env("POSTGRES_PASSWORD", "postgres"),
   database: System.get_env("POSTGRES_DB", "staxx"),
   hostname: System.get_env("POSTGRES_HOST", "localhost")
 

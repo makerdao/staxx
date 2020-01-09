@@ -12,8 +12,8 @@ services:
   db:
     image: 'postgres:11-alpine'
     environment:
-      - POSTGRES_USER=staxx
-      - POSTGRES_PASSWORD=staxx
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
     ports:
       - "5432:5432"
   testchain-deployment:
