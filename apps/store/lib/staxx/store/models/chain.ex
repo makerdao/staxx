@@ -21,7 +21,8 @@ defmodule Staxx.Store.Models.Chain do
           deployment: map
         }
 
-  @derive Jason.Encoder
+  @derive {Jason.Encoder,
+           only: [:chain_id, :title, :node_type, :status, :config, :details, :deployment]}
 
   @primary_key {:chain_id, :string, []}
   schema "chains" do
@@ -95,11 +96,21 @@ defmodule Staxx.Store.Models.Chain do
   end
 
   @doc """
-  List all users based on limits
+  List all chains based on user_id
   """
-  @spec list(pos_integer, pos_integer) :: [t()]
-  def list(limit \\ 50, offset \\ 0) do
+  @spec list(pos_integer | nil, pos_integer, pos_integer) :: [t()]
+  def list(user_id \\ nil, limit \\ 50, offset \\ 0)
+
+  def list(nil, limit, offset) do
     __MODULE__
+    |> limit(^limit)
+    |> offset(^offset)
+    |> Repo.all()
+  end
+
+  def list(user_id, limit, offset) do
+    __MODULE__
+    |> where(user_id: ^user_id)
     |> limit(^limit)
     |> offset(^offset)
     |> Repo.all()

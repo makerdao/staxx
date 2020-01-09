@@ -13,9 +13,9 @@ defmodule Staxx.WebApiWeb.Router do
   scope "/", Staxx.WebApiWeb do
     pipe_through :api
     post "/rpc", InternalController, :rpc
-    get "/chains", ChainController, :chain_list
-    post "/snapshots", ChainController, :upload
-    get "/snapshots/:chain", ChainController, :snapshot_list
+    get "/chains", ChainController, :list_chains
+    post "/snapshots", ChainController, :upload_snapshot
+    get "/snapshots/:chain", ChainController, :list_snapshots
     get "/snapshot/:id", ChainController, :download_snapshot
     delete "/snapshot/:id", ChainController, :remove_snapshot
   end
@@ -31,7 +31,7 @@ defmodule Staxx.WebApiWeb.Router do
   scope "/chain", Staxx.WebApiWeb do
     pipe_through :api
     delete "/:id", ChainController, :remove_chain
-    get "/:id", ChainController, :details
+    get "/:id", ChainController, :chain_details
     get "/stop/:id", ChainController, :stop
   end
 

@@ -12,9 +12,7 @@ defmodule Staxx.DeploymentScope.Application do
       {Registry, keys: :unique, name: Staxx.DeploymentScope.StackRegistry},
       Staxx.DeploymentScope.Terminator,
       Staxx.DeploymentScope.ScopesSupervisor,
-      Staxx.DeploymentScope.Stack.ConfigLoader,
-      # User <-> Chain mapper, DETS based GenServer
-      Staxx.DeploymentScope.UserScope
+      Staxx.DeploymentScope.Stack.ConfigLoader
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

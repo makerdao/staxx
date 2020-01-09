@@ -4,6 +4,8 @@ defmodule Staxx.Store.Models.User do
   """
   use Ecto.Schema
 
+  require Logger
+
   import Ecto.Changeset
   import Ecto.Query
 
@@ -19,6 +21,7 @@ defmodule Staxx.Store.Models.User do
 
   @derive {Jason.Encoder,
            only: [
+             :id,
              :email,
              :active,
              :name,
@@ -82,6 +85,44 @@ defmodule Staxx.Store.Models.User do
   def get(id) do
     __MODULE__
     |> Repo.get(id)
+  end
+
+  @doc """
+  Get user_id by email
+  """
+  @spec get_user_id(binary) :: nil | pos_integer
+  def get_user_id(""), do: nil
+
+  def get_user_id(nil), do: nil
+
+  def get_user_id(email) do
+    email
+    |> by_email()
+    |> case do
+      nil ->
+        %{email: email}
+        |> create()
+        |> case do
+          {:ok, %__MODULE__{id: id}} ->
+            id
+
+          {:error, err} ->
+            Logger.error(fn -> "Failed to create user record for #{email}: #{inspect(err)}" end)
+            nil
+        end
+
+      %__MODULE__{id: id} ->
+        id
+    end
+  end
+
+  @doc """
+  Load user by email
+  """
+  @spec by_email(binary) :: t() | nil
+  def by_email(email) do
+    __MODULE__
+    |> Repo.get_by(email: email)
   end
 
   @doc """

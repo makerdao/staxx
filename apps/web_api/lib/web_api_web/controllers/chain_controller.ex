@@ -3,24 +3,92 @@ defmodule Staxx.WebApiWeb.ChainController do
 
   action_fallback Staxx.WebApiWeb.FallbackController
 
-  alias Staxx.Proxy
-  alias Staxx.DeploymentScope.UserScope
+  alias Staxx.Testchain
+  alias Staxx.Testchain.SnapshotManager
+  alias Staxx.Store.Models.Chain, as: ChainRecord
+  alias Staxx.Store.Models.User, as: UserRecord
   alias Staxx.WebApiWeb.SuccessView
   alias Staxx.WebApiWeb.ErrorView
-  # alias Chain.SnapshotManager
 
   # content type of snapshot that will be uploaded
   @filetype "application/gzip"
 
   # Get version for binaries and chain
   def version(conn, _) do
-    with version when is_binary(version) <- Proxy.version() do
+    with version when is_binary(version) <- Testchain.version() do
       conn
       |> text(version)
     end
   end
 
-  def upload(conn, %{
+  def list_chains(conn, _) do
+    list =
+      conn
+      |> get_user_email()
+      |> UserRecord.get_user_id()
+      |> ChainRecord.list()
+
+    conn
+    |> put_status(200)
+    |> put_view(SuccessView)
+    |> render("200.json", data: list)
+  end
+
+  # Load chain details for running chain
+  def chain_details(conn, %{"id" => id}) do
+    with info when is_map(info) <- ChainRecord.get(id) do
+      conn
+      |> put_status(200)
+      |> put_view(SuccessView)
+      |> render("200.json", data: info)
+    else
+      nil ->
+        conn
+        |> put_status(404)
+        |> put_view(ErrorView)
+        |> render("404.json")
+    end
+  end
+
+  # Remove chain details from internal storage
+  def remove_chain(conn, %{"id" => id}) do
+    with :ok <- Testchain.remove(id) do
+      conn
+      |> put_status(200)
+      |> put_view(SuccessView)
+      |> render("200.json", data: %{message: "Chain data will be deleted"})
+    else
+      {:error, msg} ->
+        conn
+        |> put_status(400)
+        |> put_view(ErrorView)
+        |> render("400.json", message: msg)
+    end
+  end
+
+  # load list of snapshots for chain
+  def list_snapshots(conn, %{"chain" => chain}) do
+    list =
+      chain
+      |> String.to_atom()
+      |> SnapshotManager.by_chain()
+
+    conn
+    |> put_status(200)
+    |> put_view(SuccessView)
+    |> render("200.json", data: list)
+  end
+
+  def remove_snapshot(conn, %{"id" => id}) do
+    with :ok <- SnapshotManager.remove(id) do
+      conn
+      |> put_status(200)
+      |> put_view(SuccessView)
+      |> render("200.json", data: [])
+    end
+  end
+
+  def upload_snapshot(conn, %{
         "snapshot" => %{"file" => file, "description" => description, "type" => type}
       }) do
     id =
@@ -33,7 +101,7 @@ defmodule Staxx.WebApiWeb.ChainController do
          true <- File.exists?(Map.get(file, :path)),
          :ok <- copy_snapshot(file),
          chain_type <- String.to_atom(type),
-         {:ok, details} <- Proxy.upload_snapshot(id, chain_type, description) do
+         {:ok, details} <- SnapshotManager.upload(id, chain_type, description) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)
@@ -41,50 +109,16 @@ defmodule Staxx.WebApiWeb.ChainController do
     end
   end
 
-  def upload(conn, _params) do
+  def upload_snapshot(conn, _params) do
     conn
     |> put_status(400)
     |> put_view(ErrorView)
     |> render("400.json", message: "Wrong details passed")
   end
 
-  def chain_list(conn, _) do
-    with list when is_list(list) <- Proxy.chain_list() do
-      list =
-        case get_user_email(conn) do
-          email when is_binary(email) and email != "" ->
-            user_list = UserScope.list_by_email(email)
-
-            list
-            |> Enum.filter(fn %{id: id} -> Enum.member?(user_list, id) end)
-
-          _ ->
-            list
-        end
-
-      conn
-      |> put_status(200)
-      |> put_view(SuccessView)
-      |> render("200.json", data: list)
-    end
-  end
-
-  # load list of snapshots for chain
-  def snapshot_list(conn, %{"chain" => chain}) do
-    list =
-      chain
-      |> String.to_atom()
-      |> Proxy.snapshot_list()
-
-    conn
-    |> put_status(200)
-    |> put_view(SuccessView)
-    |> render("200.json", data: list)
-  end
-
   # Load snapshot details and download file
   def download_snapshot(conn, %{"id" => id}) do
-    with %{path: path} <- Proxy.get_snapshot(id),
+    with %{path: path} <- SnapshotManager.by_id(id),
          true <- File.exists?(path) do
       conn
       |> send_download({:file, path})
@@ -94,42 +128,6 @@ defmodule Staxx.WebApiWeb.ChainController do
         |> put_status(404)
         |> put_view(ErrorView)
         |> render("404.json")
-    end
-  end
-
-  def remove_snapshot(conn, %{"id" => id}) do
-    with :ok <- Proxy.remove_snapshot(id) do
-      conn
-      |> put_status(200)
-      |> put_view(SuccessView)
-      |> render("200.json", data: [])
-    end
-  end
-
-  # Remove chain details from internal storage
-  def remove_chain(conn, %{"id" => id}) do
-    with :ok <- Proxy.clean(id) do
-      UserScope.unmap(id)
-
-      conn
-      |> put_status(200)
-      |> json(%{status: 0, message: "Chain data will be deleted"})
-    end
-  end
-
-  # Load chain details for running chain
-  def details(conn, %{"id" => id}) do
-    with info when is_map(info) <- Proxy.details(id) do
-      conn
-      |> json(%{status: 0, details: info})
-    else
-      nil ->
-        conn
-        |> json(%{status: 0, details: nil, message: "Chain was not found"})
-
-      _ ->
-        conn
-        |> json(%{status: 1, details: nil, message: "Error fetchign chain details"})
     end
   end
 

@@ -2,10 +2,7 @@ defmodule Staxx.Docker.PortMapperTest do
   use ExUnit.Case
   alias Staxx.Docker.PortMapper
 
-  setup_all do
-    PortMapper.start_link([])
-    :ok
-  end
+  @moduletag :docker
 
   test "should get a new port" do
     port = PortMapper.random()

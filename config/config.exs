@@ -13,7 +13,6 @@ import Config
 # Deployemnt Scope configs
 #
 config :deployment_scope, stacks_dir: "/tmp/stacks"
-config :deployment_scope, host: "host.docker.internal"
 config :deployment_scope, deployment_service_url: "http://localhost:5001/rpc"
 config :deployment_scope, deployment_steps_fetch_timeout: 30_000
 # DB path where all list of chain workers will be stored
@@ -22,7 +21,6 @@ config :deployment_scope, dets_db_path: "/tmp/chains"
 config :deployment_scope, deployment_timeout: 1_800_000
 config :deployment_scope, action_timeout: 600_000
 config :deployment_scope, deployment_worker_image: "makerdao/testchain-deployment-worker:dev"
-config :deployment_scope, nats: %{host: "nats.local", port: 4222}
 
 #
 # Docker configs
@@ -35,6 +33,9 @@ config :docker, dev_mode_allowed: "true"
 
 # Timeout for `Staxx.Docker.run_sync/1` command
 config :docker, sync_timmeout: 180_000
+
+# Default docker adapter
+config :docker, adapter: Staxx.Docker.Adapter.DockerD
 
 #
 # Event bus app config
@@ -81,8 +82,8 @@ config :web_api, Staxx.WebApiWeb.Endpoint,
   pubsub: [name: Staxx.WebApi.PubSub, adapter: Phoenix.PubSub.PG2]
 
 # Use Jason for JSON parsing in Phoenix
-# config :phoenix, :json_library, Jason
-config :phoenix, :json_library, Poison
+config :phoenix, :json_library, Jason
+# config :phoenix, :json_library, Poison
 
 # Configures Elixir's Logger
 config :logger, truncate: :infinity
@@ -96,6 +97,12 @@ config :logger, :console,
 # file won't be loaded nor affect the parent project. For this reason,
 # if you want to provide default values for your application for
 # 3rd-party users, it should be done in your "mix.exs" file.
+
+# Host for chains (for deployment process)
+config :testchain, host: "host.docker.internal"
+
+# NATS.io url for deployment process
+config :testchain, nats: %{host: "nats.local", port: 4222}
 
 # Default timeout for checking testchain health
 config :testchain, health_check_timeout: 30_000

@@ -68,8 +68,8 @@ defmodule Staxx.Testchain.EVM do
   @callback migrate_config(Config.t()) :: Config.t()
 
   @doc """
-  This callback is called on starting evm instance. 
-  Here EVM should prepare all required files/accounts/other actions before it 
+  This callback is called on starting evm instance.
+  Here EVM should prepare all required files/accounts/other actions before it
   actually will be started in docker container.
 
   In must return `{:ok, Container.t(), state}`, that `state` will be keept as in `GenServer` and can be
@@ -107,7 +107,7 @@ defmodule Staxx.Testchain.EVM do
   @callback on_stop(config :: Config.t(), state :: any()) :: any()
 
   @doc """
-  This callback is called just before the Process goes down. 
+  This callback is called just before the Process goes down.
   This is a good place for closing connections.
 
   Difference with `on_stop` is that `on_terminate` will be called on final EVM termination process.
@@ -129,6 +129,8 @@ defmodule Staxx.Testchain.EVM do
   Child specification for supervising given `Staxx.Testchain.EVM` module
   """
   @spec child_spec(Config.t()) :: :supervisor.child_spec()
+  def child_spec(%Config{id: nil}), do: {:error, :no_id_provided}
+
   def child_spec(%Config{type: :geth} = config), do: child_spec(Geth, config)
 
   def child_spec(%Config{type: :ganache} = config), do: child_spec(Ganache, config)
@@ -168,8 +170,33 @@ defmodule Staxx.Testchain.EVM do
 
   def clean_on_stop(%Config{clean_on_stop: false}), do: :ok
 
-  def clean_on_stop(%Config{id: id, clean_on_stop: true, db_path: db_path}),
-    do: clean(id, db_path)
+  def clean_on_stop(%Config{id: id, clean_on_stop: true}),
+    do: clean(id)
+
+  @doc """
+  Clean all details for testchain
+  """
+  @spec clean(Testchain.evm_id()) :: :ok | {:error, term}
+  def clean(id) do
+    Logger.debug(fn -> "#{id}: Removing data from DB" end)
+    # Getting EVM DB path
+    db_path = Testchain.evm_db_path(id)
+
+    # Clearing DB
+    ChainRecord.delete(id)
+
+    Logger.debug(fn -> "#{id}: Removing data files #{db_path}" end)
+
+    case File.rm_rf(db_path) do
+      {:error, err} ->
+        Logger.error("#{id}: Failed to clean up #{db_path} with error: #{inspect(err)}")
+        {:error, err}
+
+      _ ->
+        Logger.debug("#{id}: Cleaned path after termination #{db_path}")
+        :ok
+    end
+  end
 
   @doc """
   Notify EVM process that deployment finally finished
@@ -310,7 +337,7 @@ defmodule Staxx.Testchain.EVM do
       end
 
       @doc """
-      Starts EVM. 
+      Starts EVM.
       Called from all initialization process.
       """
       def handle_continue(:start_chain, %State{config: config} = state) do
@@ -324,7 +351,7 @@ defmodule Staxx.Testchain.EVM do
           {:ok, %Container{name: container_name} = container, internal_state} ->
             Logger.debug(fn ->
               """
-              #{config.id}: Chain initialization finished successfully ! 
+              #{config.id}: Chain initialization finished successfully !
               Starting container and waiting for JSON-RPC become operational.
               """
             end)
@@ -613,7 +640,7 @@ defmodule Staxx.Testchain.EVM do
           Helper.notify(config.id, :snapshot_taken, details)
 
           # Marking container as `existing` so no new container will be created
-          # System will start already existing contianer and all ports/volumes 
+          # System will start already existing contianer and all ports/volumes
           # will be already configured. So no need to change anything
           container = %Container{container | existing: true}
           # Starting given container with EVM
@@ -690,7 +717,7 @@ defmodule Staxx.Testchain.EVM do
           Helper.notify(config.id, :snapshot_reverted, snapshot)
 
           # Marking container as `existing` so no new container will be created
-          # System will start already existing contianer and all ports/volumes 
+          # System will start already existing contianer and all ports/volumes
           # will be already configured. So no need to change anything
           container = %Container{container | existing: true}
           # Starting given container with EVM
@@ -906,24 +933,4 @@ defmodule Staxx.Testchain.EVM do
   ####################################################
   # Staxx.Testchain.EVM private functions
   ####################################################
-
-  # Clean given path
-  defp clean(_id, ""), do: :ok
-
-  defp clean(id, db_path) do
-    Logger.debug(fn -> "#{id}: Removing data from DB" end)
-    ChainRecord.delete(id)
-
-    Logger.debug(fn -> "#{id}: Removing data files #{db_path}" end)
-
-    case File.rm_rf(db_path) do
-      {:error, err} ->
-        Logger.error("#{id}: Failed to clean up #{db_path} with error: #{inspect(err)}")
-        {:error, err}
-
-      _ ->
-        Logger.debug("#{id}: Cleaned path after termination #{db_path}")
-        :ok
-    end
-  end
 end

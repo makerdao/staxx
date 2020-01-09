@@ -49,6 +49,39 @@ defmodule Staxx.Testchain do
   end
 
   @doc """
+  Check if testchain is alive and running
+  """
+  @spec alive?(evm_id()) :: boolean()
+  def alive?(id) do
+    id
+    |> get_pid()
+    |> case do
+      nil ->
+        false
+
+      pid ->
+        Process.alive?(pid)
+    end
+  end
+
+  @doc """
+  Removes chain data if chain is already stopped.
+  If chain is running - error will be returned.
+  """
+  @spec remove(evm_id()) :: :ok | {:error, term}
+  def remove(id) do
+    id
+    |> alive?()
+    |> case do
+      true ->
+        {:error, "chain have to be stopped for removing data"}
+
+      false ->
+        EVM.clean(id)
+    end
+  end
+
+  @doc """
   Generates new chain snapshot and places it into given path
   If path does not exist - system will try to create this path
 
@@ -121,6 +154,7 @@ defmodule Staxx.Testchain do
 
   @doc """
   Read all additional information that is stored with chain
+  In case of file missing `{:ok, nil}` will be returned
   """
   @spec read_external_data(evm_id()) :: {:ok, nil | map} | {:error, term}
   def read_external_data(id) do
@@ -159,6 +193,22 @@ defmodule Staxx.Testchain do
     Application.get_env(:testchain, :base_path, "/tmp")
     |> Path.expand()
     |> Path.join(id)
+  end
+
+  @doc """
+  Staxx host
+  """
+  @spec host() :: binary
+  def host(),
+    do: Application.get_env(:testchain, :host, "host.docker.internal")
+
+  @doc """
+  Get NATS url
+  """
+  @spec nats_url() :: binary
+  def nats_url() do
+    %{host: host, port: port} = Application.get_env(:testchain, :nats)
+    "nats://#{host}:#{port}"
   end
 
   # Try lo load pid by given id

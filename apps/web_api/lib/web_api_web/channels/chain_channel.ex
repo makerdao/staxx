@@ -5,7 +5,8 @@ defmodule Staxx.WebApiWeb.ChainChannel do
 
   require Logger
 
-  alias Staxx.Proxy
+  alias Staxx.Testchain
+  alias Staxx.DeploymentScope
 
   use Phoenix.Channel, log_join: false, log_handle_in: :debug
   # alias Chain.Snapshot.Details, as: SnapshotDetails
@@ -16,7 +17,7 @@ defmodule Staxx.WebApiWeb.ChainChannel do
 
   # Stop chain
   def handle_in("stop", _, %{topic: "chain:" <> id} = socket) do
-    :ok = Proxy.stop(id)
+    :ok = DeploymentScope.stop(id)
     {:reply, :ok, socket}
   end
 
@@ -33,7 +34,7 @@ defmodule Staxx.WebApiWeb.ChainChannel do
         %{"description" => description},
         %{topic: "chain:" <> id} = socket
       ) do
-    case Proxy.take_snapshot(id, description) do
+    case Testchain.take_snapshot(id, description) do
       :ok ->
         {:reply, {:ok, %{status: "ok"}}, socket}
 
@@ -48,7 +49,7 @@ defmodule Staxx.WebApiWeb.ChainChannel do
         %{"snapshot" => snapshot_id},
         %{topic: "chain:" <> id} = socket
       ) do
-    case Proxy.revert_snapshot(id, snapshot_id) do
+    case Testchain.revert_snapshot(id, snapshot_id) do
       :ok ->
         {:reply, {:ok, %{status: "ok"}}, socket}
 

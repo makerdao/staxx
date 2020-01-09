@@ -7,7 +7,7 @@ defmodule Staxx.DeploymentScope.Scope.StackManager do
 
   require Logger
 
-  alias Staxx.DeploymentScope
+  alias Staxx.Testchain
   alias Staxx.Docker
   alias Staxx.Docker.Container
   alias Staxx.EventStream.Notification
@@ -279,8 +279,8 @@ defmodule Staxx.DeploymentScope.Scope.StackManager do
     %{
       "STACK_ID" => scope_id,
       "STACK_NAME" => stack_name,
-      "WEB_API_URL" => "http://host.docker.internal:4000",
-      "NATS_URL" => DeploymentScope.nats_url()
+      "WEB_API_URL" => "http://#{Testchain.host()}:4000",
+      "NATS_URL" => Testchain.nats_url()
     }
   end
 

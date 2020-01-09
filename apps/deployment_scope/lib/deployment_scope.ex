@@ -10,7 +10,6 @@ defmodule Staxx.DeploymentScope do
   alias Staxx.Docker.Container
   alias Staxx.Testchain
   alias Staxx.Testchain.Helper
-  alias Staxx.DeploymentScope.UserScope
   alias Staxx.DeploymentScope.ScopesSupervisor
   alias Staxx.DeploymentScope.Scope.DeploymentScopeSupervisor
   alias Staxx.DeploymentScope.Scope.StackManager
@@ -69,14 +68,20 @@ defmodule Staxx.DeploymentScope do
     modules = get_stack_names(stacks)
     Logger.debug("Starting new deployment scope with modules: #{inspect(modules)}")
 
+    # Binding email to chain configuration
+    chain_config_or_id =
+      chain_config_or_id
+      |> case do
+        config when is_map(config) ->
+          Map.put(config, :email, email)
+
+        id ->
+          id
+      end
+
     with :ok <- validate_stacks(modules),
          {:ok, pid} <- ScopesSupervisor.start_scope({id, chain_config_or_id, stacks}) do
       Logger.debug("Started chain supervisor tree #{inspect(pid)} for stack #{id}")
-
-      unless email == "" do
-        Logger.debug(fn -> "Mapping deployment scope #{id} to email #{email}" end)
-        UserScope.map(id, email)
-      end
 
       {:ok, id}
     else
@@ -199,22 +204,6 @@ defmodule Staxx.DeploymentScope do
   @spec reload_config() :: :ok
   def reload_config(),
     do: ConfigLoader.reload()
-
-  @doc """
-  Staxx host
-  """
-  @spec host() :: binary
-  def host(),
-    do: Application.get_env(:deployment_scope, :host, "host.docker.internal")
-
-  @doc """
-  Get NATS url
-  """
-  @spec nats_url() :: binary
-  def nats_url() do
-    %{host: host, port: port} = Application.get_env(:deployment_scope, :nats)
-    "nats://#{host}:#{port}"
-  end
 
   # Validate if all stacks are allowed to start
   defp validate_stacks([]), do: :ok

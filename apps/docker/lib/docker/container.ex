@@ -63,9 +63,6 @@ defmodule Staxx.Docker.Container do
 
   @doc false
   def init(%__MODULE__{} = container) do
-    # Enabling trap exit for process
-    Process.flag(:trap_exit, true)
-
     # Collecting telemetry
     :telemetry.execute(
       [:staxx, :docker, :container, :start],
@@ -84,7 +81,7 @@ defmodule Staxx.Docker.Container do
 
   @doc """
   Starts already existing container.
-  Will call `Staxx.Docker.start/1` function. 
+  Will call `Staxx.Docker.start/1` function.
   On docker level it will use `docker start name` command for starting.
   """
   def handle_continue(:start_container, %__MODULE__{existing: true, name: name} = container) do
@@ -133,29 +130,6 @@ defmodule Staxx.Docker.Container do
 
         {:stop, {:shutdown, :failed_to_start}, container}
     end
-  end
-
-  # Because of we will spawn new port process in `handle_continue/2`
-  # We have to handle it's termination.
-  # Otherwise system will terminate GenServer and it will send container stop signal
-  def handle_info({:EXIT, from, :normal}, state) when is_port(from),
-    do: {:noreply, state}
-
-  def handle_info({:EXIT, from, :shutdown}, state) when is_port(from),
-    do: {:noreply, state}
-
-  @doc false
-  def handle_info({:EXIT, _from, reason}, state) do
-    Logger.debug(fn ->
-      """
-      Exit trapped for Docker container
-        Exit reason: #{inspect(reason)}
-        Container details:
-          #{inspect(state, pretty: true)}
-      """
-    end)
-
-    {:stop, {:shutdown, reason}, state}
   end
 
   @doc false

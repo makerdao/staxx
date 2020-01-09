@@ -158,7 +158,7 @@ defmodule Staxx.Testchain.SnapshotManager do
   @doc """
   Create new snapshot record by given details and existing file
   """
-  @spec upload(binary, ExChain.evm_type(), binary) :: {:ok, Details.t()} | {:error, term()}
+  @spec upload(binary, Testchain.evm_type(), binary) :: {:ok, Details.t()} | {:error, term()}
   def upload(id, chain, description) do
     path = build_path(id)
 
@@ -195,7 +195,7 @@ defmodule Staxx.Testchain.SnapshotManager do
   @doc """
   Load list of existing snapshots by chain type
   """
-  @spec by_chain(ExChain.evm_type()) :: [SnapshotDetails.t()]
+  @spec by_chain(Testchain.evm_type()) :: [SnapshotDetails.t()]
   def by_chain(chain), do: SnapshotStore.by_chain(chain)
 
   @doc """
