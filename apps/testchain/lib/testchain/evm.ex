@@ -292,6 +292,10 @@ defmodule Staxx.Testchain.EVM do
       end
 
       @doc false
+      def init(_),
+        do: {:error, "Wrong EVM configuration"}
+
+      @doc false
       def terminate(
             reason,
             %State{
@@ -308,7 +312,7 @@ defmodule Staxx.Testchain.EVM do
         on_terminate(config, internal_state)
 
         # stoping container in sync mode if it's alive
-        if Process.alive?(container_pid) do
+        if container_pid && Process.alive?(container_pid) do
           Logger.debug(fn -> "#{config.id}: Shutting down container process" end)
           :ok = Container.stop(container_pid)
           Logger.debug(fn -> "#{config.id}: Container terminated" end)

@@ -14,14 +14,12 @@ defmodule Staxx.Testchain.Test.EventSubscriber do
   def init(nil) do
     # Subscribe for everything and all chains
     EventStream.subscribe({__MODULE__, [".*"]})
-    |> IO.inspect()
 
     {:ok, []}
   end
 
   @doc false
   def terminate(reason, _) do
-    IO.inspect(reason)
     # Unsubscribe from all events
     EventStream.unsubscribe(__MODULE__)
     :ok
@@ -48,7 +46,7 @@ defmodule Staxx.Testchain.Test.EventSubscriber do
       |> EventBus.fetch_event()
       |> case do
         %{data: data} ->
-          IO.inspect(data)
+          # IO.inspect(data)
 
           state
           |> Enum.each(&send(&1, data))

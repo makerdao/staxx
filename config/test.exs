@@ -7,10 +7,13 @@ config :logger,
     [level_lower_than: :error]
   ]
 
+# Configuring timeouts for receiving messages
+config :ex_unit, assert_receive_timeout: 30_000
+
 config :metrix, run_prometheus: false
 config :event_stream, disable_nats: true
 
-config :docker, adapter: Staxx.Docker.Adapter.Mock
+# config :docker, adapter: Staxx.Docker.Adapter.Mock
 
 config :deployment_scope, stacks_dir: "#{__DIR__}/../priv/test/stacks"
 

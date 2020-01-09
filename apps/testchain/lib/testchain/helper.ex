@@ -223,9 +223,9 @@ defmodule Staxx.Testchain.Helper do
   """
   @spec notify_started(Testchain.evm_id(), map()) :: :ok
   def notify_started(id, details) do
-    Notification.notify(id, :started, details)
-
     ChainRecord.set(id, %{details: details})
+
+    Notification.notify(id, :started, details)
     :ok
   end
 
@@ -241,7 +241,6 @@ defmodule Staxx.Testchain.Helper do
   """
   @spec notify_status(Testchain.evm_id(), Testchain.EVM.status()) :: :ok
   def notify_status(id, status) do
-    Notification.notify(id, :status_changed, %{status: status})
     # In case of ready status we need to send additional `:ready` event.
     if status == :ready do
       Notification.notify(id, :ready)
@@ -250,7 +249,7 @@ defmodule Staxx.Testchain.Helper do
     # Saving status change in DB
     ChainRecord.set_status(id, status)
 
-    :ok
+    Notification.notify(id, :status_changed, %{status: status})
   end
 
   @doc """

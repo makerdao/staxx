@@ -118,7 +118,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth.AccountsCreator do
   """
   @spec create_accounts(non_neg_integer(), binary) :: [Accounts.t()]
   def create_accounts(number, db_path) do
-    0..number
+    1..number
     |> Enum.map(fn _ -> async_create(db_path) end)
     |> Enum.map(&Task.await(&1, @timeout * 5))
     |> Enum.reject(&is_nil/1)

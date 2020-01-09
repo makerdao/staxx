@@ -72,7 +72,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Ganache do
   end
 
   defp generate_accounts(number) do
-    0..number
+    1..number
     |> Enum.map(fn _ -> Account.new() end)
   end
 

@@ -30,6 +30,12 @@ docker-deps:
 	@docker pull $(DEPLOYMENT_WORKER_IMAGE)
 .PHONY: docker-deps
 
+deps:
+	@mix deps.get
+	@docker pull $(DOCKER_ID_USER)/$(GANACHE_IMAGE):$(GANACHE_TAG)
+	@docker pull $(DOCKER_ID_USER)/$(GETH_IMAGE):$(GETH_TAG)
+.PHONY: deps
+
 ganache-local:
 	@echo "Setting up ganache"
 	@rm -rf priv/presets/ganache-cli
