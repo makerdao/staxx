@@ -1,5 +1,4 @@
 defmodule Staxx.Store.Release do
-
   @app :store
 
   @doc """

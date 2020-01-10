@@ -79,7 +79,7 @@
                 window[id].join()
                     .receive('ok', () => {
                         console.log('Joined channel chain', id)
-                        window[id].on('ready', (data) => console.log('Chain started', data))
+                        window[id].on('started', (data) => console.log('Chain started', data))
                         window[id].on('snapshot_taken', (data) => console.log('Snapshot taken', data))
                         window[id].on('snapshot_reverted', (data) => console.log('Snapshot restored', data))
                     })
@@ -190,7 +190,7 @@
                 window[id].join()
                     .receive('ok', () => {
                         console.log('Joined channel chain', id)
-                        window[id].on('ready', (data) => console.log('Chain started', data))
+                        window[id].on('started', (data) => console.log('Chain started', data))
                         window[id].on('snapshot_taken', (data) => console.log('Snapshot taken', data))
                         window[id].on('snapshot_reverted', (data) => console.log('Snapshot restored', data))
                     })

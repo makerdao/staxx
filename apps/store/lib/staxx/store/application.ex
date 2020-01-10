@@ -7,7 +7,7 @@ defmodule Staxx.Store.Application do
 
   def start(_type, _args) do
     children = [
-      Staxx.Store.Repo,
+      Staxx.Store.Repo
       # Staxx.Store.EventHandler
     ]
 

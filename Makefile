@@ -26,10 +26,13 @@ clean-local:
 	@rm -rf /tmp/chains/*
 .PHONY: clean-local
 
-docker-deps:
-	@docker pull $(DEPLOYMENT_WORKER_IMAGE)
+pull-evms:
 	@docker pull $(DOCKER_ID_USER)/$(GANACHE_IMAGE):$(GANACHE_TAG)
 	@docker pull $(DOCKER_ID_USER)/$(GETH_IMAGE):$(GETH_TAG)
+.PHONY: pull-evms
+
+docker-deps: pull-evms
+	@docker pull $(DEPLOYMENT_WORKER_IMAGE)
 .PHONY: docker-deps
 
 deps: docker-deps
@@ -121,22 +124,22 @@ run: ## Run the app in Docker
 		--rm -it $(DOCKER_ID_USER)/$(APP_NAME):latest
 .PHONY: run
 
-migrate-prod:
+migrate-latest:
 	@docker-compose -f docker/docker-compose.yml run staxx eval "Staxx.Store.Release.migrate()"
-.PHONY: migrate-prod
+.PHONY: migrate-latest
 
-run-prod:
-	@docker-compose -f ./docker/docker-compose.yml up -d
-.PHONY: run-prod
+run-latest:
+	@docker-compose -f ./docker/docker-compose.yaml up -d
+.PHONY: run-latest
 
-stop-prod:
-	@docker-compose -f ./docker/docker-compose.yml stop
-.PHONY: stop-prod
+stop-latest:
+	@docker-compose -f ./docker/docker-compose.yaml stop
+.PHONY: stop-latest
 
-rm-prod:
+rm-latest:
 	@echo "====== Stopping and removing running containers"
-	@docker-compose -f ./docker/docker-compose.yml rm -s -f
-.PHONY: rm-prod
+	@docker-compose -f docker/docker-compose.yaml rm -s -f
+.PHONY: rm-latest
 
 migrate-dev:
 	@docker-compose -f docker/docker-compose-dev.yml run staxx eval "Staxx.Store.Release.migrate()"
@@ -150,20 +153,22 @@ stop-dev:
 	@docker-compose -f ./docker/docker-compose-dev.yml stop
 .PHONY: stop-dev
 
-upgrade-dev:
-	@echo "====== Stopping and removing running containers"
-	@docker-compose -f ./docker/docker-compose-dev.yml rm -s -f
-	@echo "====== Removing local images"
-	@docker rmi -f makerdao/testchain-deployment:dev \
-					makerdao/ex_testchain:dev \
-					makerdao/$(APP_NAME):dev \
-					makerdao/testchain-dashboard
-.PHONY: upgrade-dev
-
-rm-dev:
+rm-dev: stop-dev
 	@echo "====== Stopping and removing running containers"
 	@docker-compose -f ./docker/docker-compose-dev.yml rm -s -f
 .PHONY: rm-dev
+
+upgrade-dev: rm-dev
+	@echo "====== Removing local images"
+	@docker rmi -f $(DOCKER_ID_USER)/testchain-deployment:dev \
+					$(DEPLOYMENT_WORKER_IMAGE) \
+					$(DOCKER_ID_USER)/$(APP_NAME):dev \
+					$(DOCKER_ID_USER)/testchain-dashboard
+.PHONY: upgrade-dev
+
+clear-dev:
+	@rm -rf /tmp/chains /tmp/snapshots ./docker/postgres-data
+.PHONY: clear-dev
 
 stop-elixir-env:
 	@docker-compose -f ./docker/docker-compose-elixir.yml stop
@@ -180,29 +185,6 @@ run-elixir-env: rm-elixir-env
 dev: ## Run local node with correct values
 	@iex --name $(APP_NAME)@127.0.0.1 -S mix phx.server
 .PHONY: dev
-
-dc-up:
-	@echo "+ $@"
-	@docker-compose up -d
-.PHONY: dc-up
-
-dc-down:
-	@echo "+ $@"
-	@docker-compose down -v
-.PHONY: dc-down
-
-run-latest:
-	@docker-compose -f ./docker/docker-compose.yaml up -d
-.PHONY: run-latest
-
-stop-latest:
-	@docker-compose -f ./docker/docker-compose.yaml stop
-.PHONY: stop-latest
-
-rm-latest:
-	@echo "====== Stopping and removing running containers"
-	@docker-compose -f docker/docker-compose.yaml rm -s -f
-.PHONY: rm-latest
 
 staxx-remote:
 	@docker run -it --rm --network staxx_net1 makerdao/staxx:dev ./bin/staxx remote

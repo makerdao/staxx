@@ -29,5 +29,4 @@ config :testchain, front_url: System.fetch_env!("CHAINS_FRONT_URL")
 # Place where all dets DBs will be
 config :testchain, dets_db_path: System.fetch_env!("CHAINS_DB_PATH")
 
-config :store, Staxx.Store.Repo,
-  hostname: System.fetch_env!("POSTGRES_HOST")
+config :store, Staxx.Store.Repo, hostname: System.fetch_env!("POSTGRES_HOST")

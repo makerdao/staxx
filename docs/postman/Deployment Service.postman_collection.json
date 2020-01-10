@@ -1,0 +1,178 @@
+{
+	"info": {
+		"_postman_id": "fd5b1d98-8175-4b6d-9bb2-e87f25d3eb28",
+		"name": "Deployment Service",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Run Deployment",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"id\": \"some_id\",\n\t\"method\": \"Run\",\n\t\"data\": {\n\t\t\"stepId\": 1,\n\t\t\"envVars\": {\n\t\t\t\"ETH_FROM\": \"0x1fbe5a1438a2f56a7a4eca17e774c139e6840ddb\",\n\t\t\t\"ETH_GAS\": \"17000000\",\n\t\t\t\"ETH_RPC_URL\": \"http://host.docker.internal:8514\",\n\t\t\t\"ETH_RPC_ACCOUNTS\": \"yes\"\n\t\t}\n\t}\n}"
+				},
+				"url": {
+					"raw": "{{DEPLOY_SERVICE_URL}}/rpc",
+					"host": [
+						"{{DEPLOY_SERVICE_URL}}"
+					],
+					"path": [
+						"rpc"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Checkout branch",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"id\": \"some_id\",\n\t\"method\": \"Checkout\",\n\t\"data\": {\n\t\t\"commit\": \"tags/staxx-deploy\"\n\t}\n}"
+				},
+				"url": {
+					"raw": "{{DEPLOY_SERVICE_URL}}/rpc",
+					"host": [
+						"{{DEPLOY_SERVICE_URL}}"
+					],
+					"path": [
+						"rpc"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Sources",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"id\": \"some_id\",\n\t\"method\": \"UpdateSource\",\n\t\"data\": {}\n}"
+				},
+				"url": {
+					"raw": "{{DEPLOY_SERVICE_URL}}/rpc",
+					"host": [
+						"{{DEPLOY_SERVICE_URL}}"
+					],
+					"path": [
+						"rpc"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Info",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"id\": \"some_id\",\n\t\"method\": \"GetInfo\",\n\t\"data\": {}\n}"
+				},
+				"url": {
+					"raw": "{{DEPLOY_SERVICE_URL}}/rpc",
+					"host": [
+						"{{DEPLOY_SERVICE_URL}}"
+					],
+					"path": [
+						"rpc"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Commit List",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"id\": \"some_id\",\n\t\"method\": \"GetCommitList\",\n\t\"data\": {}\n}"
+				},
+				"url": {
+					"raw": "{{DEPLOY_SERVICE_URL}}/rpc",
+					"host": [
+						"{{DEPLOY_SERVICE_URL}}"
+					],
+					"path": [
+						"rpc"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Refs",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"id\": \"some_id\",\n\t\"method\": \"GetCommitList\",\n\t\"data\": {}\n}"
+				},
+				"url": {
+					"raw": "{{DEPLOY_SERVICE_URL}}/rpc",
+					"host": [
+						"{{DEPLOY_SERVICE_URL}}"
+					],
+					"path": [
+						"rpc"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}

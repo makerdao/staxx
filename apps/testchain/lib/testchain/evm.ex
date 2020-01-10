@@ -772,7 +772,7 @@ defmodule Staxx.Testchain.EVM do
 
         # Sending required notifications
         Helper.notify_status(config.id, :deployment_success)
-        Helper.notify(config.id, :deployment_success, result)
+        Helper.notify(config.id, :deployed, result)
         Helper.notify_status(config.id, :ready)
 
         {:noreply, %State{state | status: :ready}}
@@ -784,7 +784,7 @@ defmodule Staxx.Testchain.EVM do
       def handle_cast({:deployment_failed, data}, %State{config: config} = state) do
         Logger.debug(fn -> "#{config.id}: Deployment process failed !" end)
         Helper.notify_status(config.id, :deployment_failed)
-        Helper.notify(config.id, :deployment_failed, inspect(data))
+        Helper.notify(config.id, :deployment_failed, %{error: inspect(data)})
 
         # Marking chain as ready. Because may be we need to make other calls to EVM
         Helper.notify_status(config.id, :ready)

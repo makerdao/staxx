@@ -46,7 +46,7 @@ defmodule Staxx.Testchain.EVM.Config do
           deploy_step_id: pos_integer
         }
 
-  @derive Jason.Encoder
+  @derive {Jason.Encoder, except: [:email, :container_name, :existing]}
   defstruct type: :ganache,
             id: nil,
             email: "",
