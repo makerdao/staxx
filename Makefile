@@ -11,7 +11,6 @@ GETH_TAG ?= 1.8.27
 GANACHE_IMAGE ?= ganache_evm
 GANACHE_TAG ?= 6.7.0
 GETH_VDB_TAG ?= v1.10-alpha.0
-POSTGRES_HOST ?= localhost
 
 help:
 	@echo "$(DOCKER_ID_USER)/$(APP_NAME):$(APP_VSN)-$(BUILD)"
