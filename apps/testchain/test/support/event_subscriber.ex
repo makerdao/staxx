@@ -19,7 +19,7 @@ defmodule Staxx.Testchain.Test.EventSubscriber do
   end
 
   @doc false
-  def terminate(reason, _) do
+  def terminate(_reason, _) do
     # Unsubscribe from all events
     EventStream.unsubscribe(__MODULE__)
     :ok
@@ -41,19 +41,18 @@ defmodule Staxx.Testchain.Test.EventSubscriber do
 
   @doc false
   def handle_cast({:event, {topic, id} = event_shadow}, state) do
-    event =
-      event_shadow
-      |> EventBus.fetch_event()
-      |> case do
-        %{data: data} ->
-          # IO.inspect(data)
+    event_shadow
+    |> EventBus.fetch_event()
+    |> case do
+      %{data: data} ->
+        # IO.inspect(data)
 
-          state
-          |> Enum.each(&send(&1, data))
+        state
+        |> Enum.each(&send(&1, data))
 
-        _ ->
-          :ok
-      end
+      _ ->
+        :ok
+    end
 
     # all versions
     EventBus.mark_as_completed({__MODULE__, topic, id})
