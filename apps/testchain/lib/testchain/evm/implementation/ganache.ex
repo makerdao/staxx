@@ -60,6 +60,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Ganache do
     [
       # Sorry but this **** never works as you expect so I have to wrap it into "killer" script
       # Otherwise after application will be terminated - ganache still will be running
+      "-h 0.0.0.0",
       "--noVMErrorsOnRPCResponse",
       "-i #{network_id}",
       "-p #{@http_port}",

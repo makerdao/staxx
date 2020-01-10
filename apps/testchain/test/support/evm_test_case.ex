@@ -106,12 +106,13 @@ defmodule Staxx.Testchain.EVMTestCase do
         assert_receive {:EXIT, ^pid, _}
       end
 
+      # Test setup process
       setup_all do
+        # Setup real Docker adapter. Otherwise test does not make sense.
+        # It will be rewritten by test_helper.exs file in this app !
         Application.put_env(:docker, :adapter, Staxx.Docker.Adapter.DockerD)
 
-        on_exit(fn ->
-          Application.put_env(:docker, :adapter, Staxx.Docker.Adapter.Mock, persistent: true)
-        end)
+        :ok
       end
 
       test "#{@chain} to start and fire correct events and cleanup after stop with `clean_on_stop: true`" do

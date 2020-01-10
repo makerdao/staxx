@@ -23,7 +23,7 @@ ENV VERSION=v10.14.1 \
     DOCKER=true
 
 # New user creation
-RUN apk add --no-cache nodejs 
+RUN apk add --no-cache nodejs
 RUN adduser -D -u 1000 app
 
 USER app

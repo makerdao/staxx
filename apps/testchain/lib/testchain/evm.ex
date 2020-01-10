@@ -258,6 +258,12 @@ defmodule Staxx.Testchain.EVM do
       def init(%Config{id: id, db_path: db_path, existing: true} = config) do
         version = get_version()
 
+        # Binding newly created docker container name
+        config = Map.put(config, :container_name, Docker.random_name())
+
+        # updateing config
+        Helper.insert_or_update(id, config, :initializing)
+
         # Send notification about status change
         Helper.notify_status(id, :initializing)
 
@@ -475,15 +481,6 @@ defmodule Staxx.Testchain.EVM do
             %{},
             %{id: id, step_id: deploy_step}
           )
-
-          # TODO: Store chain details
-
-          # state
-          # |> Record.from_state()
-          # |> Record.chain_details(details)
-          # |> Record.deploy_step(step)
-          # |> Record.deploy_hash(hash)
-          # |> Record.store()
 
           {:noreply, state}
         else

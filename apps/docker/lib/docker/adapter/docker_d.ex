@@ -9,7 +9,7 @@ defmodule Staxx.Docker.Adapter.DockerD do
   alias Staxx.Docker.Container
 
   @doc """
-  Start given container 
+  Start given container
 
   Will conbine `docker run` command based on given Container structure.
   ```sh
@@ -121,8 +121,10 @@ defmodule Staxx.Docker.Adapter.DockerD do
   def stop(id_or_name) do
     Logger.debug("Stopping container #{id_or_name}")
 
-    case System.cmd(executable!(), ["stop", id_or_name]) do
-      {id, 0} ->
+    # Stop with 4s delay
+    case System.cmd(executable!(), ["stop", "-t", "4", id_or_name]) do
+      # Ganache my love will not terminate with 0 status. Only 137
+      {id, status} when status in [0, 137] ->
         {:ok, String.replace(id, "\n", "")}
 
       {err, exit_status} ->
