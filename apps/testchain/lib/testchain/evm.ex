@@ -282,10 +282,6 @@ defmodule Staxx.Testchain.EVM do
           :ok = File.mkdir_p!(db_path)
         end
 
-        # If we need to start new chain from snapshot
-        if snapshot_id = Map.get(config, :snapshot_id) do
-        end
-
         # Binding newly created docker container name
         config =
           config
@@ -296,6 +292,19 @@ defmodule Staxx.Testchain.EVM do
 
         # Writing chain to DB
         Helper.insert_or_update(id, config, :initializing)
+
+        # If we need to start new chain from snapshot
+        # we will rewrite files and DB record as well
+        if snapshot_id = Map.get(config, :snapshot_id) do
+          Helper.extract_snapshot(snapshot_id, config)
+          # Merge configuration from dump file (if it's exist)
+          config = Helper.merge_record_from_dump(config, @dump_file)
+
+          # Removing dump file
+          db_path
+          |> Path.join(@dump_file)
+          |> File.rm()
+        end
 
         # Send notification about status change
         Helper.notify_status(id, :initializing)
@@ -697,7 +706,13 @@ defmodule Staxx.Testchain.EVM do
         {:noreply, state}
       end
 
-      @doc false
+      @doc """
+      Reverting EVM snapshot
+
+      NOTE: we have to stop and remove container, and create new one
+      because otherwise old account params will be passed to container `CMD` command.
+      And chain wouldn't be able to start.
+      """
       def handle_cast(
             {:revert_snapshot, snapshot},
             %State{status: :ready, config: config, container_pid: container_pid} = state
@@ -725,13 +740,15 @@ defmodule Staxx.Testchain.EVM do
         container = Container.info(container_pid)
         :ok = Container.stop_temporary(container_pid)
         Logger.debug(fn -> "#{config.id}: Container terminated for reverting snapshot" end)
+        :ok = Docker.rm(container.name)
+        Logger.debug(fn -> "#{config.id}: Container removed for reverting snapshot" end)
 
         %Config{db_path: db_path, type: type} = config
 
         try do
           Logger.debug(fn -> "#{config.id}: Clearing path #{db_path} for resting snapshot" end)
           # Clearing target path
-          :ok = File.rm_rf(db_path)
+          {:ok, _} = File.rm_rf(db_path)
           # Restoring snapshot
           details = SnapshotManager.restore_snapshot!(snapshot, db_path)
 
@@ -740,48 +757,24 @@ defmodule Staxx.Testchain.EVM do
           # Send notification with newly created snopshot details
           Helper.notify(config.id, :snapshot_reverted, snapshot)
 
-          db_path
-          |> Path.join(@dump_file)
-          |> Helper.read_term_from_file()
-          |> case do
-            {:ok, %ChainRecord{config: cfg} = record} ->
-              # Rewriting evm configuration
-              config = Helper.merge_snapshoted_config(cfg, config)
-              # Updating EVM record in DB
-              ChainRecord.rewrite(config.id, %ChainRecord{record | config: config})
-              Logger.debug(fn -> "#{config.id}: Updated details for chain." end)
-
-            _ ->
-              Logger.warn(fn -> "#{config.id}: Failed to get chain record dump. Will irnore." end)
-          end
+          # Merge configuration from dump file (if it's exist)
+          config = Helper.merge_record_from_dump(config, @dump_file)
 
           # Removing dump file
           db_path
           |> Path.join(@dump_file)
           |> File.rm()
 
-          # Marking container as `existing` so no new container will be created
-          # System will start already existing contianer and all ports/volumes
-          # will be already configured. So no need to change anything
-          container = %Container{container | existing: true}
-          # Starting given container with EVM
-          {:ok, container_pid} = Container.start_link(container)
-
           # Notify status change
           Helper.notify_status(config.id, :snapshot_reverted)
-
-          # Schedule started check
-          # Operation is async and `status: :active` will be set later
-          # See: `handle_info({:check_started, _})`
-          check_started(self())
 
           {:noreply,
            %State{
              state
              | status: :snapshot_reverted,
-               container_pid: container_pid,
+               container_pid: nil,
                config: config
-           }}
+           }, {:continue, :start_chain}}
         rescue
           err ->
             Logger.error("#{config.id} failed to revert snapshot with error #{inspect(err)}")

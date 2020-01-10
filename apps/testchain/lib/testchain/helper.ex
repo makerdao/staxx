@@ -8,7 +8,7 @@ defmodule Staxx.Testchain.Helper do
   alias Staxx.Testchain
   alias Staxx.Testchain.EVM
   alias Staxx.Testchain.EVM.Config
-  alias Staxx.Testchain.SnapshotManager
+  alias Staxx.Testchain.{SnapshotManager, SnapshotDetails}
   alias Staxx.Testchain.Deployment.Result, as: DeploymentResult
   alias Staxx.Testchain.Deployment.Config, as: DeploymentConfig
   alias Staxx.Testchain.Deployment.Worker, as: DeploymentWorker
@@ -98,6 +98,56 @@ defmodule Staxx.Testchain.Helper do
 
   def merge_snapshoted_config(_cfg, %Config{} = config),
     do: config
+
+  @doc """
+  Merges current EVM config with config/details/deployment that will be loaded from dump file.
+  Dump file have to be into `db_path` and it's path shuold be combination of `Path.join(db_path, file_name)
+  """
+  @spec merge_record_from_dump(Config.t(), binary) :: Config.t()
+  def merge_record_from_dump(%Config{db_path: db_path} = config, file_name) do
+    db_path
+    |> Path.join(file_name)
+    |> read_term_from_file()
+    |> case do
+      {:ok, %ChainRecord{config: cfg} = record} ->
+        # Rewriting evm configuration
+        config = merge_snapshoted_config(cfg, config)
+        # Updating EVM record in DB
+        ChainRecord.rewrite(config.id, %ChainRecord{record | config: config})
+        Logger.debug(fn -> "#{config.id}: Updated details for chain." end)
+
+        # Returning mutated config
+        config
+
+      _ ->
+        Logger.warn(fn -> "#{config.id}: Failed to get chain record dump. Will irnore." end)
+        # Returning non mutated config
+        config
+    end
+  end
+
+  @doc """
+  Will check DB details, extract snapshot details to given path
+  and werite data in DB by `chain_id`
+  """
+  @spec extract_snapshot(binary, Config.t()) :: :ok | {:error, term}
+  def extract_snapshot(snapshot_id, %Config{db_path: db_path} = config) do
+    try do
+      snapshot_id
+      |> SnapshotManager.by_id()
+      |> case do
+        nil ->
+          {:error, "No snapshot exist with id #{snapshot_id}"}
+
+        %SnapshotDetails{} = details ->
+          SnapshotManager.restore_snapshot!(details, db_path)
+      end
+    rescue
+      err ->
+        Logger.error(fn -> "#{config.id}: Failed to extract snapshot: #{inspect(err)}" end)
+        {:error, "failed to extract snapshot"}
+    end
+  end
 
   @doc """
   Loads configuration for existing testchain.
