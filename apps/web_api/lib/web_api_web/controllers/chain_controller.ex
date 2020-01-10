@@ -21,6 +21,27 @@ defmodule Staxx.WebApiWeb.ChainController do
     end
   end
 
+  # Take snapshot command
+  def take_snapshot(conn, %{"id" => id} = params) do
+    with :ok <- Testchain.take_snapshot(id, Map.get(params, "description", "")) do
+      conn
+      |> put_status(200)
+      |> put_view(SuccessView)
+      |> render("200.json", data: %{message: "Taking snapshot."})
+    end
+  end
+
+  # Take snapshot command
+  def revert_snapshot(conn, %{"id" => id, "snapshot" => snapshot_id})
+      when is_binary(snapshot_id) do
+    with :ok <- Testchain.revert_snapshot(id, snapshot_id) do
+      conn
+      |> put_status(200)
+      |> put_view(SuccessView)
+      |> render("200.json", data: %{message: "Reverting snapshot."})
+    end
+  end
+
   def list_chains(conn, _) do
     list =
       conn

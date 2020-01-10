@@ -145,6 +145,17 @@ defmodule Staxx.Store.Models.Chain do
   end
 
   @doc """
+  Rewrite chain config, details and deployment data
+  """
+  @spec rewrite(binary, t()) :: {integer(), nil | [term()]}
+  def rewrite(id, %__MODULE__{config: config, details: details, deployment: deployment}) do
+    __MODULE__
+    |> where(chain_id: ^id)
+    |> update(set: [config: ^config, details: ^details, deployment: ^deployment])
+    |> Repo.update_all([])
+  end
+
+  @doc """
   Updates status for chain
   """
   @spec set_status(binary, atom | binary, map()) :: {integer(), nil | [term()]}

@@ -33,6 +33,8 @@ defmodule Staxx.WebApiWeb.Router do
     delete "/:id", ChainController, :remove_chain
     get "/:id", ChainController, :chain_details
     get "/stop/:id", ChainController, :stop
+    post "/:id/take_snapshot", ChainController, :take_snapshot
+    post "/:id/revert_snapshot/:snapshot", ChainController, :revert_snapshot
   end
 
   scope "/docker", Staxx.WebApiWeb do

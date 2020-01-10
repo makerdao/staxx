@@ -8,6 +8,7 @@ defmodule Staxx.Testchain.Helper do
   alias Staxx.Testchain
   alias Staxx.Testchain.EVM
   alias Staxx.Testchain.EVM.Config
+  alias Staxx.Testchain.SnapshotManager
   alias Staxx.Testchain.Deployment.Result, as: DeploymentResult
   alias Staxx.Testchain.Deployment.Config, as: DeploymentConfig
   alias Staxx.Testchain.Deployment.Worker, as: DeploymentWorker
@@ -77,6 +78,26 @@ defmodule Staxx.Testchain.Helper do
     |> Kernel.struct(config)
     |> fill_missing_config!()
   end
+
+  @doc """
+  Merges config loaded from ChainRecord (will be presented as map)
+  And current evm config.
+  """
+  @spec merge_snapshoted_config(map, Config.t()) :: Config.t()
+  def merge_snapshoted_config(cfg, %Config{} = config) when is_map(cfg) do
+    %Config{
+      config
+      | accounts: Map.get(cfg, "accounts", 1),
+        gas_limit: Map.get(cfg, "gas_limit", 9_000_000_000_000),
+        network_id: Map.get(cfg, "network_id", 999),
+        deploy_ref: Map.get(cfg, "deploy_ref", ""),
+        deploy_step_id: Map.get(cfg, "deploy_step_id", 0),
+        block_mine_time: Map.get(cfg, "block_mine_time", 0)
+    }
+  end
+
+  def merge_snapshoted_config(_cfg, %Config{} = config),
+    do: config
 
   @doc """
   Loads configuration for existing testchain.

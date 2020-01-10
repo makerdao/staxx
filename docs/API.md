@@ -1,5 +1,7 @@
 # WEB API
 
+**Better take a look into Postman collection**
+
 Web API for working with QA Dashboard backend
 
  - `GET /chains` - List of available chains
@@ -11,6 +13,8 @@ Web API for working with QA Dashboard backend
  - `GET /chain/:id` - Chain details by chain ID
  - `DELETE /chain/:id` - Remove all chain data from system (only for stopped chain !)
  - `GET /chain/stop/:id` - Stop chain by ID
+ - `POST /chain/:id/take_snapshot` - Start taking snapshot (result will be received by WS)
+ - `POST /chain/:id/revert_snapshot/snapshot_id` - Start reverting snapshot (result will be received by WS)
 
 ## Postman APIs and Envs
 

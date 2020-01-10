@@ -244,6 +244,9 @@ defmodule Staxx.Testchain.EVM do
       # Amount of milliseconds we will wait EVM container to terminate.
       @evm_stop_timeout 60_000
 
+      # File name where all details will be written on snapshoting
+      @dump_file "chain_dump.bin"
+
       @doc false
       def start_link(%Config{id: nil}), do: {:error, :id_required}
 
@@ -277,6 +280,10 @@ defmodule Staxx.Testchain.EVM do
         unless File.exists?(db_path) do
           Logger.debug("#{id}: #{db_path} not exist, creating...")
           :ok = File.mkdir_p!(db_path)
+        end
+
+        # If we need to start new chain from snapshot
+        if snapshot_id = Map.get(config, :snapshot_id) do
         end
 
         # Binding newly created docker container name
@@ -629,6 +636,13 @@ defmodule Staxx.Testchain.EVM do
 
         %Config{db_path: db_path, type: type} = config
 
+        # Loading chain details
+        %ChainRecord{} = chain_dump = ChainRecord.get(config.id)
+        # Writing it to snapshot folder
+        db_path
+        |> Path.join(@dump_file)
+        |> Helper.write_term_to_file(chain_dump)
+
         try do
           details = SnapshotManager.make_snapshot!(db_path, type, description)
 
@@ -639,6 +653,11 @@ defmodule Staxx.Testchain.EVM do
 
           # Send notification with newly created snopshot details
           Helper.notify(config.id, :snapshot_taken, details)
+
+          # Removing dump file
+          db_path
+          |> Path.join(@dump_file)
+          |> File.rm()
 
           # Marking container as `existing` so no new container will be created
           # System will start already existing contianer and all ports/volumes
@@ -710,12 +729,36 @@ defmodule Staxx.Testchain.EVM do
         %Config{db_path: db_path, type: type} = config
 
         try do
+          Logger.debug(fn -> "#{config.id}: Clearing path #{db_path} for resting snapshot" end)
+          # Clearing target path
+          :ok = File.rm_rf(db_path)
+          # Restoring snapshot
           details = SnapshotManager.restore_snapshot!(snapshot, db_path)
 
           Logger.debug("#{config.id}: Snapshot reverted, details: #{inspect(snapshot)}")
 
           # Send notification with newly created snopshot details
           Helper.notify(config.id, :snapshot_reverted, snapshot)
+
+          db_path
+          |> Path.join(@dump_file)
+          |> Helper.read_term_from_file()
+          |> case do
+            {:ok, %ChainRecord{config: cfg} = record} ->
+              # Rewriting evm configuration
+              config = Helper.merge_snapshoted_config(cfg, config)
+              # Updating EVM record in DB
+              ChainRecord.rewrite(config.id, %ChainRecord{record | config: config})
+              Logger.debug(fn -> "#{config.id}: Updated details for chain." end)
+
+            _ ->
+              Logger.warn(fn -> "#{config.id}: Failed to get chain record dump. Will irnore." end)
+          end
+
+          # Removing dump file
+          db_path
+          |> Path.join(@dump_file)
+          |> File.rm()
 
           # Marking container as `existing` so no new container will be created
           # System will start already existing contianer and all ports/volumes
@@ -732,7 +775,13 @@ defmodule Staxx.Testchain.EVM do
           # See: `handle_info({:check_started, _})`
           check_started(self())
 
-          {:noreply, %State{state | status: :snapshot_reverted, container_pid: container_pid}}
+          {:noreply,
+           %State{
+             state
+             | status: :snapshot_reverted,
+               container_pid: container_pid,
+               config: config
+           }}
         rescue
           err ->
             Logger.error("#{config.id} failed to revert snapshot with error #{inspect(err)}")

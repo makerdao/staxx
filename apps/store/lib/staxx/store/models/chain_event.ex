@@ -12,30 +12,29 @@ defmodule Staxx.Store.Models.ChainEvent do
 
   @type t :: %__MODULE__{
           id: pos_integer,
-          chain_uuid: binary,
+          chain_id: binary,
           event: binary,
           data: map | nil
         }
 
   @derive Jason.Encoder
 
-  # @primary_key {:uuid, :binary_id, autogenerate: true}
-  @foreign_key_type :binary_id
+  @foreign_key_type :string
 
   schema "chain_events" do
     field(:event, :string)
     field(:data, :map, default: %{})
 
     belongs_to(:chain, Chain,
-      foreign_key: :chain_uuid,
-      references: :uuid
+      foreign_key: :chain_id,
+      references: :chain_id
     )
 
     timestamps()
   end
 
   @fields [
-    :chain_uuid,
+    :chain_id,
     :event,
     :data
   ]
@@ -47,7 +46,7 @@ defmodule Staxx.Store.Models.ChainEvent do
   def changeset(data, params \\ %{}) do
     data
     |> cast(params, @fields)
-    |> validate_required([:chain_uuid, :event])
+    |> validate_required([:chain_id, :event])
   end
 
   @doc """

@@ -178,7 +178,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"testchain\": {\n        \"config\": {\n            \"type\": \"{{evm}}\",\n            \"accounts\": 2,\n            \"block_mine_time\": 0,\n            \"clean_on_stop\": false,\n            \"snapshot_id\": null,\n            \"deploy_ref\": \"refs/tags/staxx-testrunner\",\n            \"deploy_step_id\": 0\n        },\n        \"deps\": []\n    }\n}"
+							"raw": "{\n    \"testchain\": {\n        \"config\": {\n            \"type\": \"{{evm}}\",\n            \"accounts\": 2,\n            \"block_mine_time\": 0,\n            \"clean_on_stop\": true,\n            \"snapshot_id\": null,\n            \"deploy_ref\": \"refs/tags/staxx-testrunner\",\n            \"deploy_step_id\": 0\n        },\n        \"deps\": []\n    }\n}"
 						},
 						"url": {
 							"raw": "{{STAXX_URL}}/stack/start",
@@ -360,6 +360,45 @@
 							],
 							"path": [
 								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Take Snapshot",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{STAXX_URL}}/chain/{{chain_id}}/take_snapshot",
+							"host": [
+								"{{STAXX_URL}}"
+							],
+							"path": [
+								"chain",
+								"{{chain_id}}",
+								"take_snapshot"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Revert Snapshot",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{STAXX_URL}}/chain/{{chain_id}}/revert_snapshot/{{snapshot_id}}",
+							"host": [
+								"{{STAXX_URL}}"
+							],
+							"path": [
+								"chain",
+								"{{chain_id}}",
+								"revert_snapshot",
+								"{{snapshot_id}}"
 							]
 						}
 					},
