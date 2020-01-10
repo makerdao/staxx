@@ -16,7 +16,10 @@ defmodule Staxx.Store.EventHandler do
     {:ok, []}
   end
 
-  def process({:chain, id} = event_shadow) do
+  def terminate(_reason, _state),
+    do: EventStream.unsubscribe(__MODULE__)
+
+  def process({:chain, id}) do
     case EventStream.fetch_event_data({:chain, id}) do
       %{id: chain_id, event: _event, data: _data} = msg ->
         Logger.debug(fn -> "Notification: #{inspect(msg, pretty: true)}" end)

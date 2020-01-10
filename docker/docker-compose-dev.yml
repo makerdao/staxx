@@ -20,16 +20,22 @@ services:
       # - net1
   db:
     image: 'postgres:11-alpine'
+    container_name: db.local
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    networks:
+      - net1
   staxx:
     image: makerdao/staxx:dev
     container_name: staxx.local
     depends_on:
       - nats
+      - db
     expose:
       - "9100-9100"
     ports:
@@ -37,6 +43,7 @@ services:
       # - "9100:9100"
       - "4000:4000"
     environment:
+      POSTGRES_HOST: db.local
       NATS_URL: nats.local
       DOCKER_DEV_MODE_ALLOWED: "true"
     volumes:
@@ -44,22 +51,6 @@ services:
       - "/tmp/chains:/opt/chains"
       - "/tmp/snapshots:/opt/snapshots"
       - "/tmp/stacks:/opt/stacks"
-    networks:
-     - net1
-  ex_testchain:
-    image: makerdao/ex_testchain:dev
-    container_name: ex-testchain.local
-    expose:
-      - "8500-8600"
-      - "9100-9100"
-    ports:
-      - "8500-8600:8500-8600"
-      # - "9100-9105:9100-9105"
-    # environment:
-    #   FRONT_URL: localhost
-    volumes:
-      - "/tmp/chains:/opt/chains"
-      - "/tmp/snapshots:/opt/snapshots"
     networks:
      - net1
   testchain-deployment:

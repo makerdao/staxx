@@ -100,4 +100,5 @@ COPY ./apps/docker/priv/wrapper.sh /opt/app/apps/docker/priv/wrapper.sh
 # RUN chown -R nobody: /opt/app
 # USER nobody
 
-CMD trap 'exit' INT; /opt/app/bin/${APP_NAME} start
+ENTRYPOINT ["/opt/app/bin/staxx"]
+CMD ["start"]

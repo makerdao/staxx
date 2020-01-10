@@ -11,6 +11,7 @@ GETH_TAG ?= 1.8.27
 GANACHE_IMAGE ?= ganache_evm
 GANACHE_TAG ?= 6.7.0
 GETH_VDB_TAG ?= v1.10-alpha.0
+POSTGRES_HOST ?= localhost
 
 help:
 	@echo "$(DOCKER_ID_USER)/$(APP_NAME):$(APP_VSN)-$(BUILD)"
@@ -103,6 +104,53 @@ build: ## Build elixir application with testchain and WS API
 		-t $(DOCKER_ID_USER)/$(APP_NAME):$(TAG) .
 .PHONY: build
 
+logs-deploy:
+	@docker-compose logs -f testchain-deployment
+.PHONY: logs-deploy
+
+logs-dev:
+	@docker-compose -f ./docker/docker-compose-dev.yml logs -f $(APP_NAME)
+.PHONY: logs-dev
+
+run: ## Run the app in Docker
+	@docker run \
+		-v /tmp/chains:/opt/chains \
+		-v /tmp/snapshots:/opt/snapshots \
+		-v /tmp/stacks:/opt/stacks \
+		--expose 4000 -p 4000:4000 \
+		--expose 9100-9105 -p 9100-9105:9100-9105 \
+		--rm -it $(DOCKER_ID_USER)/$(APP_NAME):latest
+.PHONY: run
+
+migrate-prod:
+	@docker-compose -f docker/docker-compose.yml run staxx eval "Staxx.Store.Release.migrate()"
+.PHONY: migrate-prod
+
+run-prod:
+	@docker-compose -f ./docker/docker-compose.yml up -d
+.PHONY: run-prod
+
+stop-prod:
+	@docker-compose -f ./docker/docker-compose.yml stop
+.PHONY: stop-prod
+
+rm-prod:
+	@echo "====== Stopping and removing running containers"
+	@docker-compose -f ./docker/docker-compose.yml rm -s -f
+.PHONY: rm-prod
+
+migrate-dev:
+	@docker-compose -f docker/docker-compose-dev.yml run staxx eval "Staxx.Store.Release.migrate()"
+.PHONY: migrate-dev
+
+run-dev:
+	@docker-compose -f ./docker/docker-compose-dev.yml up -d
+.PHONY: run-dev
+
+stop-dev:
+	@docker-compose -f ./docker/docker-compose-dev.yml stop
+.PHONY: stop-dev
+
 upgrade-dev:
 	@echo "====== Stopping and removing running containers"
 	@docker-compose -f ./docker/docker-compose-dev.yml rm -s -f
@@ -118,28 +166,6 @@ rm-dev:
 	@docker-compose -f ./docker/docker-compose-dev.yml rm -s -f
 .PHONY: rm-dev
 
-logs-deploy:
-	@docker-compose logs -f testchain-deployment
-.PHONY: logs-deploy
-
-logs-dev:
-	@docker-compose logs -f ex_testchain $(APP_NAME) testchain-deployment
-.PHONY: logs-dev
-
-run: ## Run the app in Docker
-	@docker run \
-		-v /tmp/chains:/opt/chains \
-		-v /tmp/snapshots:/opt/snapshots \
-		-v /tmp/stacks:/opt/stacks \
-		--expose 4000 -p 4000:4000 \
-		--expose 9100-9105 -p 9100-9105:9100-9105 \
-		--rm -it $(DOCKER_ID_USER)/$(APP_NAME):latest
-.PHONY: run
-
-run-dev:
-	@docker-compose -f ./docker/docker-compose-dev.yml up -d
-.PHONY: run-dev
-
 stop-elixir-env:
 	@docker-compose -f ./docker/docker-compose-elixir.yml stop
 .PHONY: stop-elixir-env
@@ -151,10 +177,6 @@ rm-elixir-env:
 run-elixir-env: rm-elixir-env
 	@docker-compose -f ./docker/docker-compose-elixir.yml up -d
 .PHONY: run-elixir-env
-
-stop-dev:
-	@docker-compose -f ./docker/docker-compose-dev.yml stop
-.PHONY: stop-dev
 
 dev: ## Run local node with correct values
 	@iex --name $(APP_NAME)@127.0.0.1 -S mix phx.server
