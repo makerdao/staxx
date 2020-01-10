@@ -8,14 +8,17 @@ config :logger,
   ]
 
 # Configuring timeouts for receiving messages
-config :ex_unit, assert_receive_timeout: 30_000
+config :ex_unit, assert_receive_timeout: 60_000
 
 config :metrix, run_prometheus: false
 config :event_stream, disable_nats: true
 
-# config :docker, adapter: Staxx.Docker.Adapter.Mock
+config :docker, adapter: Staxx.Docker.Adapter.Mock
 
 config :deployment_scope, stacks_dir: "#{__DIR__}/../priv/test/stacks"
+
+config :deployment_scope,
+  testchain_supervisor_module: Staxx.DeploymentScope.Test.TestchainSupervisorMock
 
 config :store, Staxx.Store.Repo, pool: Ecto.Adapters.SQL.Sandbox
 

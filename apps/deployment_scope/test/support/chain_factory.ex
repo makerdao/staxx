@@ -8,7 +8,7 @@ defmodule Staxx.DeploymentScope.ChainFactory do
       "testchain" => %{
         "config" => %{
           "type" => "geth",
-          "accounts" => 2,
+          "accounts" => 1,
           "block_mine_time" => 0,
           "clean_on_stop" => false,
           "snapshot_id" => nil,

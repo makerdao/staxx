@@ -23,6 +23,11 @@ config :deployment_scope, action_timeout: 600_000
 config :deployment_scope, deployment_worker_image: "makerdao/testchain-deployment-worker:dev"
 
 #
+# Deployment scope adapters
+#
+config :deployment_scope, testchain_supervisor_module: Staxx.Testchain.Supervisor
+
+#
 # Docker configs
 #
 config :docker, wrapper_file: Path.expand("#{__DIR__}/../apps/docker/priv/wrapper.sh")

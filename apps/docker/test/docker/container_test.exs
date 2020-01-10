@@ -7,14 +7,6 @@ defmodule Staxx.Docker.ContainerTest do
   alias Staxx.Docker.PortMapper
   alias Staxx.Docker.Container
 
-  setup_all do
-    Application.put_env(:docker, :adapter, Staxx.Docker.Adapter.Mock)
-
-    on_exit(fn ->
-      Application.put_env(:docker, :adapter, Staxx.Docker.Adapter.DockerD, persistent: true)
-    end)
-  end
-
   test "should start new container and reserve id" do
     name = Faker.String.base64()
 

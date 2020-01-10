@@ -15,7 +15,6 @@ defmodule Staxx.DeploymentScope.Scope.DeploymentScopeSupervisor do
   alias Staxx.DeploymentScope.Terminator
   alias Staxx.DeploymentScope.Scope.StackManagerSupervisor
   alias Staxx.DeploymentScope.ScopeRegistry
-  alias Staxx.Testchain.Supervisor, as: TestchainSupervisor
 
   @doc false
   def child_spec({id, _, _} = params) do
@@ -38,10 +37,10 @@ defmodule Staxx.DeploymentScope.Scope.DeploymentScopeSupervisor do
     if {:ok, pid} = res do
       pid
       |> Supervisor.which_children()
-      |> Enum.find(fn {_, _, _, [module]} -> module == TestchainSupervisor end)
+      |> Enum.find(fn {_, _, _, [module]} -> module == get_testchain_supervisor_module() end)
       |> case do
         nil ->
-          Logger.warn("#{id}: No Staxx.Testchain.Supervisor child found...")
+          Logger.warn("#{id}: No #{get_testchain_supervisor_module()} child found...")
 
         {_, pid, _, _} ->
           Terminator.monitor(pid)
@@ -56,7 +55,7 @@ defmodule Staxx.DeploymentScope.Scope.DeploymentScopeSupervisor do
   @impl true
   def init({id, chain_config_or_id, _stacks}) do
     children = [
-      TestchainSupervisor.child_spec({id, chain_config_or_id}),
+      get_testchain_supervisor_module().child_spec({id, chain_config_or_id}),
       StackManagerSupervisor.child_spec(id)
     ]
 
@@ -80,7 +79,7 @@ defmodule Staxx.DeploymentScope.Scope.DeploymentScopeSupervisor do
       scope_id
       |> via_tuple()
       |> Supervisor.which_children()
-      |> Enum.find(nil, fn {module, _pid, _, _} -> module == StackManagerSupervisor end)
+      |> Enum.find(nil, fn {_, _pid, _, [module]} -> module == StackManagerSupervisor end)
 
     case res do
       {_, pid, _, _} ->
@@ -106,6 +105,13 @@ defmodule Staxx.DeploymentScope.Scope.DeploymentScopeSupervisor do
         |> StackManagerSupervisor.start_manager(scope_id, stack_name)
     end
   end
+
+  #######################################
+  # Private functions
+  #######################################
+
+  defp get_testchain_supervisor_module(),
+    do: Application.get_env(:deployment_scope, :testchain_supervisor_module)
 
   # Start list of stack managers
   defp start_stack_managers(scope_id, stacks) do

@@ -106,6 +106,14 @@ defmodule Staxx.Testchain.EVMTestCase do
         assert_receive {:EXIT, ^pid, _}
       end
 
+      setup_all do
+        Application.put_env(:docker, :adapter, Staxx.Docker.Adapter.DockerD)
+
+        on_exit(fn ->
+          Application.put_env(:docker, :adapter, Staxx.Docker.Adapter.Mock, persistent: true)
+        end)
+      end
+
       test "#{@chain} to start and fire correct events and cleanup after stop with `clean_on_stop: true`" do
         {:ok, pid, %Config{id: id} = config} =
           @chain
