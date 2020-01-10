@@ -35,6 +35,9 @@ defmodule Staxx.Testchain.Helper do
   # Snapshots table name used as DETS file name
   @snapshots_table "snapshots"
 
+  # File name where all details will be written on snapshoting
+  @dump_file "chain_dump.bin"
+
   @doc """
   Convert payload (from POST) to valid chain config
   """
@@ -103,10 +106,10 @@ defmodule Staxx.Testchain.Helper do
   Merges current EVM config with config/details/deployment that will be loaded from dump file.
   Dump file have to be into `db_path` and it's path shuold be combination of `Path.join(db_path, file_name)
   """
-  @spec merge_record_from_dump(Config.t(), binary) :: Config.t()
-  def merge_record_from_dump(%Config{db_path: db_path} = config, file_name) do
+  @spec merge_record_from_dump(Config.t()) :: Config.t()
+  def merge_record_from_dump(%Config{db_path: db_path} = config) do
     db_path
-    |> Path.join(file_name)
+    |> Path.join(@dump_file)
     |> read_term_from_file()
     |> case do
       {:ok, %ChainRecord{config: cfg} = record} ->
@@ -116,6 +119,11 @@ defmodule Staxx.Testchain.Helper do
         ChainRecord.rewrite(config.id, %ChainRecord{record | config: config})
         Logger.debug(fn -> "#{config.id}: Updated details for chain." end)
 
+        # Removing dump file
+        db_path
+        |> Path.join(@dump_file)
+        |> File.rm()
+
         # Returning mutated config
         config
 
@@ -123,6 +131,48 @@ defmodule Staxx.Testchain.Helper do
         Logger.warn(fn -> "#{config.id}: Failed to get chain record dump. Will irnore." end)
         # Returning non mutated config
         config
+    end
+  end
+
+  @doc """
+  Makes snapshot for given EVM configuration.
+
+  Also will dump EVM details from DB to dump file
+  """
+  @spec do_snapshot(Config.t(), binary) :: {:ok, SnapshotDetails.t()} | {:error, term}
+  def do_snapshot(%Config{id: id, db_path: db_path, type: type}, description) do
+    # Loading chain details
+    id
+    |> ChainRecord.get()
+    |> case do
+      %ChainRecord{} = chain_dump ->
+        # Writing it to snapshot folder
+        db_path
+        |> Path.join(@dump_file)
+        |> write_term_to_file(chain_dump)
+
+      nil ->
+        Logger.error(fn -> "#{id}: No EVM details loaded from db for snapshot" end)
+    end
+
+    # Executing snapshot
+    db_path
+    |> SnapshotManager.make_snapshot(type, description)
+    |> case do
+      {:ok, details} ->
+        # Storing all snapshots
+        SnapshotManager.store(details)
+        Logger.debug("#{id}: Snapshot made, details: #{inspect(details)}")
+
+        # Removing dump file
+        db_path
+        |> Path.join(@dump_file)
+        |> File.rm()
+
+        {:ok, details}
+
+      err ->
+        err
     end
   end
 
@@ -140,7 +190,7 @@ defmodule Staxx.Testchain.Helper do
           {:error, "No snapshot exist with id #{snapshot_id}"}
 
         %SnapshotDetails{} = details ->
-          SnapshotManager.restore_snapshot!(details, db_path)
+          SnapshotManager.restore_snapshot(details, db_path)
       end
     rescue
       err ->

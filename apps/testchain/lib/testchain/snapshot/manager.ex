@@ -22,69 +22,62 @@ defmodule Staxx.Testchain.SnapshotManager do
   @doc """
   Create a snapshot and store it into local DB (DETS for now)
   """
-  @spec make_snapshot!(binary, Testchain.evm_type(), binary) :: SnapshotDetails.t()
-  def make_snapshot!(from, chain_type, description \\ "") do
+  @spec make_snapshot(binary, Testchain.evm_type(), binary) ::
+          {:ok, SnapshotDetails.t()} | {:error, term}
+  def make_snapshot(from, chain_type, description \\ "") do
     Logger.debug(fn -> "Making snapshot for #{from} with description: #{description}" end)
 
-    unless File.dir?(from) do
-      raise ArgumentError, message: "path does not exist"
-    end
+    with true <- File.dir?(from),
+         id <- generate_snapshot_id(),
+         to <- build_path(id),
+         false <- File.exists?(to),
+         {:ok, _} <- async_compress(from, to) do
+      {:ok,
+       %SnapshotDetails{
+         id: id,
+         path: to,
+         chain: chain_type,
+         description: description,
+         date: DateTime.utc_now()
+       }}
+    else
+      false ->
+        {:error, "path does not exist"}
 
-    id = generate_snapshot_id()
-    to = build_path(id)
+      true ->
+        {:error, "archive file already exist"}
 
-    if File.exists?(to) do
-      raise ArgumentError, message: "archive #{to} already exist"
-    end
-
-    result =
-      __MODULE__
-      |> Task.async(:compress, [from, to])
-      |> Task.await(@timeout)
-
-    case result do
-      {:ok, _} ->
-        %SnapshotDetails{
-          id: id,
-          path: to,
-          chain: chain_type,
-          description: description,
-          date: DateTime.utc_now()
-        }
-
-      {:error, msg} ->
-        raise msg
+      err ->
+        err
     end
   end
 
   @doc """
   Restore snapshot to given path
   """
-  @spec restore_snapshot!(SnapshotDetails.t(), binary) :: :ok
-  def restore_snapshot!(nil, _),
-    do: raise(ArgumentError, message: "Wrong snapshot details passed")
+  @spec restore_snapshot(SnapshotDetails.t(), binary) :: :ok | {:error, term}
+  def restore_snapshot(nil, _),
+    do: {:error, "Wrong snapshot details passed"}
 
-  def restore_snapshot!(_, ""),
-    do: raise(ArgumentError, message: "Wrong snapshot restore path passed")
+  def restore_snapshot(_, ""),
+    do: {:error, "Wrong snapshot restore path passed"}
 
-  def restore_snapshot!(%SnapshotDetails{id: id, path: from}, to) do
+  def restore_snapshot(%SnapshotDetails{id: id, path: from}, to) do
     Logger.debug(fn -> "Restoring snapshot #{id} from #{from} to #{to}" end)
 
     unless File.exists?(to) do
-      :ok = File.mkdir_p!(to)
+      File.mkdir_p(to)
     end
 
-    result =
-      __MODULE__
-      |> Task.async(:extract, [from, to])
-      |> Task.await(@timeout)
-
-    case result do
+    __MODULE__
+    |> Task.async(:extract, [from, to])
+    |> Task.await(@timeout)
+    |> case do
       {:ok, _} ->
         :ok
 
       {:error, msg} ->
-        raise msg
+        {:error, msg}
     end
   end
 
@@ -241,5 +234,11 @@ defmodule Staxx.Testchain.SnapshotManager do
     |> Application.get_env(:snapshot_base_path)
     |> Path.expand()
     |> Path.join("#{id}.tgz")
+  end
+
+  def async_compress(from, to) do
+    __MODULE__
+    |> Task.async(:compress, [from, to])
+    |> Task.await(@timeout)
   end
 end

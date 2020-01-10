@@ -244,9 +244,6 @@ defmodule Staxx.Testchain.EVM do
       # Amount of milliseconds we will wait EVM container to terminate.
       @evm_stop_timeout 60_000
 
-      # File name where all details will be written on snapshoting
-      @dump_file "chain_dump.bin"
-
       @doc false
       def start_link(%Config{id: nil}), do: {:error, :id_required}
 
@@ -298,12 +295,7 @@ defmodule Staxx.Testchain.EVM do
         if snapshot_id = Map.get(config, :snapshot_id) do
           Helper.extract_snapshot(snapshot_id, config)
           # Merge configuration from dump file (if it's exist)
-          config = Helper.merge_record_from_dump(config, @dump_file)
-
-          # Removing dump file
-          db_path
-          |> Path.join(@dump_file)
-          |> File.rm()
+          config = Helper.merge_record_from_dump(config)
         end
 
         # Send notification about status change
@@ -645,46 +637,30 @@ defmodule Staxx.Testchain.EVM do
 
         %Config{db_path: db_path, type: type} = config
 
-        # Loading chain details
-        %ChainRecord{} = chain_dump = ChainRecord.get(config.id)
-        # Writing it to snapshot folder
-        db_path
-        |> Path.join(@dump_file)
-        |> Helper.write_term_to_file(chain_dump)
+        config
+        |> Helper.do_snapshot(description)
+        |> case do
+          {:ok, details} ->
+            # Send notification with newly created snopshot details
+            Helper.notify(config.id, :snapshot_taken, details)
 
-        try do
-          details = SnapshotManager.make_snapshot!(db_path, type, description)
+            # Marking container as `existing` so no new container will be created
+            # System will start already existing contianer and all ports/volumes
+            # will be already configured. So no need to change anything
+            container = %Container{container | existing: true}
+            # Starting given container with EVM
+            {:ok, container_pid} = Container.start_link(container)
 
-          # Storing all snapshots
-          SnapshotManager.store(details)
+            # Notify status change
+            Helper.notify_status(config.id, :snapshot_taken)
 
-          Logger.debug("#{config.id}: Snapshot made, details: #{inspect(details)}")
+            # Schedule started check
+            # Operation is async and `status: :active` will be set later
+            # See: `handle_info({:check_started, _})`
+            check_started(self())
 
-          # Send notification with newly created snopshot details
-          Helper.notify(config.id, :snapshot_taken, details)
+            {:noreply, %State{state | status: :snapshot_taken, container_pid: container_pid}}
 
-          # Removing dump file
-          db_path
-          |> Path.join(@dump_file)
-          |> File.rm()
-
-          # Marking container as `existing` so no new container will be created
-          # System will start already existing contianer and all ports/volumes
-          # will be already configured. So no need to change anything
-          container = %Container{container | existing: true}
-          # Starting given container with EVM
-          {:ok, container_pid} = Container.start_link(container)
-
-          # Notify status change
-          Helper.notify_status(config.id, :snapshot_taken)
-
-          # Schedule started check
-          # Operation is async and `status: :active` will be set later
-          # See: `handle_info({:check_started, _})`
-          check_started(self())
-
-          {:noreply, %State{state | status: :snapshot_taken, container_pid: container_pid}}
-        rescue
           err ->
             Logger.error("#{config.id} failed to make snapshot with error #{inspect(err)}")
             # Send error notification
@@ -750,7 +726,7 @@ defmodule Staxx.Testchain.EVM do
           # Clearing target path
           {:ok, _} = File.rm_rf(db_path)
           # Restoring snapshot
-          details = SnapshotManager.restore_snapshot!(snapshot, db_path)
+          details = SnapshotManager.restore_snapshot(snapshot, db_path)
 
           Logger.debug("#{config.id}: Snapshot reverted, details: #{inspect(snapshot)}")
 
@@ -758,12 +734,7 @@ defmodule Staxx.Testchain.EVM do
           Helper.notify(config.id, :snapshot_reverted, snapshot)
 
           # Merge configuration from dump file (if it's exist)
-          config = Helper.merge_record_from_dump(config, @dump_file)
-
-          # Removing dump file
-          db_path
-          |> Path.join(@dump_file)
-          |> File.rm()
+          config = Helper.merge_record_from_dump(config)
 
           # Notify status change
           Helper.notify_status(config.id, :snapshot_reverted)
