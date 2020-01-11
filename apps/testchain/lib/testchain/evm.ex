@@ -277,6 +277,7 @@ defmodule Staxx.Testchain.EVM do
         unless File.exists?(db_path) do
           Logger.debug("#{id}: #{db_path} not exist, creating...")
           :ok = File.mkdir_p!(db_path)
+          File.chmod(0o755)
         end
 
         # Binding newly created docker container name
