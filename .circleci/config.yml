@@ -1,27 +1,29 @@
 version: 2
 jobs:
   build:
-    # machine: true
+    machine:
+      elixir: 1.9.4
+      erlang_otp: 22
     branches:
       only:
         - master
         - develop
         - STAX-30-new
     parallelism: 1  # run only one instance of this job in parallel
-    machine:  # run the steps with Docker
-      image: circleci/elixir:1.9  # ...with this image as the primary container; this is where all `steps` will run
-      environment:  # environment variables for primary container
-        MIX_ENV: test
-      # - image: circleci/postgres:11-alpine  # database image
-      #   environment:  # environment variables for database
-      #     POSTGRES_USER: postgres
-      #     POSTGRES_PASSWORD: postgres
+    # docker:  # run the steps with Docker
+    #   - image: circleci/elixir:1.9  # ...with this image as the primary container; this is where all `steps` will run
+    #     environment:  # environment variables for primary container
+    #       MIX_ENV: test
+    #   - image: circleci/postgres:11-alpine  # database image
+    #     environment:  # environment variables for database
+    #       POSTGRES_USER: postgres
+    #       POSTGRES_PASSWORD: postgres
 
     working_directory: ~/app  # directory where steps will run
 
     steps:
       - checkout  # check out source code to working directory
-      # - setup_remote_docker
+      - setup_remote_docker
           # docker_layer_caching: true
 
       - run: make docker-deps
