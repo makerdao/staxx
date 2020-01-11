@@ -10,7 +10,6 @@ config :logger,
 # Configuring timeouts for receiving messages
 config :ex_unit, assert_receive_timeout: 60_000
 
-config :metrix, run_prometheus: false
 config :event_stream, disable_nats: true
 
 config :docker, adapter: Staxx.Docker.Adapter.Mock
@@ -25,6 +24,14 @@ config :store, Staxx.Store.Repo, pool: Ecto.Adapters.SQL.Sandbox
 config :store, Staxx.Store.Repo,
   username: System.get_env("POSTGRES_USER", "postgres"),
   database: System.get_env("POSTGRES_DB", "staxx_test")
+
+#
+# Testchain
+#
+config :testchain, base_path: "#{__DIR__}/../.test/chains"
+# DB path where all list of chain workers will be stored
+config :testchain, dets_db_path: "#{__DIR__}/../.test/chains"
+config :testchain, snapshot_base_path: "#{__DIR__}/../.test/chains"
 
 #
 # Metrics
