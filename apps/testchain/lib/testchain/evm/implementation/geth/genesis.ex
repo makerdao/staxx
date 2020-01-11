@@ -62,7 +62,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth.Genesis do
     # create dir if not exist
     unless File.dir?(path) do
       File.mkdir_p!(path)
-      File.chmod(path, 0o755)
+      File.chmod(path, 0o777)
     end
 
     # Generate binary content for file

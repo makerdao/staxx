@@ -28,9 +28,9 @@ ENV VERSION=v10.14.1 \
     DOCKER=true
 
 # New user creation
-RUN adduser -D -u 1000 app
+# RUN adduser -D -u 1000 app
 
-USER app
+# USER app
 WORKDIR /app
 
 COPY --from=builder "/app/go-ethereum/build/bin/geth" "./geth"
