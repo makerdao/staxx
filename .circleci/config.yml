@@ -1,7 +1,7 @@
 version: 2
 jobs:
   build:
-    machine: true
+    # machine: true
     branches:
       only:
         - master
