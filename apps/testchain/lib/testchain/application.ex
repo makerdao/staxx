@@ -39,7 +39,7 @@ defmodule Staxx.Testchain.Application do
 
     unless File.dir?(path) do
       :ok = File.mkdir_p!(path)
-      File.chmod(0o755)
+      File.chmod(path, 0o755)
     end
   end
 
