@@ -5,9 +5,10 @@ defmodule Staxx.Testchain.Application do
 
   use Application
 
-  alias Staxx.Testchain.EVM.Implementation.Geth.AccountsCreator
-
   require Logger
+
+  alias Staxx.Testchain.EVM.Implementation.Geth.AccountsCreator
+  alias Staxx.Utils
 
   def start(_type, _args) do
     check_erlang()
@@ -38,7 +39,7 @@ defmodule Staxx.Testchain.Application do
       |> Path.expand()
 
     unless File.dir?(path) do
-      :ok = File.mkdir_p!(path)
+      :ok = Utils.mkdir_p(path)
     end
   end
 

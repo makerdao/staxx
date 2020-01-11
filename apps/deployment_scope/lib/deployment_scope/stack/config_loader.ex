@@ -15,6 +15,7 @@ defmodule Staxx.DeploymentScope.Stack.ConfigLoader do
   require Logger
 
   alias Staxx.DeploymentScope.Stack.Config
+  alias Staxx.Utils
 
   @stack_config_filename "stack.json"
 
@@ -32,7 +33,7 @@ defmodule Staxx.DeploymentScope.Stack.ConfigLoader do
 
     # Validate that stack config folder exist
     unless File.exists?(config_folder()) do
-      File.mkdir!(config_folder())
+      Utils.mkdir_p(config_folder())
     end
 
     state = read()

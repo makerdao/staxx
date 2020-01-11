@@ -8,6 +8,7 @@ defmodule Staxx.Testchain do
   alias Staxx.Testchain.EVM
   alias Staxx.Testchain.{SnapshotDetails, SnapshotManager}
   alias Staxx.Store.Models.Chain, as: ChainRecord
+  alias Staxx.Utils
 
   @data_file_name "evm_data.bin"
 
@@ -138,7 +139,7 @@ defmodule Staxx.Testchain do
     with true <- File.exists?(path),
          encoded <- :erlang.term_to_binary(data, compressed: 1),
          file_path <- Path.join(path, @data_file_name),
-         :ok <- File.write(file_path, encoded) do
+         :ok <- Utils.file_write(file_path, encoded) do
       :ok
     else
       false ->

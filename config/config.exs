@@ -151,4 +151,14 @@ config :testchain,
   geth_password_file: Path.expand("#{__DIR__}/../priv/presets/geth/account_password"),
   ganache_docker_image: "makerdao/ganache_evm:6.7.0"
 
+
+#
+# Utils configs
+#
+
+# Default mode for newly created files
+config :utils, file_chmod: 0o777
+# Default mode for newly created folders
+config :utils, dir_chmod: 0o777
+
 import_config "#{Mix.env()}.exs"

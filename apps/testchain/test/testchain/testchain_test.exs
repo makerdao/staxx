@@ -34,7 +34,7 @@ defmodule Staxx.TestchainTest do
       assert :ok =
                id
                |> Testchain.evm_db_path()
-               |> File.mkdir()
+               |> Utils.mkdir_p()
 
       data = %{"test" => Faker.String.base64()}
 

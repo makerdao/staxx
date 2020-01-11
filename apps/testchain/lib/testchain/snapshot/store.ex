@@ -10,6 +10,7 @@ defmodule Staxx.Testchain.SnapshotStore do
   alias Staxx.Testchain
   alias Staxx.Testchain.SnapshotDetails
   alias Staxx.Testchain.Helper
+  alias Staxx.Utils
 
   @doc false
   def start_link(_) do
@@ -19,7 +20,7 @@ defmodule Staxx.Testchain.SnapshotStore do
   @doc false
   def init(:ok) do
     unless File.dir?(Helper.dets_db_path()) do
-      File.mkdir(Helper.dets_db_path())
+      Utils.mkdir_p(Helper.dets_db_path())
     end
 
     :dets.open_file(Helper.snapshots_table(), type: :set)

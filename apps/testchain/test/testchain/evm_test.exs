@@ -48,7 +48,7 @@ defmodule Staxx.Testchain.EVMTest do
     id = Testchain.unique_id()
     db_path = Testchain.evm_db_path(id)
 
-    assert :ok = File.mkdir(db_path)
+    assert :ok = Utils.mkdir_p(db_path)
     assert File.exists?(db_path)
 
     assert {:ok, %ChainRecord{chain_id: ^id}} =
@@ -66,7 +66,7 @@ defmodule Staxx.Testchain.EVMTest do
     id = Testchain.unique_id()
     db_path = Testchain.evm_db_path(id)
 
-    assert :ok = File.mkdir(db_path)
+    assert :ok = Utils.mkdir_p(db_path)
 
     config =
       build_evm_config()

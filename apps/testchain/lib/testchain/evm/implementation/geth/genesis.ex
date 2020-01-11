@@ -26,6 +26,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth.Genesis do
   """
 
   alias Staxx.Testchain.EVM.Account
+  alias Staxx.Utils
 
   @type t :: %__MODULE__{
           chain_id: non_neg_integer(),
@@ -61,8 +62,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth.Genesis do
   def write(%__MODULE__{} = genesis, path) do
     # create dir if not exist
     unless File.dir?(path) do
-      File.mkdir_p!(path)
-      File.chmod(path, 0o777)
+
     end
 
     # Generate binary content for file
@@ -74,7 +74,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth.Genesis do
     # Writing to file
     path
     |> Path.join("genesis.json")
-    |> File.write(content, [:binary])
+    |> Utils.file_write(content, [:binary])
   end
 
   defp to_json(%__MODULE__{accounts: accounts} = genesis) do

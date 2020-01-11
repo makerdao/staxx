@@ -8,6 +8,7 @@ defmodule Staxx.Testchain.SnapshotManager do
   alias Staxx.Testchain
   alias Staxx.Testchain.SnapshotDetails
   alias Staxx.Testchain.SnapshotStore
+  alias Staxx.Utils
 
   # Snapshot taking/restoring timeout
   @timeout 30_000
@@ -66,7 +67,7 @@ defmodule Staxx.Testchain.SnapshotManager do
     Logger.debug(fn -> "Restoring snapshot #{id} from #{from} to #{to}" end)
 
     unless File.exists?(to) do
-      File.mkdir_p(to)
+      Utils.mkdir_p(to)
     end
 
     __MODULE__
@@ -129,7 +130,7 @@ defmodule Staxx.Testchain.SnapshotManager do
     params = ["-xzvf", from, "-C", to]
 
     unless File.exists?(to) do
-      File.mkdir_p(to)
+      Utils.mkdir_p(to)
     end
 
     case System.cmd("tar", params, stderr_to_stdout: true) do

@@ -11,6 +11,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth.AccountsCreator do
   alias Staxx.Docker.Struct.SyncResult
   alias Staxx.Testchain.EVM.Account
   alias Staxx.Testchain.EVM.Implementation.Geth
+  alias Staxx.Utils
 
   @timeout 60_000
 
@@ -78,7 +79,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth.AccountsCreator do
     %Account{priv_key: key} = account = Account.new()
     priv_file = Path.join(db_path, key)
 
-    with :ok <- File.write(priv_file, key),
+    with :ok <- Utils.file_write(priv_file, key),
          {:ok, _address} <- execute(db_path, priv_file),
          _ <- File.rm(priv_file) do
       {:ok, account}

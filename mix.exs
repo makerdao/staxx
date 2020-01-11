@@ -25,7 +25,8 @@ defmodule Staxx.MixProject do
           web_api: :permanent,
           json_rpc: :permanent,
           testchain: :permanent,
-          store: :permanent
+          store: :permanent,
+          utils: :permanent
         ]
       ]
     ]

@@ -15,6 +15,7 @@ defmodule Staxx.Testchain.Helper do
   alias Staxx.EventStream.Notification
   alias Staxx.Store.Models.Chain, as: ChainRecord
   alias Staxx.Store.Models.User, as: UserRecord
+  alias Staxx.Utils
 
   # List of keys chain need as config
   @evm_config_keys [
@@ -379,7 +380,7 @@ defmodule Staxx.Testchain.Helper do
   @spec write_term_to_file(binary, term) :: :ok | {:error, term()}
   def write_term_to_file(file, data) do
     file
-    |> File.write(:erlang.term_to_binary(data))
+    |> Utils.file_write(:erlang.term_to_binary(data))
   end
 
   @doc """

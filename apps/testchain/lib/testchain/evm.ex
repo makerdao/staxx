@@ -231,6 +231,7 @@ defmodule Staxx.Testchain.EVM do
       alias Staxx.Docker
       alias Staxx.Docker.Container
       alias Staxx.Store.Models.Chain, as: ChainRecord
+      alias Staxx.Utils
 
       @behaviour EVM
 
@@ -276,8 +277,7 @@ defmodule Staxx.Testchain.EVM do
         # Check DB path existense
         unless File.exists?(db_path) do
           Logger.debug("#{id}: #{db_path} not exist, creating...")
-          :ok = File.mkdir_p!(db_path)
-          File.chmod(db_path, 0o777)
+          Utils.mkdir_p(db_path)
         end
 
         # Binding newly created docker container name
