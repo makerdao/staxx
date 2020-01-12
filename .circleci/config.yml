@@ -28,7 +28,7 @@ jobs:
           # docker_layer_caching: true
       - restore_cache:
           keys:
-            - v0.1-asdf-otp
+            - v0.2-asdf-otp
       - run:
           command: ./circleci_setup.sh
           no_output_timeout: 20m
@@ -38,7 +38,7 @@ jobs:
           paths:
             - /root/.asdf
             - ~/.asdf
-          key: v0.1-asdf-otp
+          key: v0.2-asdf-otp
       - run: source ~/.bashrc && elixir --version && mix --version
       - run: make docker-deps
       - run: source ~/.bashrc && mix local.hex --force && mix local.rebar --force
