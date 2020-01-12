@@ -23,6 +23,8 @@ jobs:
     working_directory: ~/app  # directory where steps will run
 
     steps:
+      - run: zypper install -y --type pattern devel_basis devel_C_C++
+      - run: zypper install -y git tar gzip wget curl libopenssl-devel openssl
       - checkout  # check out source code to working directory
       # - setup_remote_docker
           # docker_layer_caching: true
