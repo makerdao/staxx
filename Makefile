@@ -87,12 +87,15 @@ geth-vdb-local:
 	@echo "Setting up geth finished 'priv/presets/geth/geth_vdb' !"
 .PHONY: geth-vdb-local
 
-docker-push:
-	@echo "Pushing Staxx docker image"
-	@docker push $(DOCKER_ID_USER)/$(APP_NAME):$(TAG)
+docker-push-evm:
 	@echo "Pushing evm docker iamges"
 	@docker push $(DOCKER_ID_USER)/$(GANACHE_IMAGE):$(GANACHE_TAG)
 	@docker push $(DOCKER_ID_USER)/$(GETH_IMAGE):$(GETH_TAG)
+.PHONY: docker-push-evm
+
+docker-push: docker-push-evm
+	@echo "Pushing Staxx docker image"
+	@docker push $(DOCKER_ID_USER)/$(APP_NAME):$(TAG)
 .PHONY: docker-push
 
 build: ## Build elixir application with testchain and WS API
