@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-[ ! -f ".tool-versions" ] && echo "file .tool-versions was not found" &&
-        exit 1
+[ ! -f "$HOME/.tool-versions" ] && touch $HOME/.tool-versions
 
 # Check for asdf and install in case it doesn't exist
 if ! asdf | grep version
