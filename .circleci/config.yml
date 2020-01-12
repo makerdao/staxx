@@ -27,8 +27,8 @@ jobs:
       # - setup_remote_docker
           # docker_layer_caching: true
       - run:
-        command: ./circleci_setup.sh
-        no_output_timeout: 20m
+          command: ./circleci_setup.sh
+          no_output_timeout: 20m
       - run: make docker-deps
       - run: mix local.hex --force  # install Hex locally (without prompt)
       - run: mix local.rebar --force  # fetch a copy of rebar (without prompt)
