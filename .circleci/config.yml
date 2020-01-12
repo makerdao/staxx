@@ -41,8 +41,7 @@ jobs:
           key: v0.1-asdf-otp
       - run: source ~/.bashrc && elixir --version && mix --version
       - run: make docker-deps
-      - run: mix local.hex --force  # install Hex locally (without prompt)
-      - run: mix local.rebar --force  # fetch a copy of rebar (without prompt)
+      - run: source ~/.bashrc && mix local.hex --force && mix local.rebar --force
 
       - restore_cache:  # restores saved mix cache
       # Read about caching dependencies: https://circleci.com/docs/2.0/caching/
@@ -71,12 +70,5 @@ jobs:
           key: v1-build-cache
           paths: "_build"
 
-      - run:  # special utility that stalls main process until DB is ready
-          name: Wait for DB
-          command: dockerize -wait tcp://localhost:5432 -timeout 1m
-      - run:  # special utility that stalls main process until DB is ready
-          name: Wait for DB
-          command: dockerize -wait tcp://localhost:5432 -timeout 1m
-
-      - run: mix test  # run all tests in project
+      - run: source ~/.bashrc && mix test  # run all tests in project
 
