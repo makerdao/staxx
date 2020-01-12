@@ -6,12 +6,13 @@
 if ! asdf | grep version
   then
     git clone https://github.com/asdf-vm/asdf.git $HOME/.asdf
-    echo -e '\n. $HOME/.asdf/asdf.sh' >> ~/.bashrc
-    echo -e '\n. $HOME/.asdf/completions/asdf.bash' >> ~/.bashrc
-
-    echo 'source ~/.asdf-vm/asdf.sh' >> $BASH_ENV
-    source $BASH_ENV
+    echo -e '
+      . $HOME/.asdf/asdf.sh' >> ~/.bashrc
+    echo -e '
+      . $HOME/.asdf/completions/asdf.bash' >> ~/.bashrc
 fi
+
+source ~/.bashrc
 
 # Add Erlang and Elixir plugins
 asdf plugin-add erlang https://github.com/asdf-vm/asdf-erlang.git
