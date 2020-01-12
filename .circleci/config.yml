@@ -70,5 +70,6 @@ jobs:
           key: v1-build-cache
           paths: "_build"
 
+      - run: source ~/.bashrc && make run-elixir-env  # run all tests in project
       - run: source ~/.bashrc && mix test  # run all tests in project
 
