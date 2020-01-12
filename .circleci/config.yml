@@ -37,6 +37,7 @@ jobs:
       - save_cache:
           paths:
             - /root/.asdf
+            - ~/.asdf
           key: v0.1-asdf-otp
       - run: source ~/.bashrc && elixir --version && mix --version
       - run: make docker-deps
