@@ -237,7 +237,8 @@ defmodule Staxx.Testchain.SnapshotManager do
     |> Path.join("#{id}.tgz")
   end
 
-  def async_compress(from, to) do
+  # Run compress as async command
+  defp async_compress(from, to) do
     __MODULE__
     |> Task.async(:compress, [from, to])
     |> Task.await(@timeout)
