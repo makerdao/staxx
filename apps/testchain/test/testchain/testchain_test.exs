@@ -3,6 +3,7 @@ defmodule Staxx.TestchainTest do
   doctest Staxx.Testchain
 
   alias Staxx.Testchain
+  alias Staxx.Utils
 
   @moduletag :testchain
 

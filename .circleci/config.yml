@@ -38,6 +38,7 @@ jobs:
           paths:
             - /root/.asdf
           key: v0.1-asdf-otp
+      - run: source ~/.bashrc && elixir --version && mix --version
       - run: make docker-deps
       - run: mix local.hex --force  # install Hex locally (without prompt)
       - run: mix local.rebar --force  # fetch a copy of rebar (without prompt)

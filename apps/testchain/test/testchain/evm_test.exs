@@ -6,6 +6,7 @@ defmodule Staxx.Testchain.EVMTest do
   alias Staxx.Testchain
   alias Staxx.Testchain.EVM
   alias Staxx.Store.Models.Chain, as: ChainRecord
+  alias Staxx.Utils
 
   @moduletag :testchain
 

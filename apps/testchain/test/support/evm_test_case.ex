@@ -309,6 +309,71 @@ defmodule Staxx.Testchain.EVMTestCase do
         assert :ok = SnapshotManager.remove(snapshot.id)
         refute SnapshotManager.exists?(snapshot)
       end
+
+      test "#{@chain} to be able to start using snapshot_id" do
+        {:ok, pid, %Config{id: id} = config} = start_chain()
+
+        # Check started and details
+        assert_receive %Notification{id: ^id, event: :started, data: %Details{} = details}
+        assert_receive_status(id, :ready)
+
+        assert_details(config, details)
+
+        assert :ok = Testchain.take_snapshot(id)
+
+        assert_receive_status(id, :snapshot_taking)
+
+        assert_receive %Notification{
+          id: ^id,
+          event: :snapshot_taken,
+          data: %SnapshotDetails{} = snapshot
+        }
+
+        assert snapshot.chain == @chain
+        # snapshot id should not be same as chain_id
+        refute snapshot.id == id
+        assert snapshot.path =~ snapshot.id
+
+        # validate snapshot existence
+        assert SnapshotManager.exists?(snapshot)
+        assert snapshot == SnapshotManager.by_id(snapshot.id)
+
+        # Should start after taking snapshot
+        assert_receive_status(id, :active)
+        assert_receive_status(id, :ready)
+
+        # Stopping chain to start new with snapshot_id
+        stop_chain(id, pid)
+
+        {:ok, pid, %Config{id: id} = config} =
+          @chain
+          |> build_evm_config()
+          |> Map.put(:clean_on_stop, true)
+          |> Map.put(:snapshot_id, snapshot.id)
+          |> start_chain()
+
+        # Check started and details
+        assert_receive %Notification{id: ^id, event: :started, data: %Details{} = new_details}
+        assert_receive_status(id, :ready)
+
+        # Check chain details that should be similar
+        assert details.accounts == new_details.accounts
+        assert details.network_id == new_details.network_id
+        assert details.coinbase == new_details.coinbase
+        assert details.gas_limit == new_details.gas_limit
+
+        # Check details that should change
+        refute details.id == new_details.id
+        refute details.rpc_url == new_details.rpc_url
+        refute details.ws_url == new_details.ws_url
+
+        # Stopping chain to start new with snapshot_id
+        stop_chain(id, pid)
+
+        # Removing snapshot
+        assert :ok = SnapshotManager.remove(snapshot.id)
+        refute SnapshotManager.exists?(snapshot)
+      end
     end
   end
 end
