@@ -19,6 +19,7 @@ if [ $(asdf plugin-list | grep -c "erlang") -eq 0 ];
   then
     asdf plugin-add erlang
     asdf install erlang 22.1
+    asdf global erlang 22.1
 fi
 
 echo "Installing elixir asdf plugin"
@@ -26,7 +27,7 @@ if [ $(asdf plugin-list | grep -c "elixir") -eq 0 ];
   then
     asdf plugin-add elixir
     asdf install elixir 1.9.3
+    asdf global elixir 1.9.3
 fi
 
-# Install plugins based on .tool-versions file
-asdf install
+echo "Elixir & Erlang has been installed"

@@ -26,9 +26,18 @@ jobs:
       - checkout  # check out source code to working directory
       # - setup_remote_docker
           # docker_layer_caching: true
+      - restore_cache:
+          keys:
+            - v0.1-asdf-otp
       - run:
           command: ./circleci_setup.sh
           no_output_timeout: 20m
+      - run: source ~/.bashrc && asdf global erlang 22.1
+      - run: source ~/.bashrc && asdf global elixir 1.9.3
+      - save_cache:
+          paths:
+            - /root/.asdf
+          key: v0.1-asdf-otp
       - run: make docker-deps
       - run: mix local.hex --force  # install Hex locally (without prompt)
       - run: mix local.rebar --force  # fetch a copy of rebar (without prompt)
