@@ -371,91 +371,128 @@ Response:
 
 ```js
 {
-  "data": {
-    "id": "15511618343318382659", // <-- Stack ID (chain id is same)
-    "status": "ready", // <-- Current chain status
-    "config": {
-        "accounts": 2,
-        "block_mine_time": 0,
-        "clean_on_stop": true,
-        "db_path": "/tmp/chains/5255695394902452494",
-        "deploy_ref": "refs/tags/staxx-testrunner",
-        "deploy_step_id": 0,
-        "description": "",
-        "gas_limit": 9000000000000,
-        "id": "5255695394902452494",
-        "network_id": 999,
-        "snapshot_id": null,
-        "type": "geth"
-    },
-    "details": {
-        "accounts": [
-            {
-                "address": "0x8a06769d94cb75014ec7b514ef31987b3c948667",
-                "balance": 100000000000000000000000,
-                "priv_key": "48de33e0f192268c850caae2caa9de07b20ba54315efc7f1b0fcba279254f06e"
-            },
-            {
-                "address": "0x46900d6333ffd15498b1a1983310a6111ed138ed",
-                "balance": 100000000000000000000000,
-                "priv_key": "0c556d3b861b3d6e3f24f36aa62c842cf74bdfafed4461641770e09f53ffd031"
+    "data": {
+        "id": "3739945501380195810",
+        "title": "3739945501380195810",
+        "node_type": "geth",
+        "status": "ready",
+        "config": {
+            "accounts": 1,
+            "block_mine_time": 0,
+            "clean_on_stop": true,
+            "db_path": "/tmp/chains/3739945501380195810",
+            "deploy_ref": "refs/tags/staxx-testrunner",
+            "deploy_step_id": 1,
+            "description": "",
+            "gas_limit": 9000000000000,
+            "id": "3739945501380195810",
+            "network_id": 999,
+            "snapshot_id": null,
+            "type": "geth"
+        },
+        "details": {
+            "accounts": [
+                {
+                    "address": "0xa0e2d8f00176095631a7ca4ab0798e9fb0cf14d1",
+                    "balance": 100000000000000000000000,
+                    "priv_key": "d15d789a0352139cf779e379152cf6beb9e9fae61c41fa26a2313734adc6b245"
+                }
+            ],
+            "coinbase": "0xa0e2d8f00176095631a7ca4ab0798e9fb0cf14d1",
+            "gas_limit": 9000000000000,
+            "id": "3739945501380195810",
+            "network_id": 999,
+            "rpc_url": "http://localhost:58216",
+            "ws_url": "ws://localhost:57918"
+        },
+        "deployment": {
+            "git_ref": "refs/tags/staxx-testrunner",
+            "request_id": "5430791605818130655698",
+            "step_id": 1,
+            "result": {
+                "MULTICALL": "0x0c0ad748579f6b1e18fee512a232a5143647b5dc",
+                "GET_CDPS": "0xfeaecbff78491b041340aeb3d1296a7f4d2ec50e",
+                "MCD_FLIP_BAT_A": "0xadc47b5f8a450316719a887d89a5552f2dd1fed4",
+                "PROXY_ACTIONS_END": "0x6b5faf8b4351068d896e9ba4ee1119ba20171ac3",
+                "MCD_FLIP_DGD_A": "0x6011ae632f4bf21f58e8844ec595bbf92c066948",
+                "VOTE_YES": "0xdbfe2b1c563a87fc54ae6d6007d4c2eb9ec9267c",
+                "DEPLOYER": "0xa0e2d8f00176095631a7ca4ab0798e9fb0cf14d1",
+                "MCD_VOW": "0x6c8e84ce11fe6ecdcf814a74d77618821a0824be",
+                "MCD_END": "0xa29804a707b84eba51448c2ba075a98feb910c7b",
+                "VAL_BAT": "0x24f7028845a513caaab1342bf637b630e6ddacd7",
+                "MCD_JOIN_ETH_C": "0x9d2fd7e6d23a4ec35dd3b9e87a3018a7464c3df9",
+                "GOV_POLL_GEN": "0xa3c2316fd3bc0745d86572dc782e2d93089006a7",
+                "VAL_ETH": "0x3167f611efbde35d61f9668cf8ac8ef4f69b1e2f",
+                "MCD_POT": "0xa8767ae5b34105798e3014ebf475239e15fd167d",
+                "MCD_CAT": "0xf4d2bd0a7487dd7245b1ac464938485c6a1e3ea6",
+                "ZRX": "0xd779314e94cd802395c84c8ff45ce49c69691339",
+                "MCD_FLIP_GNT_A": "0xe280578fbc67479e799f5b8de390554fb4bf6d04",
+                "MCD_JOIN_ETH_B": "0xad4dc5300b9ee864452d0a8e0ef9f27fc0c4f012",
+                "MCD_JOIN_OMG_A": "0x30c78754362fa42146053146a949874883f5058f",
+                "MCD_FLIP_ETH_C": "0x64ecdd73092a69bb411620a4cbbf543112814dcd",
+                "MCD_ADM": "0xd1da413e9e908b847e49269debb15bb43c7765ca",
+                "PIP_ETH": "0x3167f611efbde35d61f9668cf8ac8ef4f69b1e2f",
+                "MCD_JOIN_DAI": "0xfcefad0c052aaf592c924ae6913b66259b001728",
+                "REP": "0x2dd5eaf253cfc364fb6dfa55f6d71b690cd2de87",
+                "MCD_FLIP_ETH_B": "0xef588ad4135f99a7d38073b02c11c0e9c444c06f",
+                "MCD_GOV": "0x8e27bd4c6ecccef8ca4b2054461b2a1cfaf50c12",
+                "PROXY_FACTORY": "0x9f5c0c97e196f63e8c740c14612daa95f4831c68",
+                "ETH": "0xb6988b92ee20d8488e72653c16a82eb04ae84ed4",
+                "PROXY_REGISTRY": "0x493d27704c8726a6b1e23ffa60decd6b17342ab8",
+                "MCD_FLIP_ZRX_A": "0x1c66010e3993532e30915bdfbe6092fed597acc8",
+                "VOTE_PROXY_FACTORY": "0x48b65c9caddce88ad8815e5983501abf9d91be2c",
+                "MCD_JOIN_REP_A": "0x0d592421259aa5b93f49f76db677939d78b787dc",
+                "VOTE_NO": "0xe432ddff0665362ed3132a0b7b29b9384ab503dd",
+                "PIP_REP": "0x63808ac10fc94aa328da7c2d3f7ce30f063bab1b",
+                "MCD_FLAP": "0xcf57ec8952d7c64368a65baa1cef6e7be65a5495",
+                "MCD_DEPLOY": "0x5a45dc1fdb0aa3672c6829d2f7d3e10acc7bc412",
+                "VAL_REP": "0x63808ac10fc94aa328da7c2d3f7ce30f063bab1b",
+                "PROXY_ACTIONS_DSR": "0xbb3121048c396ac8e66fa477b3ebccf6c573ad2d",
+                "PIP_BAT": "0x24f7028845a513caaab1342bf637b630e6ddacd7",
+                "MCD_JOIN_ETH_A": "0x3c4f920f486bbb040e5d8df8219c4daa264bf076",
+                "MCD_FLOP": "0x03496bc6c43b30e44e3236f92984e0e63ebad0d4",
+                "MCD_FLIP_ETH_A": "0x610852bf1b0716c996fde15732577b9ebe8da497",
+                "MCD_ESM": "0x89a48660b0c609591e559d7697363ac4802e696b",
+                "MCD_JOIN_ZRX_A": "0xb714c3726fac3f80c78859913402a609f0ca68f4",
+                "BAT": "0x8dca07a80fb7886d147d78464e4f9aabf8a3c376",
+                "MCD_PAUSE": "0xa85817477be2ca972a93b9c120cb85c9fa9b12f8",
+                "VAL_DGD": "0x4e1555359816ee79760bb12940282698e3c71b92",
+                "MCD_FLIP_OMG_A": "0x291ce3de728d32ffc4e47d8a705c94660fce1b1d",
+                "CDP_MANAGER": "0x3b8df4521e53fe81868c6dc38bc398b0f89fef18",
+                "MCD_GOV_ACTIONS": "0x3a7c221bece1b6581f2e8d6fbefc87fd930acffb",
+                "PROXY_DEPLOYER": "0x7bd671095e6c5c93bd0e4e8ce680121709402a20",
+                "VAL_ZRX": "0x27856c3a5162acbcbcf76a0024a2825ed93a773d",
+                "MCD_JOIN_DGD_A": "0x44a9bf4048684bbe93405f47231cf5c6f6ae69bc",
+                "POLL_ID": "0",
+                "PROXY_PAUSE_ACTIONS": "0x3c43dc7147e9a274d89389a81c0cf54967c5de50",
+                "VAL_GNT": "0x5979bf10c0f8e87b9c8cf4a917d67268e099cd5f",
+                "MCD_DAI": "0xddd11de117797b63ca31fb147692f28ca09011e2",
+                "MCD_PAUSE_PROXY": "0x12b6b2393c079000e06cd949c561e2d1552491fa",
+                "MCD_SPOT": "0xef0dee5302c0deb4de3bd953b516df166294c7a9",
+                "FAUCET": "0xc83cb93fbeb11b4b089a8867ae7914827abaeb77",
+                "PIP_OMG": "0xf41e229e0c27f3f103d81e18363804227030561d",
+                "MCD_FLIP_REP_A": "0x24af2e221f80c9b82fd4a80af3ccabebe233e6c9",
+                "MCD_IOU": "0x16f44d6282e632de0a3b1cb771295e95e74da89e",
+                "PIP_GNT": "0x5979bf10c0f8e87b9c8cf4a917d67268e099cd5f",
+                "VAL_OMG": "0xf41e229e0c27f3f103d81e18363804227030561d",
+                "MCD_JOIN_BAT_A": "0x3acf896e3e35ac13e174416bbeb4eea210fef9d3",
+                "GNT": "0x02d9d58baaed21de723c1279a802aa8a44c862d2",
+                "MCD_JOIN_GNT_A": "0x042a9eee21f7f45b10f3872352eecdf132f5fcbe",
+                "GOV_GUARD": "0x7269717e66786e19f1b508e897099a2728c10dd9",
+                "PIP_ZRX": "0x27856c3a5162acbcbcf76a0024a2825ed93a773d",
+                "PIP_DGD": "0x4e1555359816ee79760bb12940282698e3c71b92",
+                "MCD_VAT": "0x73fc3160c298db9afc18bc70a1584d4c974e6063",
+                "DGD": "0x7f51177aea2e9b14f3a15dc33d6e0942dbb91004",
+                "OMG": "0x713204f9fab7862e257908d3fa8690a78c52f338",
+                "PROXY_ACTIONS": "0x4e33380634768f4e470d66eaba874c13210b675c",
+                "MCD_JUG": "0xaf49bf671539afc2a1daa5508335231755cc0f06"
             }
-        ],
-        "coinbase": "0x8a06769d94cb75014ec7b514ef31987b3c948667",
-        "gas_limit": 9000000000000,
-        "id": "5255695394902452494",
-        "network_id": 999,
-        "rpc_url": "http://localhost:63185",
-        "ws_url": "ws://localhost:50968"
+        }
     },
-    "deployment": {
-      "request_id": "525539439490246247",
-      "git_ref": "refs/tags/staxx-testrunner",
-      "step_id": "1",
-      "result": {
-        MCD_JUG: '0x476ce78265ef96b5acd4b0c5469bebe1f1dc94d2',
-        PROXY_ACTIONS: '0xbc70c384e67e3c0da83673fc46bbc4e5c1c83f67',
-        MCD_VAT: '0x6e8ef6fb3fc1836e1a8364a714a8499df197d114',
-        MCD_JOIN_REP: '0xfa603fefc8936e3fcc8d7bbee558232941e1eab8',
-        MCD_SPOT: '0xa354bbc70caef31ab2daf0d97fe4920a2a07a9ad',
-        MCD_DAI: '0x6910a5d2b7ae96db4018db7bea0b7b70bc7617b4',
-        MCD_MOM_LIB: '0x1df75e2ee5581817e147f05581ff090afdc28889',
-        CDP_MANAGER: '0x575340766d05915c97edee8a2fdbf71c61fd5d0e',
-        MCD_PIT: '0x971c6a2ac73c8071154ad28446a65a71f27a3c5a',
-        MCD_FLOP: '0x257e0053c78ead0855c4eb59e9991c0d619f22d8',
-        VAL_REP: '0x7591e68a84fcf44411076712b39026eb96bf5f40',
-        MCD_DEPLOY: '0xc1369ea982624e652cf39b60dbb8e78bb23663e2',
-        MCD_FLAP: '0x5fdd40e4d1029d232ee90065a9ac923e01d1d9c0',
-        PIP_REP: '0x7591e68a84fcf44411076712b39026eb96bf5f40',
-        MCD_FLIP_REP: '0x12d9b3a2b42f71bddf81583a07f4a050d2c09821',
-        VOTE_PROXY_FACTORY: '0xd6a44da55e672a34889f817a9a3b91138bfe01a8',
-        PROXY_REGISTRY: '0xd8dff4ee3ac969561a088fce04f2e3bcade8ca57',
-        PROXY_FACTORY: '0xca640d205f8984767a15436efaf09fe0f1f3ce85',
-        MCD_MOVE_DAI: '0xf6b0c7654e4d1495cfade2d11107f96e06302d4f',
-        MCD_GOV: '0x5d89865ccc5c09aaccceda332dfb5e1121c41787',
-        REP: '0xb733e965071b627c99fe960c82526d0cb0921a18',
-        MCD_JOIN_DAI: '0x490163610ffe5b4f16d7f17af9180b9d3968fdfb',
-        PIP_ETH: '0x87958e6159d181730b696085ef42c5ff99364727',
-        MCD_ADM: '0x9b82c2b8b0ea2e41cea8c0e8ab7f07622040e49f',
-        MCD_MOM: '0xb2de8c29a9b97215fb412a0f280f3b2c536c80e5',
-        MCD_FLIP_ETH: '0x38cf44569b78125f100a836db5b094c3f24da9b4',
-        MCD_MOVE_ETH: '0xb2f1ab8901998ab503be72612cd14062e7fe0cb7',
-        MCD_CAT: '0xa9a755ecb5019b8b8b1f457be1b3015f3e05c044',
-        MCD_POT: '0xe4f226d6076a2b089f5263563bd42ae8d08bb37f',
-        VAL_ETH: '0x87958e6159d181730b696085ef42c5ff99364727',
-        MCD_VOW: '0x8f095166513f77d3a3f877615f92b7a3b9688857',
-        MCD_JOIN_ETH: '0x05dc9a7524c8757d2975b4d75f2a8cb2301501b0',
-        MCD_MOVE_REP: '0x9c9fd5a6d8cb9cfa0f6515b744cbf8585164b4d8',
-        MCD_GOV_GUARD: '0x541e68fc8c63c21833b85022c528d876809a8224',
-        MCD_DAI_GUARD: '0x867874534c8c1d1d91a51fa1f010ea23b5de5474',
-        MULTICALL: '0x0692354a492a8ac91181070f9b0497809e318ce2'
-      }
-    }
-  },
-  "errors": [],
-  "message": "",
-  "status": 0
- }
+    "errors": [],
+    "message": "",
+    "status": 0
+}
 ```
 
 ### Reload stacks configuration

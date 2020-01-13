@@ -255,9 +255,11 @@ defmodule Staxx.Docker.Adapter.DockerD do
 
   # Build `--user` option for `docker run` command.
   # otherwise all docker images will be run from root and files will have wrong permissions
-  defp build_user(_container) do
-    ["--user", "$(id -u):$(id -g)"]
-  end
+  defp build_user(%Container{assign_user: true}),
+    do: ["--user", "$(id -u):$(id -g)"]
+
+  defp build_user(_container),
+    do: ""
 
   # If container is in `dev_mode` we don't need to run it with `--rm` falgs.
   # So ssytem will ignore `rm` flag from `Container.t()`

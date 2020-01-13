@@ -176,6 +176,8 @@ defmodule Staxx.Testchain.Deployment.Worker do
     %Container{
       # it will terminate and we don't need to fail on it
       permanent: false,
+      # Required to run under root because of something in nix
+      assign_user: false,
       image: docker_image(),
       network: Docker.get_nats_network(),
       volumes: ["nix-db:/nix"],

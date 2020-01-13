@@ -24,7 +24,8 @@ defmodule Staxx.Docker.Container do
           env: map(),
           dev_mode: boolean(),
           rm: boolean(),
-          volumes: [binary]
+          volumes: [binary],
+          assign_user: boolean()
         }
 
   defstruct permanent: true,
@@ -39,7 +40,8 @@ defmodule Staxx.Docker.Container do
             env: %{},
             dev_mode: false,
             rm: true,
-            volumes: []
+            volumes: [],
+            assign_user: true
 
   @doc false
   def child_spec(%__MODULE__{name: name} = container) do
