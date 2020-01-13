@@ -75,6 +75,20 @@ defmodule Staxx.Testchain.EVMTestCase do
       end
 
       @doc """
+      Assert that all events/statuses are received to mark EVM as ready
+      """
+      @spec assert_started(Testchain.evm_id()) :: Details.t()
+      def assert_started(id) do
+        # Check started and details
+        assert_receive %Notification{id: ^id, event: :started, data: %Details{} = details}
+        assert_receive_status(id, :ready)
+        # EVM Status propagated as standalone event
+        assert_receive %Notification{id: ^id, event: :ready}
+
+        details
+      end
+
+      @doc """
       Validates chain details to be correct related to given config
       """
       @spec assert_details(Config.t(), Details.t()) :: term
@@ -102,6 +116,8 @@ defmodule Staxx.Testchain.EVMTestCase do
 
         assert_receive_status(id, :terminating)
         assert_receive_status(id, :terminated)
+        # Propagated EVM status as event
+        assert_receive %Notification{id: ^id, event: :terminated}
 
         assert_receive {:EXIT, ^pid, _}
       end
@@ -122,9 +138,8 @@ defmodule Staxx.Testchain.EVMTestCase do
           |> Map.put(:clean_on_stop, true)
           |> start_chain()
 
-        # Check started and details
-        assert_receive %Notification{id: ^id, event: :started, data: %Details{} = details}
-        assert_receive_status(id, :ready)
+        # Assert started/active/ready events received
+        details = assert_started(id)
 
         assert_details(config, details)
 
@@ -192,9 +207,8 @@ defmodule Staxx.Testchain.EVMTestCase do
           |> Map.put(:clean_on_stop, false)
           |> start_chain()
 
-        # Check started and details
-        assert_receive %Notification{id: ^id, event: :started, data: %Details{} = details}
-        assert_receive_status(id, :ready)
+        # Assert started/active/ready events received
+        details = assert_started(id)
 
         assert_details(config, details)
 
@@ -226,9 +240,8 @@ defmodule Staxx.Testchain.EVMTestCase do
           new_config
           |> start_chain()
 
-        # Check started and details
-        assert_receive %Notification{id: ^id, event: :started, data: %Details{} = details}
-        assert_receive_status(id, :ready)
+        # Assert started/active/ready events received
+        details = assert_started(id)
 
         assert_details(config, details)
 
@@ -250,9 +263,8 @@ defmodule Staxx.Testchain.EVMTestCase do
       test "#{@chain} to makes/restores snapshot" do
         {:ok, pid, %Config{id: id} = config} = start_chain()
 
-        # Check started and details
-        assert_receive %Notification{id: ^id, event: :started, data: %Details{} = details}
-        assert_receive_status(id, :ready)
+        # Assert started/active/ready events received
+        details = assert_started(id)
 
         assert_details(config, details)
 
@@ -275,10 +287,8 @@ defmodule Staxx.Testchain.EVMTestCase do
         assert SnapshotManager.exists?(snapshot)
         assert snapshot == SnapshotManager.by_id(snapshot.id)
 
-        # Should start after taking snapshot
-        assert_receive_status(id, :active)
-        assert_receive %Notification{id: ^id, event: :started, data: %Details{} = new_details}
-        assert_receive_status(id, :ready)
+        # Assert started/active/ready events received
+        new_details = assert_started(id)
 
         # Chain details should not change
         assert details == new_details
@@ -294,10 +304,8 @@ defmodule Staxx.Testchain.EVMTestCase do
           data: %SnapshotDetails{} = reverted_snapshot
         }
 
-        # Should start after reverting snapshot
-        assert_receive_status(id, :active)
-        assert_receive %Notification{id: ^id, event: :started, data: %Details{} = new_details}
-        assert_receive_status(id, :ready)
+        # Assert started/active/ready events received
+        new_details = assert_started(id)
 
         # Stopping chain and then validating details
         stop_chain(id, pid)
@@ -313,9 +321,8 @@ defmodule Staxx.Testchain.EVMTestCase do
       test "#{@chain} to be able to start using snapshot_id" do
         {:ok, pid, %Config{id: id} = config} = start_chain()
 
-        # Check started and details
-        assert_receive %Notification{id: ^id, event: :started, data: %Details{} = details}
-        assert_receive_status(id, :ready)
+        # Assert started/active/ready events received
+        details = assert_started(id)
 
         assert_details(config, details)
 
@@ -352,9 +359,8 @@ defmodule Staxx.Testchain.EVMTestCase do
           |> Map.put(:snapshot_id, snapshot.id)
           |> start_chain()
 
-        # Check started and details
-        assert_receive %Notification{id: ^id, event: :started, data: %Details{} = new_details}
-        assert_receive_status(id, :ready)
+        # Assert started/active/ready events received
+        new_details = assert_started(id)
 
         # Check chain details that should be similar
         assert details.accounts == new_details.accounts

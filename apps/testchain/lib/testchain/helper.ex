@@ -33,6 +33,9 @@ defmodule Staxx.Testchain.Helper do
     :deploy_step_id
   ]
 
+  # List of EVM statuses that should be propagated as standalone events
+  @propagated_statuses [:ready, :terminated]
+
   # Snapshots table name used as DETS file name
   @snapshots_table "snapshots"
 
@@ -363,9 +366,10 @@ defmodule Staxx.Testchain.Helper do
   """
   @spec notify_status(Testchain.evm_id(), Testchain.EVM.status()) :: :ok
   def notify_status(id, status) do
-    # In case of ready status we need to send additional `:ready` event.
-    if status == :ready do
-      Notification.notify(id, :ready)
+    # In case of need to propagate EVM status as standalone event.
+    # Status will be propagated as event.
+    if status in @propagated_statuses do
+      Notification.notify(id, status)
     end
 
     # Saving status change in DB

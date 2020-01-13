@@ -20,6 +20,7 @@ But there are several main events you will need to controll environment:
  - `snapshot_taken` - Snapshot taken sucessfuly. [More details](#snapshot-taken)
  - `snapshot_reverted` - Snapshot reverted sucessfuly. [More details](#snapshot-reverted)
  - `error` - Error happened in system [More details](#evm-error)
+ - `terminated` - EVM terminated [More details](#evm-terminated)
  - `stack:ready` - Stack ready
  - `stack:failed` - Stack failed
 
@@ -106,6 +107,18 @@ Error event example:
   data: {
      "message": "Some error message from system..."
   }
+}
+```
+
+### EVM terminated
+
+This event will be fired every time EVM terminated
+
+```js
+{
+  id: "15511618343318382659",
+  event: "terminated",
+  data: {}
 }
 ```
 
