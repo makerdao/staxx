@@ -20,10 +20,6 @@ config :testchain, nats: %{host: System.fetch_env!("NATS_URL"), port: 4222}
 config :testchain, base_path: System.fetch_env!("CHAINS_DB_PATH")
 config :testchain, snapshot_base_path: System.fetch_env!("SNAPSHOTS_DB_PATH")
 
-config :testchain,
-  geth_password_file:
-    System.get_env("EVM_ACCOUNT_PASSWORD", "/opt/built/priv/presets/geth/account_password")
-
 config :testchain, front_url: System.fetch_env!("CHAINS_FRONT_URL")
 
 # Place where all dets DBs will be

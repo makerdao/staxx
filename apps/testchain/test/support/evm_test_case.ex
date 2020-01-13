@@ -150,7 +150,7 @@ defmodule Staxx.Testchain.EVMTestCase do
 
         # validate chain details are in DB
         chain_record = ChainRecord.get(id)
-        assert chain_record.chain_id == id
+        assert chain_record.id == id
         assert chain_record.title == config.description
         assert chain_record.status == "ready"
         assert chain_record.node_type == Atom.to_string(@chain)
@@ -218,7 +218,7 @@ defmodule Staxx.Testchain.EVMTestCase do
                |> File.exists?()
 
         # validate chain details are in DB
-        assert %ChainRecord{chain_id: ^id} = ChainRecord.get(id)
+        assert %ChainRecord{id: ^id} = ChainRecord.get(id)
 
         # Stopping chain
         stop_chain(id, pid)
@@ -229,7 +229,7 @@ defmodule Staxx.Testchain.EVMTestCase do
                |> File.exists?()
 
         # validate chain details are still in DB
-        assert %ChainRecord{chain_id: ^id} = ChainRecord.get(id)
+        assert %ChainRecord{id: ^id} = ChainRecord.get(id)
 
         # Loading config
         assert {:ok, %Config{id: ^id, existing: true} = new_config} =
@@ -251,7 +251,7 @@ defmodule Staxx.Testchain.EVMTestCase do
                |> File.exists?()
 
         # validate chain details are in DB
-        assert %ChainRecord{chain_id: ^id} = ChainRecord.get(id)
+        assert %ChainRecord{id: ^id} = ChainRecord.get(id)
 
         # Stopping chain
         stop_chain(id, pid)
@@ -279,7 +279,7 @@ defmodule Staxx.Testchain.EVMTestCase do
         }
 
         assert snapshot.chain == @chain
-        # snapshot id should not be same as chain_id
+        # snapshot id should not be same as EVM id
         refute snapshot.id == id
         assert snapshot.path =~ snapshot.id
 
@@ -337,7 +337,7 @@ defmodule Staxx.Testchain.EVMTestCase do
         }
 
         assert snapshot.chain == @chain
-        # snapshot id should not be same as chain_id
+        # snapshot id should not be same as EVM id
         refute snapshot.id == id
         assert snapshot.path =~ snapshot.id
 

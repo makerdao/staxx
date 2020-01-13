@@ -12,7 +12,7 @@ defmodule Staxx.Store.Models.Chain do
 
   @type t :: %__MODULE__{
           # user_id: pos_integer | nil,
-          chain_id: binary,
+          id: binary,
           title: binary,
           node_type: atom | binary,
           status: atom | binary,
@@ -22,9 +22,9 @@ defmodule Staxx.Store.Models.Chain do
         }
 
   @derive {Jason.Encoder,
-           only: [:chain_id, :title, :node_type, :status, :config, :details, :deployment]}
+           only: [:id, :title, :node_type, :status, :config, :details, :deployment]}
 
-  @primary_key {:chain_id, :string, []}
+  @primary_key {:id, :string, []}
   schema "chains" do
     field(:title, :string)
     field(:node_type, :string)
@@ -40,7 +40,7 @@ defmodule Staxx.Store.Models.Chain do
 
   @fields [
     :user_id,
-    :chain_id,
+    :id,
     :title,
     :node_type,
     :status,
@@ -56,8 +56,8 @@ defmodule Staxx.Store.Models.Chain do
   def changeset(data, params \\ %{}) do
     data
     |> cast(params, @fields)
-    |> validate_required([:chain_id, :node_type])
-    |> unique_constraint(:chain_id)
+    |> validate_required([:id, :node_type])
+    |> unique_constraint(:id)
   end
 
   @doc """
@@ -122,7 +122,7 @@ defmodule Staxx.Store.Models.Chain do
   @spec delete(binary) :: {integer(), nil | [term()]}
   def delete(id) do
     __MODULE__
-    |> where(chain_id: ^id)
+    |> where(id: ^id)
     |> Repo.delete_all()
   end
 
@@ -135,7 +135,7 @@ defmodule Staxx.Store.Models.Chain do
     |> get()
     |> case do
       nil ->
-        %__MODULE__{chain_id: id}
+        %__MODULE__{id: id}
 
       chain ->
         chain
@@ -150,7 +150,7 @@ defmodule Staxx.Store.Models.Chain do
   @spec rewrite(binary, t()) :: {integer(), nil | [term()]}
   def rewrite(id, %__MODULE__{config: config, details: details, deployment: deployment}) do
     __MODULE__
-    |> where(chain_id: ^id)
+    |> where(id: ^id)
     |> update(set: [config: ^config, details: ^details, deployment: ^deployment])
     |> Repo.update_all([])
   end
@@ -166,7 +166,7 @@ defmodule Staxx.Store.Models.Chain do
 
   def set_status(id, status, _data) do
     __MODULE__
-    |> where(chain_id: ^id)
+    |> where(id: ^id)
     |> update(set: [status: ^status])
     |> Repo.update_all([])
   end

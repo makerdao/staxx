@@ -182,7 +182,7 @@ defmodule Staxx.Testchain.Helper do
 
   @doc """
   Will check DB details, extract snapshot details to given path
-  and werite data in DB by `chain_id`
+  and werite data in DB by `ChainRecord.id`
   """
   @spec extract_snapshot(binary, Config.t()) :: :ok | {:error, term}
   def extract_snapshot(snapshot_id, %Config{db_path: db_path} = config) do

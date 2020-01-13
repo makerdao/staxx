@@ -15,10 +15,6 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth.AccountsCreator do
 
   @timeout 60_000
 
-  # account password file inside docker container.
-  # it will be mapped to `AccountsCreator.password_file/0`
-  @password_file "/tmp/account_password"
-
   @doc false
   def start_link(_), do: GenServer.start_link(__MODULE__, nil, [])
 
@@ -58,7 +54,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth.AccountsCreator do
 
   Will create new account using:
    - newly generated private key
-   - password from file configured in `Application.get_env(:testchain, :geth_password_file)`
+   - password from file that already built into geth container
    - `db_path` given as an input argument
 
   It will use `geth account import` command.
@@ -94,12 +90,6 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth.AccountsCreator do
         {:error, "something wrong on generating new geth account with priv file"}
     end
   end
-
-  @doc """
-  Geth path to existing password file for geth account generation
-  """
-  @spec password_file() :: binary
-  def password_file(), do: Application.get_env(:testchain, :geth_password_file)
 
   @doc """
   Configuration for poolboy
@@ -140,8 +130,8 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth.AccountsCreator do
   defp execute(db_path, priv_file) do
     %Container{
       image: Geth.docker_image(),
-      cmd: "account import --datadir #{db_path} --password #{@password_file} #{priv_file}",
-      volumes: ["#{db_path}:#{db_path}", "#{password_file()}:#{@password_file}"]
+      cmd: "account import --datadir #{db_path} --password #{Geth.password_file()} #{priv_file}",
+      volumes: ["#{db_path}:#{db_path}"]
     }
     |> Docker.run_sync()
     |> case do

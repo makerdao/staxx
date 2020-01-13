@@ -27,7 +27,7 @@ defmodule Staxx.Store.Models.ChainEvent do
 
     belongs_to(:chain, Chain,
       foreign_key: :chain_id,
-      references: :chain_id
+      references: :id
     )
 
     timestamps()

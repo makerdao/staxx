@@ -148,7 +148,6 @@ config :testchain, default_deployment_scripts_git_ref: "refs/tags/staxx-testrunn
 # file from `rel/config/config.exs`
 config :testchain,
   geth_docker_image: "makerdao/geth_evm:1.8.27",
-  geth_password_file: Path.expand("#{__DIR__}/../priv/presets/geth/account_password"),
   ganache_docker_image: "makerdao/ganache_evm:6.7.0"
 
 

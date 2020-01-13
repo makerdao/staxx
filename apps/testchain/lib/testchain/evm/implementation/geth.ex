@@ -20,14 +20,18 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth do
 
   require Logger
 
-  # account password file inside docker container.
-  # it will be mapped to `AccountsCreator.password_file/0`
-  @password_file "/tmp/account_password"
-
   # Default HTTP RPC port
   @http_port 8545
   # Default WS RPC port
   @ws_port 8546
+
+  @doc """
+  Path to geth account password file.
+  This file have to be included in geth docker image by given path
+  """
+  @spec password_file() :: binary
+  def password_file(),
+    do: "/app/account_password"
 
   @impl EVM
   def start(%Config{id: id, db_path: db_path} = config) do
@@ -72,7 +76,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth do
       description: "#{id}: Geth EVM",
       cmd: build_cmd(config, accounts),
       ports: [@http_port, @ws_port],
-      volumes: ["#{db_path}:#{db_path}", "#{AccountsCreator.password_file()}:#{@password_file}"]
+      volumes: ["#{db_path}:#{db_path}"]
     }
 
     {:ok, container, %{}}
@@ -164,7 +168,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth do
       "--wsorigins=\"*\"",
       "--gasprice=\"2000000000\"",
       "--targetgaslimit=\"#{gas_limit}\"",
-      "--password=#{@password_file}",
+      "--password=#{password_file()}",
       get_etherbase(accounts),
       get_unlock(accounts)
     ]

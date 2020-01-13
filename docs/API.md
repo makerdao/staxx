@@ -527,7 +527,7 @@ curl --location --request GET 'http://localhost:4000/chains'
 {
     "data": [
         {
-            "chain_id": "5255695394902452494",
+            "id": "5255695394902452494",
             "title": "5255695394902452494",
             "node_type": "geth",
             "status": "ready",

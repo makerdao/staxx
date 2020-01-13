@@ -3,7 +3,7 @@ defmodule Staxx.Store.Repo.Migrations.Chain do
 
   def change do
     create table("chains", primary_key: false) do
-      add(:chain_id, :string, primary_key: true)
+      add(:id, :string, primary_key: true)
       add(:user_id, references("users", on_delete: :delete_all), null: true)
       add(:title, :string)
       add(:node_type, :string)
@@ -14,7 +14,7 @@ defmodule Staxx.Store.Repo.Migrations.Chain do
 
       timestamps()
     end
-    create(unique_index("chains", [:chain_id]))
+    create(unique_index("chains", [:id]))
     create(index("chains", [:node_type]))
   end
 end
