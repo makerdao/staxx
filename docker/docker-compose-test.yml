@@ -25,7 +25,7 @@ services:
   staxx:
     image: makerdao/staxx:dev
     container_name: staxx.local
-    user: "${UID}:${GID}"
+    user: "${UUID}:${UGID}"
     depends_on:
       - nats
       - db
