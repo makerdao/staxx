@@ -24,6 +24,7 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=staxx
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
     ports:
