@@ -28,7 +28,7 @@ services:
       - "5001:5001"
     environment:
       TCD_GATEWAY: host=host.docker.internal
-      GITHUB_DEFAULT_CHECKOUT_TARGET: tags/staxx-deploy
+      GITHUB_DEFAULT_CHECKOUT_TARGET: refs/tags/staxx-deploy
     volumes:
       - nix-db:/nix
     tmpfs:
