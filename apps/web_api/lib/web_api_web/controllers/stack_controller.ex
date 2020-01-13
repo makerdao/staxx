@@ -6,7 +6,7 @@ defmodule Staxx.WebApiWeb.StackController do
   action_fallback Staxx.WebApiWeb.FallbackController
 
   alias Staxx.DeploymentScope
-  alias Staxx.DeploymentScope.EVMWorker.Notification
+  alias Staxx.EventStream.Notification
   alias Staxx.DeploymentScope.Scope.StackManager
   alias Staxx.DeploymentScope.Stack.ConfigLoader
 
@@ -77,7 +77,7 @@ defmodule Staxx.WebApiWeb.StackController do
   # Send notification to stack
   def notify(conn, %{"id" => id, "event" => event, "data" => data}) do
     with true <- DeploymentScope.alive?(id),
-         :ok <- Notification.send_to_event_bus(id, event, data) do
+         :ok <- Notification.notify(id, event, data) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)

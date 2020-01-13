@@ -6,13 +6,22 @@ defmodule Staxx.Docker.Adapter.DockerD do
 
   require Logger
 
-  alias Staxx.Docker.Struct.Container
+  alias Staxx.Docker.Container
 
-  # docker run --name=postgres-vdb -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres
-  def start(%Container{network: network} = container) do
+  @doc """
+  Start given container
+
+  Will conbine `docker run` command based on given Container structure.
+  ```sh
+  docker run --name=postgres-vdb -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres
+  ```
+  """
+  @impl true
+  @spec run(Container.t()) :: {:ok, Container.t()} | {:error, term}
+  def run(%Container{network: network} = container) do
     Logger.debug(fn ->
       """
-      Try to start new container:
+      Try to run new container:
         #{inspect(container, pretty: true)}
       """
     end)
@@ -23,13 +32,8 @@ defmodule Staxx.Docker.Adapter.DockerD do
 
     id_or_err =
       container
-      |> build_start_params()
-      |> Enum.join(" ")
-      |> IO.inspect()
-      |> String.to_charlist()
-      |> :os.cmd()
-      |> to_string()
-      |> String.trim()
+      |> build_run_params()
+      |> exec()
 
     case String.match?(id_or_err, ~r/[a-z0-9]{64}/) do
       true ->
@@ -45,22 +49,82 @@ defmodule Staxx.Docker.Adapter.DockerD do
         {:ok, container}
 
       false ->
-        Logger.error("Failed to start container with code: #{id_or_err}")
+        Logger.error("Failed to run container with code: #{id_or_err}")
         {:error, id_or_err}
+    end
+  end
+
+  @doc """
+  Starts existing container in system
+  """
+  @impl true
+  @spec start(binary) :: :ok | {:error, term}
+  def start(id_or_name) do
+    [
+      executable!(),
+      "start",
+      id_or_name
+    ]
+    |> exec()
+    |> case do
+      ^id_or_name ->
+        :ok
+
+      data ->
+        {:error, data}
+    end
+  end
+
+  @doc """
+  Get logs for docker container
+  """
+  @impl true
+  @spec logs(binary) :: binary
+  def logs(id_or_name) do
+    [
+      executable!(),
+      "logs",
+      id_or_name
+    ]
+    |> exec()
+  end
+
+  @doc """
+  Remove docker container
+  """
+  @impl true
+  @spec rm(binary) :: :ok | {:error, term}
+  def rm(id_or_name) do
+    [
+      executable!(),
+      "rm",
+      "-f",
+      id_or_name
+    ]
+    |> exec()
+    |> case do
+      ^id_or_name ->
+        :ok
+
+      data ->
+        {:error, data}
     end
   end
 
   @doc """
   Stop running container
   """
+  @impl true
   @spec stop(binary) :: :ok | {:error, term}
   def stop(""), do: {:error, "No container id passed"}
 
-  def stop(container_id) do
-    Logger.debug("Stopping container #{container_id}")
+  def stop(id_or_name) do
+    Logger.debug("Stopping container #{id_or_name}")
 
-    case System.cmd(executable!(), ["stop", container_id]) do
-      {id, 0} ->
+    # Stop with 4s delay
+    case System.cmd(executable!(), ["stop", "-t", "4", id_or_name]) do
+      # Ganache my love will not terminate with 0 status. Only 137
+      {id, status} when status in [0, 137] ->
         {:ok, String.replace(id, "\n", "")}
 
       {err, exit_status} ->
@@ -72,6 +136,7 @@ defmodule Staxx.Docker.Adapter.DockerD do
   @doc """
   Create new docker network for stack
   """
+  @impl true
   @spec create_network(binary) :: {:ok, binary} | {:error, term}
   def create_network(id) do
     Logger.debug("Creating new docker network #{id}")
@@ -89,6 +154,7 @@ defmodule Staxx.Docker.Adapter.DockerD do
   @doc """
   Remove docker network
   """
+  @impl true
   @spec rm_network(binary) :: :ok | {:error, term}
   def rm_network(id) do
     Logger.debug("Removing new docker network #{id}")
@@ -106,6 +172,7 @@ defmodule Staxx.Docker.Adapter.DockerD do
   @doc """
   Remove all unused docker networks
   """
+  @impl true
   @spec prune_networks() :: :ok | {:error, term}
   def prune_networks() do
     Logger.debug("Removing all docker unused networks")
@@ -123,6 +190,7 @@ defmodule Staxx.Docker.Adapter.DockerD do
   @doc """
   Get nats docker network name for staxx
   """
+  @impl true
   @spec get_nats_network() :: binary
   def get_nats_network() do
     # Logger.debug("Get nats docker network name for staxx")
@@ -146,6 +214,7 @@ defmodule Staxx.Docker.Adapter.DockerD do
   @doc """
   Join container to network
   """
+  @impl true
   @spec join_network(binary, binary) :: {:ok, term} | {:error, term}
   def join_network(id, container_id) do
     Logger.debug("Adding new docker container #{container_id} to network #{id}")
@@ -167,11 +236,12 @@ defmodule Staxx.Docker.Adapter.DockerD do
   # Get docker executable
   defp executable!(), do: System.find_executable("docker")
 
-  defp build_start_params(%Container{image: image, cmd: cmd} = container) do
+  defp build_run_params(%Container{image: image, cmd: cmd} = container, mode \\ ["-d"]) do
     [
       executable!(),
       "run",
-      "-d",
+      mode,
+      build_user(container),
       build_rm(container),
       build_network(container),
       build_name(container),
@@ -181,19 +251,32 @@ defmodule Staxx.Docker.Adapter.DockerD do
       image,
       cmd
     ]
-    |> List.flatten()
-    |> Enum.reject(&(bit_size(&1) == 0))
   end
 
+  # Build `--user` option for `docker run` command.
+  # otherwise all docker images will be run from root and files will have wrong permissions
+  defp build_user(%Container{assign_user: true}),
+    do: ["--user", "$(id -u):$(id -g)"]
+
+  defp build_user(_container),
+    do: ""
+
   # If container is in `dev_mode` we don't need to run it with `--rm` falgs.
+  # So ssytem will ignore `rm` flag from `Container.t()`
   # We might need some logs from container
-  defp build_rm(container) do
+  defp build_rm(%Container{rm: rm} = container) do
     case Container.is_dev_mode(container) do
       true ->
         ""
 
       _ ->
-        "--rm"
+        case rm do
+          true ->
+            "--rm"
+
+          _ ->
+            ""
+        end
     end
   end
 
@@ -233,5 +316,21 @@ defmodule Staxx.Docker.Adapter.DockerD do
     env
     |> Enum.map(fn {key, val} -> ["-e", "'#{key}=#{val}'"] end)
     |> List.flatten()
+  end
+
+  defp exec(command) when is_list(command) do
+    command
+    |> List.flatten()
+    |> Enum.reject(&(bit_size(&1) == 0))
+    |> Enum.join(" ")
+    |> exec()
+  end
+
+  defp exec(command) when is_binary(command) do
+    command
+    |> String.to_charlist()
+    |> :os.cmd()
+    |> to_string()
+    |> String.trim()
   end
 end

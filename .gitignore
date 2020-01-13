@@ -30,6 +30,8 @@ priv/presets/geth_vdb_local
 priv/presets/geth/geth
 priv/presets/geth/geth_vdb
 
+postgres-data
+
 # DETS databases
 user_deployment_scope
 snapshots

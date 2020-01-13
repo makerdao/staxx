@@ -1,0 +1,42 @@
+# vim: ft=dockerfile
+
+ARG ALPINE_VERSION=3.9
+
+FROM golang:1.11-alpine as builder
+
+ARG GANACHE_SUBDIR=./priv/presets/ganache-cli
+ARG GETH_TAG=v1.8.27
+ARG GETH_VDB_TAG=statediffing
+
+RUN apk update && \
+    apk add --no-cache make gcc g++ python git bash musl-dev linux-headers
+
+WORKDIR /app
+
+# Buidling our replaced geth with unlimited gas
+RUN git clone --single-branch --branch ${GETH_TAG} https://github.com/ethereum/go-ethereum.git && \
+    cd go-ethereum && \
+    sed -i -e 's/GasLimit:   6283185,/GasLimit:   0xffffffffffffffff,/g' core/genesis.go && \
+    sed -i -e 's/MaxCodeSize = 24576/MaxCodeSize = 1000000/g' params/protocol_params.go && \
+    sed -i -e 's/return ErrOversizedData//g' core/tx_pool.go && \
+    make geth
+
+# Release image
+FROM alpine:${ALPINE_VERSION} as runtime
+
+ENV VERSION=v10.14.1 \
+    DOCKER=true
+
+# New user creation
+# RUN adduser -D -u 1000 app
+
+# USER app
+WORKDIR /app
+
+COPY --from=builder "/app/go-ethereum/build/bin/geth" "./geth"
+COPY ./priv/presets/geth/account_password ./account_password
+
+EXPOSE 8545 8546
+
+ENTRYPOINT ["/app/geth"]
+CMD ["version"]

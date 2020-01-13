@@ -6,7 +6,9 @@ defmodule Staxx.DeploymentScope.ScopesSupervisor do
   # Automatically defines child_spec/1
   use DynamicSupervisor
 
-  alias Staxx.DeploymentScope.Scope.SupervisorTree
+  require Logger
+
+  alias Staxx.DeploymentScope.Scope.DeploymentScopeSupervisor
 
   @doc false
   def start_link(arg) do
@@ -26,8 +28,24 @@ defmodule Staxx.DeploymentScope.ScopesSupervisor do
   """
   @spec start_scope({binary, binary | map, map}) :: DynamicSupervisor.on_start_child()
   def start_scope({_id, _chain, _stacks} = params),
-    do: DynamicSupervisor.start_child(__MODULE__, {SupervisorTree, params})
+    do: DynamicSupervisor.start_child(__MODULE__, {DeploymentScopeSupervisor, params})
 
-  def stop_scope(id) when is_binary(id),
-    do: DynamicSupervisor.terminate_child(__MODULE__, SupervisorTree.via_tuple(id))
+  @doc """
+  Stops Supervision tree for given deployment scope id
+  """
+  @spec stop_scope(binary) :: :ok | {:error, term}
+  def stop_scope(id) when is_binary(id) do
+    id
+    |> DeploymentScopeSupervisor.via_tuple()
+    |> GenServer.whereis()
+    |> case do
+      pid when is_pid(pid) ->
+        DynamicSupervisor.terminate_child(__MODULE__, pid)
+
+      res ->
+        Logger.error(fn ->
+          "#{__MODULE__}: Failed to find pid for #{inspect(id)}, found: #{inspect(res)}"
+        end)
+    end
+  end
 end

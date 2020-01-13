@@ -3,8 +3,8 @@ defmodule Staxx.WebApiWeb.DeploymentController do
 
   action_fallback Staxx.WebApiWeb.FallbackController
 
-  alias Staxx.DeploymentScope.Deployment.StepsFetcher
-  alias Staxx.DeploymentScope.Deployment.BaseApi
+  alias Staxx.Testchain.Deployment.StepsFetcher
+  alias Staxx.Testchain.Deployment.BaseApi
   alias Staxx.WebApiWeb.SuccessView
 
   def steps(conn, _) do

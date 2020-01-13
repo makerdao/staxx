@@ -1,18 +1,19 @@
 defmodule Staxx.DeploymentScope.ChainFactory do
   use ExMachina
 
-  alias Staxx.Docker.Struct.Container
+  alias Staxx.Docker.Container
 
   def chain_valid_factory do
     %{
       "testchain" => %{
         "config" => %{
           "type" => "geth",
-          "accounts" => 2,
+          "accounts" => 1,
           "block_mine_time" => 0,
           "clean_on_stop" => false,
           "snapshot_id" => nil,
-          "step_id" => 0
+          "deploy_tag" => "",
+          "deploy_step_id" => 0
         },
         "deps" => []
       }

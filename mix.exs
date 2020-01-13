@@ -7,7 +7,8 @@ defmodule Staxx.MixProject do
       version: "0.1.0",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      releases: releases()
+      releases: releases(),
+      aliases: aliases()
     ]
   end
 
@@ -21,19 +22,27 @@ defmodule Staxx.MixProject do
           docker: :permanent,
           event_stream: :permanent,
           metrix: :permanent,
-          proxy: :permanent,
           web_api: :permanent,
-          ex_chain: :load
-        ]
-      ],
-      ex_testchain: [
-        include_executables_for: [:unix],
-        applications: [
-          ex_chain: :permanent,
           json_rpc: :permanent,
-          storage: :permanent
+          testchain: :permanent,
+          store: :permanent,
+          utils: :permanent
         ]
       ]
+    ]
+  end
+
+  defp aliases do
+    [
+      drop_db: [
+        "ecto.drop --quiet"
+      ],
+      setup_db: [
+        "ecto.create --quiet",
+        "ecto.migrate",
+        "run #{__DIR__}/apps/store/priv/repo/seeds.exs"
+      ],
+      test: ["drop_db", "setup_db", "test"]
     ]
   end
 

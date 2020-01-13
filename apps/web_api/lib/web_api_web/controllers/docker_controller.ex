@@ -8,10 +8,12 @@ defmodule Staxx.WebApiWeb.DockerController do
   alias Staxx.WebApiWeb.SuccessView
   alias Staxx.WebApiWeb.ErrorView
   alias Staxx.Docker
-  alias Staxx.Docker.Struct.Container
+  alias Staxx.Docker.Container
   alias Staxx.DeploymentScope
 
   def start(conn, %{"stack_id" => id, "stack_name" => stack_name} = params) do
+    # We wouldn't let users to control `rm` flag for container
+    # Otherwise we will have a log of dead containers in our system
     container = %Container{
       image: Map.get(params, "image", ""),
       name: Map.get(params, "name", ""),

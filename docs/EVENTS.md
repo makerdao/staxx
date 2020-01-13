@@ -1,7 +1,7 @@
 # Testchain events
 
 When you work with testchain/stacks you will receive set of event from system.
-All events has format:
+All events has similar format:
 
 ```js
 {
@@ -11,36 +11,73 @@ All events has format:
 }
 ```
 
-List of available events:
+But there are several main events you will need to controll environment:
 
- - `initializing` - Chain starting
- - `ready` - Chain ready
- - `deployed` - Deployment process finished
- - `terminating` - Termination process started
- - `terminated` - Chain terminated
- - `locked` - Chain locked for some internal action (not operational)
- - `failed` - Something wrong
- - `snapshot_taken` - Chain Snapshot taken
- - `snapshot_reverted` - Chain Snapshot reverted
+ - `status_changed` - Testchain (EVM) changed it's status [More info](#evm-statuses)
+ - `started` - EVM Started event. **EVM not ready yet !** [More details](#evm-started)
+ - `deployed` - Deployment process finished sucessfully. [More details](#deployment-finished)
+ - `deployment_failed` - Deployment process failed. [More details](#deployment-failed)
+ - `snapshot_taken` - Snapshot taken sucessfuly. [More details](#snapshot-taken)
+ - `snapshot_reverted` - Snapshot reverted sucessfuly. [More details](#snapshot-reverted)
+ - `error` - Error happened in system [More details](#evm-error)
+ - `terminated` - EVM terminated [More details](#evm-terminated)
  - `stack:ready` - Stack ready
  - `stack:failed` - Stack failed
 
-Chain ready event example:
+### EVM Statuses
+
+EVM status change event:
+
 ```js
-{  
-   "data":{  
-      "accounts":[  
-         {  
+{
+   "data":{
+      "status": "active"
+   },
+   "event":"status_changed",
+   "id":"15511618343318382659"
+}
+```
+
+More detailed view of statuses flow could be found [here](#statuses-flow)
+List of available Testchain (EVM) statuses:
+
+ - `initializing` - EVM starting
+ - `active` - EVM became active but not fully ready to be used (additional actions like deployments might be needed)
+ - `deploying` - Deployment process started (EVM is not ready yet)
+ - `deployment_failed` - Deployment process failed something wrong with deployment.
+ - `deployment_success` - Deployment process finished successfully
+ - `terminating` - Termination process started
+ - `terminated` - EVM terminated
+ - `failed` - EVM failed something went wrong (After this EVM will be terminated)
+ - `snapshot_taking` - EVM Snapshot taking process started
+ - `snapshot_taken` - EVM Snapshot taken
+ - `snapshot_reverting` - EVM Snapshot reverting process started
+ - `snapshot_reverted` - EVM Snapshot reverted
+ - `ready` - EVM finally operational and fully ready to be used
+
+### EVM Started
+
+`started` event means that EVM started successfully.
+`data` section of event will contain list of EVM details like JSON-RPC urls and created accounts.
+**NOTE:** EVM is active but not yet operational. More tasks might be performed after this event.
+
+EVM started event example:
+
+```js
+{
+   "data":{
+      "accounts":[
+         {
             "address":"0xd8db16f114488f071bf9e1008b49d07e2a064ebd",
             "balance":100000000000000000000000,
             "priv_key":"711d4fa5fa9297f8f7e39b816cc8152f512b8b83467c0b658b2de181f6008f42"
          },
-         {  
+         {
             "address":"0xf2f1c7b1540d6d85c402598d7583d221ae1faf5a",
             "balance":100000000000000000000000,
             "priv_key":"bf78b8bb547ab19e6bb46d1ba394e22901fdeac44061b25179f950e5ddf9a2ef"
          },
-         {  
+         {
             "address":"0x7fc3d7e58ecb856aa3d18468c22411d05dbc2af0",
             "balance":100000000000000000000000,
             "priv_key":"10bc190af3250c56e890481a39989680a18e574a581954c919e716dd526725e9"
@@ -53,15 +90,47 @@ Chain ready event example:
       "rpc_url":"http://localhost:8554",
       "ws_url":"ws://localhost:8554"
    },
-   "event":"ready",
+   "event":"started",
    "id":"15511618343318382659"
 }
 ```
 
-Deployed example:
+### EVM error
+Some error happened during EVM operations.
+For some errors EVM will be terminated (like errors on EVM start/initialization), but for others - not.
+
+Error event example:
 ```js
-{  
-   "data":{  
+{
+  id: "15511618343318382659", // <- Stack/Testchain ID
+  event: "error",
+  data: {
+     "message": "Some error message from system..."
+  }
+}
+```
+
+### EVM terminated
+
+This event will be fired every time EVM terminated
+
+```js
+{
+  id: "15511618343318382659",
+  event: "terminated",
+  data: {}
+}
+```
+
+### Deployment finished
+
+Deployment process finished succesfuly and add deployed contracts will re sent as `data` field.
+EVM is not yet operational. You have to wait for [ready status](#evm-statuses)
+
+Deployed event example:
+```js
+{
+   "data":{
       "MULTICALL":"0x0692354a492a8ac91181070f9b0497809e318ce2",
       "MCD_DAI_GUARD":"0x867874534c8c1d1d91a51fa1f010ea23b5de5474",
       "MCD_GOV_GUARD":"0x541e68fc8c63c21833b85022c528d876809a8224",
@@ -104,7 +173,70 @@ Deployed example:
 }
 ```
 
-## Stack status event
+### Deployment failed
+
+Deployment process failed.
+EVM is not yet operational but it wouldn't be terminated. So you could debug contracts.
+You have to wait for [ready status](#evm-statuses)
+
+Deployment failed event example:
+```js
+{
+  id: "15511618343318382659", // <- Stack/Testchain ID
+  event: "deployment_failed",
+  data: {
+     "error": "tones of logs from scripts..."
+  }
+}
+```
+
+### Snapshot taken
+
+Snapshot sucessfuly taken for EVM.
+On this step EVM is not operational and it will go through starting process again.
+You will have to wait `active` and `ready` status.
+[Stagted event](#evm-started) will be fired as well.
+
+Snapshot taken event example:
+
+```js
+{
+  id: "15511618343318382659", // <- Stack/Testchain ID
+  event: "snapshot_taken",
+  data: {
+      chain: "ganache" // <- EVM type
+      date: "2020-01-10T13:58:16.287549Z" // <- Snapshot taked date
+      description: "test 2" // <- Description you passed on take_snapshot command
+      id: "17539000027403163896" // <- Snapshot ID. It will be different to scope/testchain id
+      path: "/tmp/snapshots/17539000027403163896.tgz" // <- Snapshot stored path (internal)
+  }
+}
+```
+
+### Snapshot reverted
+
+Snapshot sucessfuly reverted for EVM.
+On this step EVM is not operational and it will go through starting process again.
+You will have to wait `active` and `ready` status.
+[Stagted event](#evm-started) will be fired as well.
+
+Snapshot reverted event example:
+
+```js
+{
+  id: "15511618343318382659", // <- Stack/Testchain ID
+  event: "snapshot_reverted",
+  data: { // <- Reverted snapshot details
+      chain: "ganache" // <- EVM type
+      date: "2020-01-10T13:58:16.287549Z" // <- Snapshot taked date
+      description: "test 2" // <- Description you passed on take_snapshot command
+      id: "17539000027403163896" // <- Snapshot ID. It will be different to scope/testchain id
+      path: "/tmp/snapshots/17539000027403163896.tgz" // <- Snapshot stored path (internal)
+  }
+}
+```
+
+### Stack status event
 This event will be fired every time stack changes it's status
 
 ```js
@@ -118,3 +250,8 @@ This event will be fired every time stack changes it's status
   }
 }
 ```
+
+### Statuses flow
+Here is default status flow for EVM:
+
+![Events Flow](./statuses_flow.png)

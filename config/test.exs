@@ -7,28 +7,39 @@ config :logger,
     [level_lower_than: :error]
   ]
 
-config :metrix, run_prometheus: false
+# Configuring timeouts for receiving messages
+config :ex_unit, assert_receive_timeout: 60_000
+
 config :event_stream, disable_nats: true
 
 config :docker, adapter: Staxx.Docker.Adapter.Mock
 
 config :deployment_scope, stacks_dir: "#{__DIR__}/../priv/test/stacks"
 
+config :deployment_scope,
+  testchain_supervisor_module: Staxx.DeploymentScope.Test.TestchainSupervisorMock
+
+config :store, Staxx.Store.Repo, pool: Ecto.Adapters.SQL.Sandbox
+
+config :store, Staxx.Store.Repo,
+  username: System.get_env("POSTGRES_USER", "postgres"),
+  database: System.get_env("POSTGRES_DB", "staxx_test")
+
+#
+# Testchain
+#
+config :testchain, base_path: "#{__DIR__}/../.test/chains"
+# DB path where all list of chain workers will be stored
+config :testchain, dets_db_path: "#{__DIR__}/../.test/chains"
+config :testchain, snapshot_base_path: "#{__DIR__}/../.test/chains"
+
 #
 # Metrics
 #
 config :metrix, run_prometheus: false
-
-config :proxy, ex_chain_adapter: Staxx.Proxy.ExChain.FakeExChain
-config :proxy, node_manager_adapter: Staxx.Proxy.NodeManager.FakeNodeManager
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
 config :web_api, Staxx.WebApiWeb.Endpoint,
   http: [port: 4002],
   server: false
-
-config :ex_chain,
-  ganache_executable:
-    System.get_env("GANACHE_EXECUTABLE") ||
-      Path.expand("#{__DIR__}/../priv/presets/ganache-cli/cli.js")

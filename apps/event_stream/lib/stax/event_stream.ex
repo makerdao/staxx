@@ -8,6 +8,9 @@ defmodule Staxx.EventStream do
   def subscribe(subs),
     do: EventBus.subscribe(subs)
 
+  def unsubscribe(subs),
+    do: EventBus.unsubscribe(subs)
+
   def mark_as_completed(msg),
     do: EventBus.mark_as_completed(msg)
 

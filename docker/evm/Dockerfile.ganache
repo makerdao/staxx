@@ -1,0 +1,42 @@
+# vim: ft=dockerfile
+ARG ALPINE_VERSION=3.9
+
+FROM node:10-alpine as builder
+
+ARG GANACHE_TAG=v6.7.0
+
+RUN apk update && \
+    apk add --no-cache make gcc g++ python git bash musl-dev linux-headers
+
+WORKDIR /app
+
+# Buidling our replaced geth with unlimited gas
+RUN git clone --single-branch --branch ${GANACHE_TAG} https://github.com/trufflesuite/ganache-cli.git && \
+    cd ganache-cli && \
+    npm install && \
+    npx webpack-cli --config ./webpack/webpack.docker.config.js
+
+# Release image
+FROM alpine:${ALPINE_VERSION} as runtime
+
+ENV VERSION=v10.14.1 \
+    DOCKER=true
+
+# New user creation
+RUN apk add --no-cache nodejs
+# RUN adduser -D -u 1000 app
+
+# USER app
+WORKDIR /app
+
+COPY --from=builder "/app/ganache-cli/node_modules/scrypt/build/Release" "./node_modules/scrypt/build/Release/"
+COPY --from=builder "/app/ganache-cli/node_modules/ganache-core/node_modules/scrypt/build/Release" "./node_modules/ganache-core/node_modules/scrypt/build/Release/"
+COPY --from=builder "/app/ganache-cli/node_modules/ganache-core/node_modules/secp256k1/build/Release" "./node_modules/ganache-core/node_modules/secp256k1/build/Release/"
+COPY --from=builder "/app/ganache-cli/node_modules/ganache-core/node_modules/keccak/build/Release" "./node_modules/ganache-core/node_modules/keccak/build/Release/"
+COPY --from=builder "/app/ganache-cli/node_modules/sha3/build/Release" "./node_modules/sha3/build/Release/"
+COPY --from=builder "/app/ganache-cli/node_modules/ganache-core/node_modules/websocket/build/Release" "./node_modules/ganache-core/node_modules/websocket/build/Release/"
+COPY --from=builder "/app/ganache-cli/build/ganache-core.docker.cli.js" "./ganache-core.docker.cli.js"
+# COPY --from=builder "/app/ganache-cli/build/ganache-core.docker.cli.js.map" "./ganache-core.docker.cli.js.map"
+
+ENTRYPOINT ["node", "/app/ganache-core.docker.cli.js"]
+CMD ["--version"]

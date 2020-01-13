@@ -6,6 +6,16 @@ defmodule Staxx.DeploymentScope.Scope.StackManagerSupervisor do
 
   alias Staxx.DeploymentScope.Scope.StackManager
 
+  @doc false
+  def child_spec(id) do
+    %{
+      id: "stack_manager_supervisor_#{id}",
+      start: {__MODULE__, :start_link, [id]},
+      restart: :temporary,
+      type: :supervisor
+    }
+  end
+
   @doc """
   Start a new supervisor for manage StackManagers
   """

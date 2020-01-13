@@ -2,13 +2,11 @@ defmodule Staxx.WebApiWeb.InternalController do
   use Staxx.WebApiWeb, :controller
   require Logger
 
-  alias Staxx.DeploymentScope.Deployment.Worker, as: DeployWorker
-  alias Staxx.DeploymentScope.Deployment.{ServiceList}
+  alias Staxx.Testchain.Deployment.Worker, as: DeployWorker
 
   @doc false
   def rpc(conn, %{"id" => id, "method" => "RegisterDeployment", "data" => data}) do
     Logger.info("Request id #{id}, method RegisterDeployment, data #{inspect(data)}")
-    ServiceList.add_deployment(%{host: data["host"], port: data["port"]})
 
     conn
     |> json(%{type: "ok"})
@@ -17,7 +15,6 @@ defmodule Staxx.WebApiWeb.InternalController do
   @doc false
   def rpc(conn, %{"id" => id, "method" => "UnregisterDeployment", "data" => data}) do
     Logger.info("Request id #{id}, method: UnregisterDeployment data #{inspect(data)}")
-    ServiceList.delete_deployment(%{host: data["host"], port: data["port"]})
 
     conn
     |> json(%{type: "ok"})

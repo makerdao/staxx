@@ -37,8 +37,9 @@ defmodule Staxx.WebApi.MixProject do
   defp deps do
     [
       {:deployment_scope, in_umbrella: true},
-      {:proxy, in_umbrella: true},
       {:event_stream, in_umbrella: true},
+      {:store, in_umbrella: true},
+      {:testchain, in_umbrella: true},
       {:phoenix, "~> 1.4"},
       {:phoenix_pubsub, "~> 1.1"},
       {:gettext, "~> 0.11"},
@@ -46,7 +47,9 @@ defmodule Staxx.WebApi.MixProject do
       {:poison, "~> 3.1"},
       {:plug, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
-      {:corsica, "~> 1.1"}
+      {:corsica, "~> 1.1"},
+      {:faker, "~> 0.12", only: :test},
+      {:ex_machina, "~> 2.3", only: :test}
     ]
   end
 end

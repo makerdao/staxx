@@ -10,14 +10,9 @@ defmodule Staxx.DeploymentScope.Application do
     children = [
       {Registry, keys: :unique, name: Staxx.DeploymentScope.ScopeRegistry},
       {Registry, keys: :unique, name: Staxx.DeploymentScope.StackRegistry},
+      Staxx.DeploymentScope.Terminator,
       Staxx.DeploymentScope.ScopesSupervisor,
-      Staxx.DeploymentScope.Stack.ConfigLoader,
-      Staxx.DeploymentScope.UserScope,
-      # EVM & deployment integration
-      Staxx.DeploymentScope.EVMWorker.Supervisor,
-      Staxx.DeploymentScope.EVMWorker.Storage,
-      {Registry, keys: :unique, name: Staxx.DeploymentScope.EVMWorkerRegistry},
-      Staxx.DeploymentScope.Deployment.Supervisor
+      Staxx.DeploymentScope.Stack.ConfigLoader
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

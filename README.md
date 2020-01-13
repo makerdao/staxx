@@ -1,5 +1,6 @@
 # STAXX
 [![Build Status](https://travis-ci.org/makerdao/staxx.svg?branch=master)](https://travis-ci.org/makerdao/staxx)
+[![CircleCI](https://circleci.com/gh/makerdao/staxx.svg?style=svg)](https://circleci.com/gh/makerdao/staxx)
 
 
 ## Prerequisite Installations
@@ -12,14 +13,19 @@
 ## Docker Compose
 
 1. Build all images.
-2. Use `make dc-up` to run.
-3. Use `make dc-down` to remove data.
+2. Use `make migrate` to setup DB schema for app.
+3. Use `make run-latest` to run.
+4. Use `make stop-latest` to stop containers.
+5. Use `make rm-latest` to remove containers (except PostgreSQL data `./docker/postgres-data`).
 
 Instead of doing steps 2 and 3, you can run the `docker-compose` command in your console.
+NOTE: You will have to use `docker-compose -f ./docker/docker-compose.yaml` to point compose to correct file.
 
 ## Installation
 
-Before starting, you should confirm that you have docker compose up and running. You can check this by looking in the top right side of your computer screen, and selecting the whale icon for more details about running docker.
+Before starting, you should confirm that you have docker compose up and running.
+For **MacOS** and **Windows**: you can check this by looking in the top right side of your computer screen, and selecting the whale icon for more details about running docker.
+For **Linux** follow this: https://docs.docker.com/install/
 
 ## Getting Started
 
@@ -31,36 +37,18 @@ Before starting, you should confirm that you have docker compose up and running.
 
 **Note to help mitigate issues early testers may run into when getting the testchain running:**
 
-1. Run `docker images` (make sure you see `staxx` present)
-2. In the case that you have used docker in the past for other projects and your images are scattered, you may want to refresh the service.
-    1. To do so, run `make upgrade-dev`
-    2. `make rm-dev` (This commands checks if the containers have stopped)
+1. Run `make docker-deps` to download list of required images (EVM docker images will be downloaded).
+2. Run `docker images` (make sure you see `staxx` present)
+3. In the case that you have used docker in the past for other projects and your images are scattered, you may want to refresh the service.
+    1. To do so, run `make upgrade-dev` (Command will stop running containers, remove them and remove old docker images)
 
 
-Next, the following command ensures you do not have any lingering chains left over from a past deployment `rm -r /tmp/chains /tmp/snapshots`(This step only applies to developers who have run the testchain environment before).
+Next, the following command ensures you do not have any lingering chains left over from a past deployment  - `make clear-dev` (This step **only** applies to developers who have run the testchain environment before).
 
-## Building local EVM (Etherial Virtual machine)
+## Pulling docker EVM container (Etherial Virtual Machine)
 
-For now only `geth|ganache|geth_vdb` supported. 
-You have to build all of them or the one you plan to use.
-
-Building ganache:
-
-```bash
-# make ganache-local
-```
-
-Building geth:
-
-```bash
-# make geth-local
-```
-
-Building geth_vdb:
-
-```bash
-# make geth-vdb-local
-```
+For now only `geth|ganache` supported.
+Run `make pull-evms` and system will download latest versions for EVM docker images.
 
 ## Getting the testchain up and running:
 
@@ -80,12 +68,7 @@ The first block will appear in your terminal window as follows:
 
 ```
 
-master ✓ make logs-deploy
-Attaching to testchain-deployment.local
-staxx.local  | time="2019-04-11T07:56:14Z" level=info msg="Config loaded" app=TCD
-testchain-deployment.local  | time="2019-04-11T07:56:14Z" level=debug msg="Config: &{Server:HTTP Host:testchain-deployment Port:5001 Deploy:{DeploymentDirPath:/deployment DeploymentSubPath:./ ResultSubPath:out/addresses.json} Gateway:{Host:staxx.local Port:4000 ClientTimeoutInSecond:5 RegisterPeriodInSec:10} Github:{RepoOwner:makerdao RepoName:testchain-dss-deployment-scripts DefaultCheckoutTarget:tags/qa-deploy} NATS:{ErrorTopic:error GroupName:testchain-deployment TopicPrefix:Prefix Servers:nats://nats.local:4222 MaxReconnect:3 ReconnectWaitSec:1} LogLevel:debug}" app=TCD
-testchain-deployment.local  | time="2019-04-11T07:56:14Z" level=info msg="Start service with host: testchain-deployment, port: 5001" app=TCD
-testchain-deployment.local  | time="2019-04-11T07:56:14Z" level=info msg="First update src started, it takes a few minutes" app=TCD
+TODO: udpate deployment started logs
 
 ```
 
@@ -95,24 +78,17 @@ Once the testchain has fully booted, you will see similar output as displayed be
 
 ```
 
-testchain-deployment.local  | time="2019-04-11T08:07:28Z" level=info msg="First update src finished" app=TCD
-testchain-deployment.local  | time="2019-04-11T08:07:28Z" level=info msg="Used HTTP server" app=TCD
-testchain-deployment.local  | time="2019-04-11T08:07:28Z" level=info msg="HTTP method added: GetInfo" app=TCD component=httpServer
-testchain-deployment.local  | time="2019-04-11T08:07:28Z" level=info msg="HTTP method added: Run" app=TCD component=httpServer
-testchain-deployment.local  | time="2019-04-11T08:07:28Z" level=info msg="HTTP method added: UpdateSource" app=TCD component=httpServer
-testchain-deployment.local  | time="2019-04-11T08:07:28Z" level=info msg="HTTP method added: GetResult" app=TCD component=httpServer
-testchain-deployment.local  | time="2019-04-11T08:07:28Z" level=info msg="HTTP method added: GetCommitList" app=TCD component=httpServer
-testchain-deployment.local  | time="2019-04-11T08:07:28Z" level=info msg="HTTP method added: Checkout" app=TCD component=httpServer
-testchain-deployment.local  | time="2019-04-11T08:07:38Z" level=debug msg="Request data: {\"id\":\"\",\"method\":\"RegisterDeployment\",\"data\":{\"host\":\"testchain-deployment\",\"port\":5001}}" app=TCD component=gateway_client
-testchain-deployment.local  | time="2019-04-11T08:07:38Z" level=debug msg="Request data" app=TCD component=httpServer data="{}" method=GetInfo
+TODO: Update deployment success logs
 
 ```
 
 Your testchain is now up and running! You are now able to start using services, such as interacting with the [testchain dashboard](https://github.com/makerdao/testchain-dashboard).
 
 
-## Full List of Testchain Commands (Docker Compose):  
+## Full List of Testchain Commands (Docker Compose):
 
+- `make migrate-dev`
+    - This command will start DB container and sill apply list of migrations to PostgreSQL.
 - `make run-dev`
     - This command will start the QA portal in docker images and will then set it to  `localhost:4001` for the UI view and `localhost:4000` for the WS/Web API.
 - `make logs-dev`
@@ -152,8 +128,3 @@ For now we support only `vdb` stack available
 1. Docker-compose.yml
 2. Icon.png
 3. Stack.json
-
-## Installation
-
-1. Run the `make install` command to download all of the required Docker images.
-2. Set all of the config files you need automatically.

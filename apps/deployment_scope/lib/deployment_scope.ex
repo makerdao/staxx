@@ -6,13 +6,12 @@ defmodule Staxx.DeploymentScope do
 
   require Logger
 
-  alias Staxx.Proxy
   alias Staxx.Docker
-  alias Staxx.Docker.Struct.Container
-  alias Staxx.DeploymentScope.EVMWorker.ChainHelper
-  alias Staxx.DeploymentScope.UserScope
+  alias Staxx.Docker.Container
+  alias Staxx.Testchain
+  alias Staxx.Testchain.Helper
   alias Staxx.DeploymentScope.ScopesSupervisor
-  alias Staxx.DeploymentScope.Scope.SupervisorTree
+  alias Staxx.DeploymentScope.Scope.DeploymentScopeSupervisor
   alias Staxx.DeploymentScope.Scope.StackManager
   alias Staxx.DeploymentScope.Stack.ConfigLoader
 
@@ -37,11 +36,10 @@ defmodule Staxx.DeploymentScope do
   end
 
   def start(%{"testchain" => %{"config" => config}} = params, email) do
-    %{id: id} =
-      chain_config =
+    chain_config =
       config
-      |> ChainHelper.config_from_payload()
-      |> Proxy.new_chain_config!()
+      |> Helper.config_from_payload()
+      |> Helper.generate_id!()
 
     stacks = Map.drop(params, ["testchain"])
 
@@ -51,12 +49,12 @@ defmodule Staxx.DeploymentScope do
       Chain configuration:
       #{inspect(chain_config, pretty: true)}
 
-      Config:
+      Stacks Config:
       #{inspect(stacks, pretty: true)}
       """
     end)
 
-    start(id, chain_config, stacks, email)
+    start(chain_config.id, chain_config, stacks, email)
   end
 
   def start(_, _),
@@ -65,19 +63,25 @@ defmodule Staxx.DeploymentScope do
   @doc """
   Start supervision tree for new deployment scope
   """
-  @spec start(binary, binary | map, map, binary) :: {:ok, binary} | {:error, term}
-  def start(id, chain_config, stacks, email \\ "") when is_binary(id) do
+  @spec start(binary, binary | map, map, binary) :: {:ok, Testchain.evm_id()} | {:error, term}
+  def start(id, chain_config_or_id, stacks, email \\ "") when is_binary(id) do
     modules = get_stack_names(stacks)
     Logger.debug("Starting new deployment scope with modules: #{inspect(modules)}")
 
-    with :ok <- validate_stacks(modules),
-         {:ok, pid} <- ScopesSupervisor.start_scope({id, chain_config, stacks}) do
-      Logger.debug("Started chain supervisor tree #{inspect(pid)} for stack #{id}")
+    # Binding email to chain configuration
+    chain_config_or_id =
+      chain_config_or_id
+      |> case do
+        config when is_map(config) ->
+          Map.put(config, :email, email)
 
-      unless email == "" do
-        Logger.debug(fn -> "Mapping deployment scope #{id} to email #{email}" end)
-        UserScope.map(id, email)
+        id ->
+          id
       end
+
+    with :ok <- validate_stacks(modules),
+         {:ok, pid} <- ScopesSupervisor.start_scope({id, chain_config_or_id, stacks}) do
+      Logger.debug("Started chain supervisor tree #{inspect(pid)} for stack #{id}")
 
       {:ok, id}
     else
@@ -97,7 +101,7 @@ defmodule Staxx.DeploymentScope do
   """
   @spec spawn_stack_manager(binary, binary) :: DynamicSupervisor.on_start_child()
   def spawn_stack_manager(scope_id, stack_name),
-    do: SupervisorTree.start_stack_manager(scope_id, stack_name)
+    do: DeploymentScopeSupervisor.start_stack_manager(scope_id, stack_name)
 
   @doc """
   Stop stack manager service
@@ -110,18 +114,9 @@ defmodule Staxx.DeploymentScope do
   @doc """
   Stop supervision tree for deployment scope with given ID
   """
-  @spec stop(binary) :: :ok
-  def stop(id) do
-    case alive?(id) do
-      true ->
-        id
-        |> SupervisorTree.via_tuple()
-        |> Supervisor.stop(:normal)
-
-      false ->
-        :ok
-    end
-  end
+  @spec stop(binary) :: :ok | {:error, term}
+  def stop(id),
+    do: ScopesSupervisor.stop_scope(id)
 
   @doc """
   Check if given deployment scope is alive
@@ -129,7 +124,7 @@ defmodule Staxx.DeploymentScope do
   @spec alive?(binary) :: boolean
   def alive?(id) do
     id
-    |> SupervisorTree.via_tuple()
+    |> DeploymentScopeSupervisor.via_tuple()
     |> GenServer.whereis()
     |> case do
       nil ->
@@ -181,7 +176,7 @@ defmodule Staxx.DeploymentScope do
 
       true ->
         id
-        |> SupervisorTree.get_stack_manager_supervisor()
+        |> DeploymentScopeSupervisor.get_stack_manager_supervisor()
         |> Supervisor.which_children()
         |> Enum.filter(fn {_, _, _, mods} -> mods == [StackManager] end)
         |> Enum.map(fn {_, pid, :worker, _} -> pid end)
@@ -209,29 +204,6 @@ defmodule Staxx.DeploymentScope do
   @spec reload_config() :: :ok
   def reload_config(),
     do: ConfigLoader.reload()
-
-  @doc """
-  Staxx host
-  """
-  @spec host() :: binary
-  def host(),
-    do: Application.get_env(:deployment_scope, :host, "host.docker.internal")
-
-  @doc """
-  Get NATS url
-  """
-  @spec nats_url() :: binary
-  def nats_url() do
-    %{host: host, port: port} = Application.get_env(:deployment_scope, :nats)
-    "nats://#{host}:#{port}"
-  end
-
-  @doc """
-  Get default deployment scripts git ref for system.
-  """
-  @spec default_deploy_tag() :: binary
-  def default_deploy_tag(),
-    do: Application.get_env(:deployment_scope, :default_deployment_scripts_git_ref)
 
   # Validate if all stacks are allowed to start
   defp validate_stacks([]), do: :ok

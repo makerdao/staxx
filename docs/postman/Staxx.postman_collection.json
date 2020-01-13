@@ -1,0 +1,454 @@
+{
+	"info": {
+		"_postman_id": "41159943-922c-4d51-b8c7-2cd2ee74236d",
+		"name": "Staxx",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Docker",
+			"item": [
+				{
+					"name": "Start container",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"stack_id\": \"{{chain_id}}\",\n\t\"stack_name\": \"{{stack_name}}\",\n\t\"image\": \"postgres\",\n\t\"ports\": [5432],\n\t\"dev_mode\": true,\n\t\"env\": {\n\t\t\"POSTGRES_PASSWORD\": \"postgres\"\n\t}\n}"
+						},
+						"url": {
+							"raw": "{{STAXX_URL}}/docker/start",
+							"host": [
+								"{{STAXX_URL}}"
+							],
+							"path": [
+								"docker",
+								"start"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Stacks",
+			"item": [
+				{
+					"name": "List stacks configs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{STAXX_URL}}/stack/list",
+							"host": [
+								"{{STAXX_URL}}"
+							],
+							"path": [
+								"stack",
+								"list"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reload all stacks configs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{STAXX_URL}}/stack/reload",
+							"host": [
+								"{{STAXX_URL}}"
+							],
+							"path": [
+								"stack",
+								"reload"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Stack details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{STAXX_URL}}/stack/info/{{chain_id}}",
+							"host": [
+								"{{STAXX_URL}}"
+							],
+							"path": [
+								"stack",
+								"info",
+								"{{chain_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Stop stack",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{STAXX_URL}}/stack/stop/{{chain_id}}",
+							"host": [
+								"{{STAXX_URL}}"
+							],
+							"path": [
+								"stack",
+								"stop",
+								"{{chain_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Start new Stack",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"testchain\": {\n\t\t\"config\": {\n\t\t\t\"type\": \"{{evm}}\",\n\t\t\t\"accounts\": 2,\n\t\t\t\"block_mine_time\": 0,\n\t\t\t\"clean_on_stop\": false,\n\t\t\t\"snapshot_id\": null, \n\t\t\t\"step_id\": 1\n\t\t},\n\t\t\"deps\": []\n\t},\n\t\"vdb\": {\n\t\t\"config\": {},\n\t\t\"deps\": [\n\t\t\t\"testchain\"\n\t\t]\n\t}\n}"
+						},
+						"url": {
+							"raw": "{{STAXX_URL}}/stack/start",
+							"host": [
+								"{{STAXX_URL}}"
+							],
+							"path": [
+								"stack",
+								"start"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Start Empty Stack",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "e2b483c9-0db6-4da1-a54d-f81e5c2eb4f2",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"pm.environment.set(\"chain_id\", jsonData.data.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "X-User-Email",
+								"value": "konstantin@makerdao.com",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"testchain\": {\n        \"config\": {\n            \"type\": \"{{evm}}\",\n            \"accounts\": 2,\n            \"block_mine_time\": 0,\n            \"clean_on_stop\": true,\n            \"snapshot_id\": null,\n            \"deploy_ref\": \"refs/tags/staxx-testrunner\",\n            \"deploy_step_id\": 0\n        },\n        \"deps\": []\n    }\n}"
+						},
+						"url": {
+							"raw": "{{STAXX_URL}}/stack/start",
+							"host": [
+								"{{STAXX_URL}}"
+							],
+							"path": [
+								"stack",
+								"start"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": "",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Start Empty Stack From Snapshot",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							},
+							{
+								"key": "X-User-Email",
+								"value": "konstantin@makerdao.com",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"testchain\": {\n        \"config\": {\n            \"type\": \"{{evm}}\",\n            \"accounts\": 2,\n            \"block_mine_time\": 0,\n            \"clean_on_stop\": false,\n            \"snapshot_id\": null,\n            \"deploy_tag\": \"tags/staxx-deployment\",\n            \"step_id\": 1\n        },\n        \"deps\": []\n    }\n}"
+						},
+						"url": {
+							"raw": "{{STAXX_URL}}/stack/start?=",
+							"host": [
+								"{{STAXX_URL}}"
+							],
+							"path": [
+								"stack",
+								"start"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": ""
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Start existing stack",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"type": "text",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"testchain\": {\n\t\t\"config\": {\n\t\t\t\"id\": \"{{chain_id}}\"\n\t\t},\n\t\t\"deps\": []\n\t}\n}"
+						},
+						"url": {
+							"raw": "{{STAXX_URL}}/stack/start",
+							"host": [
+								"{{STAXX_URL}}"
+							],
+							"path": [
+								"stack",
+								"start"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Chains",
+			"item": [
+				{
+					"name": "Get all chains",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{STAXX_URL}}/chains",
+							"host": [
+								"{{STAXX_URL}}"
+							],
+							"path": [
+								"chains"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get chain details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{STAXX_URL}}/chain/{{chain_id}}",
+							"host": [
+								"{{STAXX_URL}}"
+							],
+							"path": [
+								"chain",
+								"{{chain_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete chain",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{STAXX_URL}}/chain/{{chain_id}}",
+							"host": [
+								"{{STAXX_URL}}"
+							],
+							"path": [
+								"chain",
+								"{{chain_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Index",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/javascript",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "javascript"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{STAXX_URL}}/",
+							"host": [
+								"{{STAXX_URL}}"
+							],
+							"path": [
+								""
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Take Snapshot",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{STAXX_URL}}/chain/{{chain_id}}/take_snapshot",
+							"host": [
+								"{{STAXX_URL}}"
+							],
+							"path": [
+								"chain",
+								"{{chain_id}}",
+								"take_snapshot"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Revert Snapshot",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{STAXX_URL}}/chain/{{chain_id}}/revert_snapshot/{{snapshot_id}}",
+							"host": [
+								"{{STAXX_URL}}"
+							],
+							"path": [
+								"chain",
+								"{{chain_id}}",
+								"revert_snapshot",
+								"{{snapshot_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Snapshots",
+			"item": [
+				{
+					"name": "List snapshots",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{STAXX_URL}}/snapshots/{{evm}}",
+							"host": [
+								"{{STAXX_URL}}"
+							],
+							"path": [
+								"snapshots",
+								"{{evm}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete snapshot",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{STAXX_URL}}/snapshot/10490151790622365815",
+							"host": [
+								"{{STAXX_URL}}"
+							],
+							"path": [
+								"snapshot",
+								"10490151790622365815"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"protocolProfileBehavior": {}
+}
