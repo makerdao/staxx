@@ -1,0 +1,73 @@
+version: '3'
+services:
+  nats:
+    image: 'nats:linux'
+    container_name: nats.local
+    expose:
+      - "4222"
+    ports:
+      - "4222:4222"
+    networks:
+     - net1
+  db:
+    image: 'postgres:11-alpine'
+    container_name: db.local
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=staxx
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - net1
+  staxx:
+    image: makerdao/staxx:dev
+    container_name: staxx.local
+    user: "${UID}:${GID}"
+    depends_on:
+      - nats
+      - db
+    expose:
+      - "9100-9100"
+    ports:
+      # - "4369:4369"
+      # - "9100:9100"
+      - "4000:4000"
+    environment:
+      POSTGRES_HOST: db.local
+      NATS_URL: nats.local
+      DOCKER_DEV_MODE_ALLOWED: "true"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - "/tmp/chains:/opt/chains"
+      - "/tmp/snapshots:/opt/snapshots"
+      - "/tmp/stacks:/opt/stacks"
+    networks:
+     - net1
+  testchain-deployment:
+    image: makerdao/testchain-deployment:dev
+    container_name: testchain-deployment.local
+    ports:
+      - "5001:5001"
+    environment:
+      TCD_GATEWAY: host=staxx.local
+      GITHUB_DEFAULT_CHECKOUT_TARGET: master
+    volumes:
+      - nix-db:/nix
+    tmpfs:
+      - /tmp
+    depends_on:
+      - nats
+    networks:
+     - net1
+
+# We're using custom network setup, as it ships with a DNS
+# system which allows containers to communicate by hostnames.
+networks:
+  net1:
+    driver: bridge
+
+volumes:
+  nix-db:
