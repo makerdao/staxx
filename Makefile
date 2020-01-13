@@ -128,7 +128,7 @@ run: ## Run the app in Docker
 .PHONY: run
 
 migrate-latest:
-	@docker-compose -f docker/docker-compose.yml run staxx eval "Staxx.Store.Release.migrate()"
+	@docker-compose -f docker/docker-compose.yml run --rm staxx eval "Staxx.Store.Release.migrate()"
 .PHONY: migrate-latest
 
 run-latest:
@@ -145,7 +145,7 @@ rm-latest:
 .PHONY: rm-latest
 
 migrate-dev:
-	@docker-compose -f docker/docker-compose-dev.yml run staxx eval "Staxx.Store.Release.migrate()"
+	@docker-compose -f docker/docker-compose-dev.yml run --rm staxx eval "Staxx.Store.Release.migrate()"
 .PHONY: migrate-dev
 
 run-dev:
@@ -172,6 +172,23 @@ upgrade-dev: rm-dev
 clear-dev:
 	@rm -rf /tmp/chains /tmp/snapshots ./docker/postgres-data
 .PHONY: clear-dev
+
+migrate-test:
+	@docker-compose -f docker/docker-compose-test.yml run --rm staxx eval "Staxx.Store.Release.migrate()"
+.PHONY: migrate-test
+
+run-test:
+	@docker-compose -f ./docker/docker-compose-test.yml up -d
+.PHONY: run-test
+
+stop-test:
+	@docker-compose -f ./docker/docker-compose-test.yml stop
+.PHONY: stop-test
+
+rm-test: stop-test
+	@echo "====== Stopping and removing running containers"
+	@docker-compose -f ./docker/docker-compose-test.yml rm -s -f
+.PHONY: rm-test
 
 stop-elixir-env:
 	@docker-compose -f ./docker/docker-compose-elixir.yml stop
