@@ -110,7 +110,7 @@ build: ## Build elixir application with testchain and WS API
 .PHONY: build
 
 logs-deploy:
-	@docker-compose logs -f testchain-deployment
+	@docker-compose -f ./docker/docker-compose-dev.yml logs -f testchain-deployment
 .PHONY: logs-deploy
 
 logs-dev:
