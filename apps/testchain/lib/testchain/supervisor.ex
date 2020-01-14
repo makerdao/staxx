@@ -79,6 +79,7 @@ defmodule Staxx.Testchain.Supervisor do
       {HealthChecker, id}
     ]
 
+    # opts = [strategy: :rest_for_one, max_restarts: 0]
     opts = [strategy: :rest_for_one]
     Supervisor.init(children, opts)
   end

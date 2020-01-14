@@ -2,6 +2,13 @@ import Config
 
 # To set it to true, pass `DOCKER_DEV_MODE_ALLOWED=true`, all other variables will be interpritated as false
 config :docker, dev_mode_allowed: System.get_env("DOCKER_DEV_MODE_ALLOWED", "false")
+# Default nats network
+config :docker, nats_network: System.get_env("DOCKER_NATS_NETWORK", "container:nats.local")
+# Default staxx network
+config :docker, staxx_network: System.get_env("DOCKER_STAXX_NETWORK", "")
+
+# If `IN_CONTAINER` is set - that wil be resolved to `true`
+config :docker, in_container?: System.get_env("IN_CONTAINER", "") != ""
 
 config :deployment_scope, deployment_service_url: System.fetch_env!("DEPLOYMENT_SERVICE_URL")
 config :deployment_scope, deployment_steps_fetch_timeout: 30_000
@@ -15,6 +22,8 @@ config :deployment_scope,
 config :event_stream, nats: %{host: System.fetch_env!("NATS_URL"), port: 4222}
 
 config :testchain, host: System.get_env("HOST", "staxx.local")
+config :testchain, internal_host: System.get_env("INTERNAL_EVM_HOST", "localhost")
+
 config :testchain, nats: %{host: System.fetch_env!("NATS_URL"), port: 4222}
 
 config :testchain, base_path: System.fetch_env!("CHAINS_DB_PATH")

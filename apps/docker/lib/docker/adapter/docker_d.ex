@@ -134,6 +134,54 @@ defmodule Staxx.Docker.Adapter.DockerD do
   end
 
   @doc """
+  Run inspect command for given container
+  """
+  @impl true
+  def inspect_container(id_or_name, format \\ "")
+
+  def inspect_container(id_or_name, "") do
+    params = [
+      "inspect",
+      id_or_name
+    ]
+
+    executable!()
+    |> System.cmd(params)
+    |> case do
+      {ip, 0} ->
+        {:ok, String.trim(ip)}
+
+      {data, exit_code} ->
+        {:error,
+         "failed to inspect container with exit code: #{inspect(exit_code)}, and err: #{
+           inspect(data)
+         }"}
+    end
+  end
+
+  def inspect_container(id_or_name, format) do
+    params = [
+      "inspect",
+      "-f",
+      format,
+      id_or_name
+    ]
+
+    executable!()
+    |> System.cmd(params)
+    |> case do
+      {ip, 0} ->
+        {:ok, String.trim(ip)}
+
+      {data, exit_code} ->
+        {:error,
+         "failed to inspect container with exit code: #{inspect(exit_code)}, and err: #{
+           inspect(data)
+         }"}
+    end
+  end
+
+  @doc """
   Create new docker network for stack
   """
   @impl true
@@ -185,30 +233,6 @@ defmodule Staxx.Docker.Adapter.DockerD do
         Logger.error("Failed to remove networks with code: #{exit_status} - #{inspect(err)}")
         {:error, err}
     end
-  end
-
-  @doc """
-  Get nats docker network name for staxx
-  """
-  @impl true
-  @spec get_nats_network() :: binary
-  def get_nats_network() do
-    # Logger.debug("Get nats docker network name for staxx")
-
-    # case System.cmd(executable!(), [
-    #        "inspect",
-    #        "nats.local",
-    #        "--format={{.HostConfig.NetworkMode}}"
-    #      ]) do
-    #   {name, 0} ->
-    #     name
-    #     |> String.trim()
-
-    #   {err, exit_status} ->
-    #     Logger.error("Failed to get nats network name: #{exit_status} - #{inspect(err)}")
-    #     ""
-    # end
-    "container:nats.local"
   end
 
   @doc """

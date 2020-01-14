@@ -84,6 +84,16 @@ defmodule Staxx.Testchain.EVM do
   @callback on_started(config :: Config.t(), state :: any()) :: state :: any()
 
   @doc """
+  Internal JSON-RPC HTTP port for EVM
+  """
+  @callback internal_http_port() :: pos_integer
+
+  @doc """
+  Internal JSON-RPC WS port for EVM
+  """
+  @callback internal_ws_port() :: pos_integer
+
+  @doc """
   Callback will be called after EVM container start and system will assign ports to it.
   It have to pick correct ports from given ports list.
   Ports information might be found in `Staxx.Docker.Container.t()`.
@@ -145,7 +155,8 @@ defmodule Staxx.Testchain.EVM do
     %{
       id: "testchain_evm_#{id}",
       start: {module, :start_link, [config]},
-      restart: :transient,
+      # restart: :transient,
+      restart: :temporary,
       shutdown: @timeout
     }
   end
@@ -380,7 +391,7 @@ defmodule Staxx.Testchain.EVM do
             # Disable removing container after stop.
             # We might need to stop it and start again (ex: snapshots)
             # Container will be removed after termination. See: `terminate/2`
-            container = %Container{container | rm: false}
+            container = %Container{container | rm: false, network: Docker.get_staxx_network()}
             # Starting given container with EVM
             {:ok, container_pid} = Container.start_link(container)
 
@@ -808,6 +819,15 @@ defmodule Staxx.Testchain.EVM do
       # Default implementation functions for any EVM
       #
       ######
+
+      @impl true
+      def internal_http_port(),
+        do: 8545
+
+      @impl true
+      def internal_ws_port(),
+        do: 8546
+
       @impl EVM
       def pick_ports([{http_port, _}, {ws_port, _}], _),
         do: {http_port, ws_port}
@@ -856,11 +876,28 @@ defmodule Staxx.Testchain.EVM do
       #
       ########
 
+      # Get internal evm host
+      defp get_internal_rpc_url(%State{
+             config: %Config{container_name: container_name},
+             http_port: http_port
+           }) do
+        case Docker.in_container?() do
+          true ->
+            "http://#{container_name}:#{internal_http_port()}"
+
+          _ ->
+            "http://#{Application.get_env(:testchain, :internal_host, "localhost")}:#{http_port}"
+        end
+      end
+
       # Check if EVM started and operational
-      defp started?(%State{config: %Config{id: id}, http_port: http_port}) do
+      defp started?(%State{config: %Config{id: id}} = state) do
         Logger.debug("#{id}: Checking if EVM started")
 
-        case JsonRpc.eth_coinbase("http://localhost:#{http_port}") do
+        state
+        |> get_internal_rpc_url()
+        |> JsonRpc.eth_coinbase()
+        |> case do
           {:ok, <<"0x", _::binary>>} ->
             true
 
@@ -870,7 +907,7 @@ defmodule Staxx.Testchain.EVM do
       end
 
       # Get chain details by config
-      defp details(%State{config: config, http_port: http_port, ws_port: ws_port}) do
+      defp details(%State{config: config, http_port: http_port, ws_port: ws_port} = state) do
         %Config{
           id: id,
           db_path: db_path,
@@ -882,7 +919,11 @@ defmodule Staxx.Testchain.EVM do
         [{:ok, coinbase}, {:ok, accounts}] =
           [
             # NOTE: here we will use localhost to avoid calling to chain from outside
-            Task.async(fn -> JsonRpc.eth_coinbase("http://localhost:#{http_port}") end),
+            Task.async(fn ->
+              state
+              |> get_internal_rpc_url()
+              |> JsonRpc.eth_coinbase()
+            end),
             Task.async(fn -> load_accounts(db_path) end)
           ]
           |> Enum.map(&Task.await/1)
@@ -936,6 +977,8 @@ defmodule Staxx.Testchain.EVM do
 
       # Allow to override functions
       defoverridable pick_ports: 2,
+                     internal_http_port: 0,
+                     internal_ws_port: 0,
                      migrate_config: 1,
                      get_version: 0,
                      version: 0,

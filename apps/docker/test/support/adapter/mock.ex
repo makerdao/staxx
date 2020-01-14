@@ -38,5 +38,5 @@ defmodule Staxx.Docker.Adapter.Mock do
   def join_network(id, _container_id), do: {:ok, id}
 
   @impl true
-  def get_nats_network(), do: "nats"
+  def inspect_container(_, _), do: ""
 end

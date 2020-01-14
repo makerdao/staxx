@@ -62,7 +62,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth.Genesis do
   def write(%__MODULE__{} = genesis, path) do
     # create dir if not exist
     unless File.dir?(path) do
-
+      Utils.mkdir_p(path)
     end
 
     # Generate binary content for file

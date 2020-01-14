@@ -37,6 +37,13 @@ defmodule Staxx.Docker do
   @callback rm(id_or_name :: binary) :: :ok | {:error, term}
 
   @doc """
+  Runs `docker inspect id_or_name`` command for given container.
+  `format` will be set as `docker inspect -f format id_or_name`
+  """
+  @callback inspect_container(id_or_name :: binary, format :: binary) ::
+              {:ok, binary} | {:error, term}
+
+  @doc """
   Create new docker network with given ID for stack
   """
   @callback create_network(id :: binary) :: {:ok, binary} | {:error, term}
@@ -50,11 +57,6 @@ defmodule Staxx.Docker do
   Remove all unused docker networks
   """
   @callback prune_networks() :: :ok | {:error, term}
-
-  @doc """
-  Get nats docker network name for staxx
-  """
-  @callback get_nats_network() :: binary
 
   @doc """
   Join container to network
@@ -107,11 +109,11 @@ defmodule Staxx.Docker do
   end
 
   @doc """
-  Run container in sync mode. 
+  Run container in sync mode.
   Means that system will run container and will wait for it's termination.
   As a result function will return all output from running container.
 
-  Note: 
+  Note:
     `rm` flag will be controlled by system.
     `permanent` option will also be set to `false`
     `ports` will be replaced with `[]`
@@ -129,11 +131,18 @@ defmodule Staxx.Docker do
       |> Container.start_link()
       |> receive_exit()
       |> case do
-        {:ok, exit_code} ->
+        {:ok, 0} ->
           data = logs(name)
           # Remove docker image
           rm(name)
-          %SyncResult{status: exit_code, data: data}
+
+          %SyncResult{status: 0, data: data}
+
+        {:ok, exit_code} ->
+          data = logs(name)
+          Logger.error(fn -> "Contaioner failed with error: #{inspect(data)}" end)
+
+          %SyncResult{status: exit_code, err: data}
 
         {:error, err} ->
           %SyncResult{err: err, status: 1}
@@ -172,6 +181,17 @@ defmodule Staxx.Docker do
     do: adapter().rm(id_or_name)
 
   @doc """
+  Remove Docker container
+  """
+  @spec inspect_container(binary, binary) :: {:ok, binary} | {:error, term}
+  def inspect_container(id_or_name, format \\ "")
+
+  def inspect_container("", _), do: {:error, :no_container_id}
+
+  def inspect_container(id_or_name, format),
+    do: adapter().inspect_container(id_or_name, format)
+
+  @doc """
   Create new docker network for stack
   """
   @spec create_network(binary) :: {:ok, binary} | {:error, term}
@@ -193,18 +213,45 @@ defmodule Staxx.Docker do
     do: adapter().prune_networks()
 
   @doc """
-  Get nats docker network name for staxx
-  """
-  @spec get_nats_network() :: binary
-  def get_nats_network(),
-    do: adapter().get_nats_network()
-
-  @doc """
   Join container to network
   """
   @spec join_network(binary, binary) :: {:ok, term} | {:error, term}
   def join_network(id, container),
     do: adapter().join_network(id, container)
+
+  @doc """
+  Load IP address for given container id or name
+  """
+  @spec get_container_ip(binary) :: {:ok, binary} | {:error, term}
+  def get_container_ip(""), do: {:error, :no_container_id}
+
+  def get_container_ip(id_or_name),
+    do: inspect(id_or_name, "{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}")
+
+  @doc """
+  Get network for staxx env.
+  """
+  @spec get_staxx_network() :: binary
+  def get_staxx_network(),
+    do: Application.get_env(:docker, :staxx_network, "")
+
+  @doc """
+  Get nats docker network name
+  """
+  @spec get_nats_network() :: binary
+  def get_nats_network(),
+    do: Application.get_env(:docker, :nats_network, "")
+
+  @doc """
+  Identifies if Staxx is running inside container or not.
+  This is usefull for EVMs to build correct EVM url.
+
+  In most cases it's just way to fix DockerInDocker issues with
+  mounting volumes, networking or others.
+  """
+  @spec in_container?() :: boolean
+  def in_container?(),
+    do: Application.get_env(:docker, :in_container?, false)
 
   @doc """
   Generate random name for container

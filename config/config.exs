@@ -42,6 +42,17 @@ config :docker, sync_timmeout: 180_000
 # Default docker adapter
 config :docker, adapter: Staxx.Docker.Adapter.DockerD
 
+# Default staxx network
+# will be assigned to all EVM containers
+config :docker, staxx_network: ""
+# Default nats network
+config :docker, nats_network: ""
+
+# Flag identifies if Staxx is running inside container
+# (Docker in Docker) mode.
+# If yes we will have to rework connections and EVM urls.
+config :docker, in_container?: false
+
 #
 # Event bus app config
 #
@@ -103,8 +114,12 @@ config :logger, :console,
 # if you want to provide default values for your application for
 # 3rd-party users, it should be done in your "mix.exs" file.
 
-# Host for chains (for deployment process)
+# Host for chains (for deployment process) (external host)
 config :testchain, host: "host.docker.internal"
+
+# Internal evms host.
+# By this host staxx will call EVM to validate that it's online
+config :testchain, internal_host: "localhost"
 
 # NATS.io url for deployment process
 config :testchain, nats: %{host: "nats.local", port: 4222}
@@ -150,7 +165,6 @@ config :testchain,
   geth_docker_image: "makerdao/geth_evm:1.8.27",
   ganache_docker_image: "makerdao/ganache_evm:6.7.0"
 
-
 #
 # Utils configs
 #
@@ -158,6 +172,6 @@ config :testchain,
 # Default mode for newly created files
 config :utils, file_chmod: 0o777
 # Default mode for newly created folders
-config :utils, dir_chmod: 0o777
+config :utils, dir_chmod: 0o755
 
 import_config "#{Mix.env()}.exs"

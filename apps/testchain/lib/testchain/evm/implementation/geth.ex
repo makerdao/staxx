@@ -20,11 +20,6 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth do
 
   require Logger
 
-  # Default HTTP RPC port
-  @http_port 8545
-  # Default WS RPC port
-  @ws_port 8546
-
   @doc """
   Path to geth account password file.
   This file have to be included in geth docker image by given path
@@ -75,7 +70,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth do
       name: config.container_name,
       description: "#{id}: Geth EVM",
       cmd: build_cmd(config, accounts),
-      ports: [@http_port, @ws_port],
+      ports: [internal_http_port(), internal_ws_port()],
       volumes: ["#{db_path}:#{db_path}"]
     }
 
@@ -83,11 +78,11 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth do
   end
 
   @impl EVM
-  def pick_ports([{http_port, @http_port}, {ws_port, @ws_port}], _),
-    do: {http_port, ws_port}
-
-  def pick_ports(_, _),
-    do: raise(ArgumentError, "Wrong input ports for Geth EVM")
+  def pick_ports(ports, _) do
+    {http_port, _} = Enum.find(ports, fn {_, port} -> port == internal_http_port() end)
+    {ws_port, _} = Enum.find(ports, fn {_, port} -> port == internal_ws_port() end)
+    {http_port, ws_port}
+  end
 
   @impl EVM
   def docker_image(),
@@ -109,11 +104,17 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth do
     |> Docker.run_sync()
     |> case do
       %SyncResult{status: 0} ->
-        Logger.debug("#{__MODULE__} geth initialized chain in #{db_path}")
+        Logger.debug(fn -> "#{__MODULE__} geth initialized chain in #{db_path}" end)
         :ok
 
-      %SyncResult{status: code} ->
-        Logger.error("#{__MODULE__}: Failed to run `geth init`. exited with code: #{code}")
+      %SyncResult{status: code, err: err} ->
+        Logger.error(fn ->
+          """
+          #{__MODULE__}: Failed to run `geth init`. exited with code: #{code}.
+          Error: #{inspect(err, pretty: true)}
+          """
+        end)
+
         {:error, :init_failed}
     end
   end
@@ -158,13 +159,13 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth do
       "--mine",
       "--minerthreads=1",
       "--rpc",
-      "--rpcport #{@http_port}",
+      "--rpcport #{internal_http_port()}",
       "--rpcapi admin,personal,eth,miner,debug,txpool,net,web3,db,ssh",
       "--rpcaddr=\"0.0.0.0\"",
       "--rpccorsdomain=\"*\"",
       "--rpcvhosts=\"*\"",
       "--ws",
-      "--wsport #{@ws_port}",
+      "--wsport #{internal_ws_port()}",
       "--wsorigins=\"*\"",
       "--gasprice=\"2000000000\"",
       "--targetgaslimit=\"#{gas_limit}\"",

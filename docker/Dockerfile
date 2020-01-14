@@ -82,12 +82,14 @@ RUN apk update && \
 ENV APP_NAME=${APP_NAME} \
     PORT=${PORT} \
     MIX_ENV=${MIX_ENV} \
+    IN_CONTAINER=true \
     DEPLOYMENT_SERVICE_URL=http://testchain-deployment.local:5001/rpc \
     CHAINS_FRONT_URL=host.docker.internal \
     CHAINS_DB_PATH=/opt/chains \
     NATS_URL=nats.local \
     STACKS_DIR=/opt/stacks \
     SNAPSHOTS_DB_PATH="/opt/snapshots" \
+    INTERNAL_EVM_HOST=localhost \
     STACKS_FRONT_URL=http://localhost \
     RELEASE_COOKIE="W_cC]7^rUeVZc|}$UL{@&1sQwT3}p507mFlh<E=/f!cxWI}4gpQx7Yu{ZUaD0cuK" \
     RELEASE_NODE=staxx@staxx.local \

@@ -8,7 +8,7 @@ services:
     ports:
       - "4222:4222"
     networks:
-     - net1
+     - staxx
   # consul:
     # image: 'consul:latest'
     # ports:
@@ -17,7 +17,7 @@ services:
     # environment:
       # CONSUL_BIND_INTERFACE: eth0
     # networks:
-      # - net1
+      # - staxx
   db:
     image: 'postgres:11-alpine'
     container_name: db.local
@@ -30,7 +30,7 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - net1
+      - staxx
   staxx:
     image: makerdao/staxx:dev
     container_name: staxx.local
@@ -44,16 +44,21 @@ services:
       # - "9100:9100"
       - "4000:4000"
     environment:
+      DOCKER_STAXX_NETWORK: docker_staxx
+      DOCKER_NATS_NETWORK: docker_staxx
+      STACKS_DIR: /tmp/stacks
+      CHAINS_DB_PATH: /tmp/chains
+      SNAPSHOTS_DB_PATH: /tmp/snapshots
       POSTGRES_HOST: db.local
       NATS_URL: nats.local
       DOCKER_DEV_MODE_ALLOWED: "true"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - "/tmp/chains:/opt/chains"
-      - "/tmp/snapshots:/opt/snapshots"
-      - "/tmp/stacks:/opt/stacks"
+      - "/tmp/chains:/tmp/chains"
+      - "/tmp/snapshots:/tmp/snapshots"
+      - "/tmp/stacks:/tmp/stacks"
     networks:
-     - net1
+     - staxx
   testchain-deployment:
     image: makerdao/testchain-deployment:dev
     container_name: testchain-deployment.local
@@ -69,22 +74,22 @@ services:
     depends_on:
       - nats
     networks:
-     - net1
-  testchain-dashboard:
-    image: makerdao/testchain-dashboard
-    container_name: testchain-dashboard.local
-    expose:
-      - "3000"
-    ports:
-      - "4001:3000"
-    depends_on:
-      - staxx
-    environment:
-      TESTCHAIN_SERVICE_URL: http://localhost
-      TESTCHAIN_SERVICE_PORT: 4000
-      TESTCHAIN_SERVICE_WS_URL: ws://localhost:4000/socket
-    networks:
-     - net1
+     - staxx
+  # testchain-dashboard:
+  #   image: makerdao/testchain-dashboard
+  #   container_name: testchain-dashboard.local
+  #   expose:
+  #     - "3000"
+  #   ports:
+  #     - "4001:3000"
+  #   depends_on:
+  #     - staxx
+  #   environment:
+  #     TESTCHAIN_SERVICE_URL: http://localhost
+  #     TESTCHAIN_SERVICE_PORT: 4000
+  #     TESTCHAIN_SERVICE_WS_URL: ws://localhost:4000/socket
+  #   networks:
+  #    - staxx
   # prometheus:
   #   image: prom/prometheus:latest
   #   container_name: prometheus
@@ -95,7 +100,7 @@ services:
   #   ports:
   #       - '9090:9090'
   #   networks:
-  #     - net1
+  #     - staxx
   # grafana:
   #   image: grafana/grafana
   #   container_name: grafana
@@ -107,12 +112,12 @@ services:
   #     # - ./grafana/grafana.ini:/etc/grafana/grafana.ini
   #     - ./metrics_config/grafana/datasource.yaml:/etc/grafana/provisioning/datasources/datasource.yaml
   #   networks:
-  #     - net1
+  #     - staxx
 
 # We're using custom network setup, as it ships with a DNS
 # system which allows containers to communicate by hostnames.
 networks:
-  net1:
+  staxx:
     driver: bridge
 
 volumes:

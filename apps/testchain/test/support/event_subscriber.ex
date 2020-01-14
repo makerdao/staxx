@@ -45,8 +45,6 @@ defmodule Staxx.Testchain.Test.EventSubscriber do
     |> EventBus.fetch_event()
     |> case do
       %{data: data} ->
-        # IO.inspect(data)
-
         state
         |> Enum.each(&send(&1, data))
 

@@ -4,9 +4,6 @@ defmodule Staxx.Testchain.EVM.Implementation.Ganache do
   """
   use Staxx.Testchain.EVM
 
-  # JSON-RPC port
-  @http_port 8545
-
   @impl EVM
   def start(%Config{id: id, accounts: amount, db_path: db_path} = config) do
     Logger.debug("#{id}: Starting ganache-cli")
@@ -29,7 +26,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Ganache do
       name: config.container_name,
       description: "#{id}: Ganache EVM",
       cmd: build_command(config, accounts),
-      ports: [@http_port],
+      ports: [internal_http_port()],
       volumes: ["#{db_path}:#{db_path}"]
     }
 
@@ -37,11 +34,15 @@ defmodule Staxx.Testchain.EVM.Implementation.Ganache do
   end
 
   @impl EVM
-  def pick_ports([{http_port, @http_port}], _),
+  def pick_ports([{http_port, _internal_port}], _),
     do: {http_port, http_port}
 
   def pick_ports(_, _),
     do: raise(ArgumentError, "Wrong input ports for Ganache EVM")
+
+  @impl EVM
+  def internal_ws_port(),
+    do: internal_http_port()
 
   @impl EVM
   def docker_image(),
@@ -63,7 +64,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Ganache do
       "-h 0.0.0.0",
       "--noVMErrorsOnRPCResponse",
       "-i #{network_id}",
-      "-p #{@http_port}",
+      "-p #{internal_http_port()}",
       "--db #{db_path}",
       "--gasLimit #{gas_limit}",
       inline_accounts(accounts),

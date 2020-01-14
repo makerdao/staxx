@@ -52,8 +52,7 @@ defmodule Staxx.Testchain.EVMTest do
     assert :ok = Utils.mkdir_p(db_path)
     assert File.exists?(db_path)
 
-    assert {:ok, %ChainRecord{id: ^id}} =
-             ChainRecord.create(%{id: id, node_type: "geth"})
+    assert {:ok, %ChainRecord{id: ^id}} = ChainRecord.create(%{id: id, node_type: "geth"})
 
     assert :ok = EVM.clean(id)
     refute File.exists?(db_path)
