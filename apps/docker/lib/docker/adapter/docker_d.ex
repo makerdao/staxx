@@ -243,7 +243,9 @@ defmodule Staxx.Docker.Adapter.DockerD do
   def join_network(id, container_id) do
     Logger.debug("Adding new docker container #{container_id} to network #{id}")
 
-    case System.cmd(executable!(), ["network", "connect", id, container_id], stderr_to_stdout: true) do
+    case System.cmd(executable!(), ["network", "connect", id, container_id],
+           stderr_to_stdout: true
+         ) do
       {res, 0} ->
         {:ok, String.replace(res, "\n", "")}
 
