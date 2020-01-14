@@ -363,14 +363,14 @@ defmodule Staxx.Testchain.Helper do
   """
   @spec notify_status(Testchain.evm_id(), Testchain.EVM.status()) :: :ok
   def notify_status(id, status) do
+    # Saving status change in DB
+    ChainRecord.set_status(id, status)
+
     # In case of need to propagate EVM status as standalone event.
     # Status will be propagated as event.
     if status in @propagated_statuses do
       Notification.notify(id, status)
     end
-
-    # Saving status change in DB
-    ChainRecord.set_status(id, status)
 
     Notification.notify(id, :status_changed, %{status: status})
   end
