@@ -44,9 +44,9 @@ config :docker, adapter: Staxx.Docker.Adapter.DockerD
 
 # Default staxx network
 # will be assigned to all EVM containers
-config :docker, staxx_network: ""
+config :docker, staxx_network: "docker-staxx"
 # Default nats network
-config :docker, nats_network: ""
+config :docker, nats_network: "container:nats.local"
 
 # Flag identifies if Staxx is running inside container
 # (Docker in Docker) mode.

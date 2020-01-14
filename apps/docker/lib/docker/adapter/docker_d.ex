@@ -122,7 +122,7 @@ defmodule Staxx.Docker.Adapter.DockerD do
     Logger.debug("Stopping container #{id_or_name}")
 
     # Stop with 4s delay
-    case System.cmd(executable!(), ["stop", "-t", "4", id_or_name]) do
+    case System.cmd(executable!(), ["stop", "-t", "4", id_or_name], stderr_to_stdout: true) do
       # Ganache my love will not terminate with 0 status. Only 137
       {id, status} when status in [0, 137] ->
         {:ok, String.replace(id, "\n", "")}
@@ -146,7 +146,7 @@ defmodule Staxx.Docker.Adapter.DockerD do
     ]
 
     executable!()
-    |> System.cmd(params)
+    |> System.cmd(params, stderr_to_stdout: true)
     |> case do
       {ip, 0} ->
         {:ok, String.trim(ip)}
@@ -168,7 +168,7 @@ defmodule Staxx.Docker.Adapter.DockerD do
     ]
 
     executable!()
-    |> System.cmd(params)
+    |> System.cmd(params, stderr_to_stdout: true)
     |> case do
       {ip, 0} ->
         {:ok, String.trim(ip)}
@@ -189,12 +189,12 @@ defmodule Staxx.Docker.Adapter.DockerD do
   def create_network(id) do
     Logger.debug("Creating new docker network #{id}")
 
-    case System.cmd(executable!(), ["network", "create", id]) do
+    case System.cmd(executable!(), ["network", "create", id], stderr_to_stdout: true) do
       {res, 0} ->
         {:ok, String.replace(res, "\n", "")}
 
       {err, exit_status} ->
-        Logger.error("Failed to create network with code: #{exit_status} - #{inspect(err)}")
+        Logger.warn("Failed to create network with code: #{exit_status} - #{inspect(err)}")
         {:error, err}
     end
   end
@@ -207,7 +207,7 @@ defmodule Staxx.Docker.Adapter.DockerD do
   def rm_network(id) do
     Logger.debug("Removing new docker network #{id}")
 
-    case System.cmd(executable!(), ["network", "rm", id]) do
+    case System.cmd(executable!(), ["network", "rm", id], stderr_to_stdout: true) do
       {_res, 0} ->
         :ok
 
@@ -225,7 +225,7 @@ defmodule Staxx.Docker.Adapter.DockerD do
   def prune_networks() do
     Logger.debug("Removing all docker unused networks")
 
-    case System.cmd(executable!(), ["network", "prune", "-f"]) do
+    case System.cmd(executable!(), ["network", "prune", "-f"], stderr_to_stdout: true) do
       {_res, 0} ->
         :ok
 
@@ -243,7 +243,7 @@ defmodule Staxx.Docker.Adapter.DockerD do
   def join_network(id, container_id) do
     Logger.debug("Adding new docker container #{container_id} to network #{id}")
 
-    case System.cmd(executable!(), ["network", "connect", id, container_id]) do
+    case System.cmd(executable!(), ["network", "connect", id, container_id], stderr_to_stdout: true) do
       {res, 0} ->
         {:ok, String.replace(res, "\n", "")}
 

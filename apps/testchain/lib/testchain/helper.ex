@@ -318,10 +318,7 @@ defmodule Staxx.Testchain.Helper do
   """
   @spec run_deployment(Testchain.evm_id(), GenServer.server(), binary, 1..9, map()) ::
           {:ok, term} | {:error, term}
-  def run_deployment(id, evm_pid, git_ref, step_id, %{
-        rpc_url: rpc_url,
-        coinbase: coinbase
-      }) do
+  def run_deployment(id, evm_pid, git_ref, step_id, rpc_url, coinbase) do
     %DeploymentConfig{
       evm_pid: evm_pid,
       scope_id: id,

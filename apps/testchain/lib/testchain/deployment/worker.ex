@@ -66,8 +66,6 @@ defmodule Staxx.Testchain.Deployment.Worker do
 
   @doc false
   def handle_continue(:spawn_worker, %Config{scope_id: id} = config) do
-    # TODO may be run in sync mode ?
-
     config
     |> build_container()
     |> Container.start_link()
@@ -168,6 +166,7 @@ defmodule Staxx.Testchain.Deployment.Worker do
         step_id: step_id
       }) do
     # Replace localhost to docker internal
+    # That's really bad to do but we have to to make it work on local machine
     rpc_url = String.replace(rpc_url, "localhost", "host.docker.internal")
 
     Logger.debug(fn -> "#{id}: Starting new deployment container: #{docker_image()}" end)
@@ -179,6 +178,7 @@ defmodule Staxx.Testchain.Deployment.Worker do
       # Required to run under root because of something in nix
       assign_user: false,
       image: docker_image(),
+      # We need access to NATS.io and exact same network will access EVMs
       network: Docker.get_nats_network(),
       volumes: ["nix-db:/nix"],
       env: %{

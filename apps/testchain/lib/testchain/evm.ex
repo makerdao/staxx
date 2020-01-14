@@ -489,9 +489,18 @@ defmodule Staxx.Testchain.EVM do
         # Load step details
         with step when is_map(step) <- StepsFetcher.get(deploy_step),
              hash <- Map.get(config, :deploy_ref, @default_deploy_ref),
-             {:ok, pid} <- Helper.run_deployment(id, self(), hash, deploy_step, details) do
+             %{coinbase: coinbase} <- details,
+             rpc_url <- get_internal_rpc_url(state),
+             {:ok, pid} <- Helper.run_deployment(id, self(), hash, deploy_step, rpc_url, coinbase) do
           Logger.debug(fn ->
-            "#{id}: Deployment process scheduled, worker pid: #{inspect(pid)} !"
+            """
+            #{id}: Deployment process scheduled.
+            Worker pid: #{inspect(pid)}
+            EVM RPC URL: #{rpc_url}
+            Deployment scripts ref: #{hash}
+            Deployment step: #{deploy_step}
+            Step details: #{inspect(step, pretty: true)}
+            """
           end)
 
           # Collecting telemetry

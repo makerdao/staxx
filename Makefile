@@ -194,7 +194,7 @@ stop-elixir-env:
 	@docker-compose -f ./docker/docker-compose-elixir.yml stop
 .PHONY: stop-elixir-env
 
-rm-elixir-env:
+rm-elixir-env: stop-elixir-env
 	@docker-compose -f ./docker/docker-compose-elixir.yml rm
 .PHONY: rm-elixir-env
 
