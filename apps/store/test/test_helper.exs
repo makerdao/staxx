@@ -1,3 +1,3 @@
 ExUnit.start()
 Faker.start()
-Ecto.Adapters.SQL.Sandbox.mode(Staxx.Store.Repo, :manual)
+Ecto.Adapters.SQL.Sandbox.mode(Staxx.Store.Repo, :auto)
