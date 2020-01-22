@@ -7,7 +7,7 @@ defmodule Staxx.Testchain.SnapshotManager do
 
   alias Staxx.Testchain
   alias Staxx.Testchain.SnapshotDetails
-  alias Staxx.Testchain.SnapshotStore
+  alias Staxx.Store.Testchain.SnapshotsStore
   alias Staxx.Utils
 
   # Snapshot taking/restoring timeout
@@ -147,7 +147,7 @@ defmodule Staxx.Testchain.SnapshotManager do
   """
   @spec store(SnapshotDetails.t()) :: :ok | {:error, term()}
   def store(%SnapshotDetails{} = snapshot),
-    do: SnapshotStore.store(snapshot)
+    do: SnapshotsStore.store(snapshot)
 
   @doc """
   Create new snapshot record by given details and existing file
@@ -163,9 +163,9 @@ defmodule Staxx.Testchain.SnapshotManager do
       path: path
     }
 
-    with {:exist, nil} <- {:exist, SnapshotStore.by_id(id)},
+    with {:exist, nil} <- {:exist, SnapshotsStore.by_id(id)},
          true <- File.exists?(path),
-         :ok <- SnapshotStore.store(details) do
+         :ok <- SnapshotsStore.store(details) do
       {:ok, details}
     else
       {:exist, _} ->
@@ -184,13 +184,13 @@ defmodule Staxx.Testchain.SnapshotManager do
   In case of error it might raise an exception
   """
   @spec by_id(binary) :: SnapshotDetails.t() | nil
-  def by_id(id), do: SnapshotStore.by_id(id)
+  def by_id(id), do: SnapshotsStore.by_id(id)
 
   @doc """
   Load list of existing snapshots by chain type
   """
-  @spec by_chain(Testchain.evm_type()) :: [SnapshotDetails.t()]
-  def by_chain(chain), do: SnapshotStore.by_chain(chain)
+  @spec by_chain(ExChain.evm_type()) :: [SnapshotDetails.t()]
+  def by_chain(chain), do: SnapshotsStore.by_chain(chain)
 
   @doc """
   Remove snapshot details from local DB
@@ -207,7 +207,7 @@ defmodule Staxx.Testchain.SnapshotManager do
         end
 
         # Remove from db
-        SnapshotStore.remove(id)
+        SnapshotsStore.remove(id)
 
         :ok
     end
@@ -220,7 +220,7 @@ defmodule Staxx.Testchain.SnapshotManager do
   def generate_snapshot_id() do
     id = Testchain.unique_id()
 
-    case SnapshotStore.by_id(id) do
+    case SnapshotsStore.by_id(id) do
       nil ->
         id
 
