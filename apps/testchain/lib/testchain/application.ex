@@ -16,7 +16,6 @@ defmodule Staxx.Testchain.Application do
 
     # List all child processes to be supervised
     children = [
-      Staxx.Testchain.SnapshotStore,
       Staxx.Testchain.Deployment.Supervisor,
       {Registry, keys: :unique, name: Staxx.Testchain.EVMRegistry},
       :poolboy.child_spec(:worker, AccountsCreator.poolboy_config())

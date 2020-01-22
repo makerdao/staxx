@@ -10,10 +10,16 @@ defmodule Staxx.Store.MixProject do
       deps_path: "../../deps",
       lockfile: "../../mix.lock",
       elixir: "~> 1.9",
+      elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
   end
+
+  # Specifies which paths to compile per environment.
+  defp elixirc_paths(:test), do: ["test/support" | elixirc_paths()]
+  defp elixirc_paths(_), do: elixirc_paths()
+  defp elixirc_paths, do: ["lib"]
 
   # Run "mix help compile.app" to learn about applications.
   def application do
@@ -28,7 +34,8 @@ defmodule Staxx.Store.MixProject do
     [
       {:event_stream, in_umbrella: true},
       {:ecto_sql, "~> 3.2"},
-      {:postgrex, ">= 0.0.0"}
+      {:postgrex, ">= 0.0.0"},
+      {:faker, "~> 0.11", only: :test}
     ]
   end
 end

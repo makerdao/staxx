@@ -77,6 +77,7 @@ config :store, Staxx.Store.Repo,
   hostname: System.get_env("POSTGRES_HOST", "localhost")
 
 config :store, ecto_repos: [Staxx.Store.Repo]
+config :store, snapshots_store_adapter: Staxx.Store.Testchain.Adapters.DETS
 
 #
 # Metrics

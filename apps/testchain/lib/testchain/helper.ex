@@ -36,9 +36,6 @@ defmodule Staxx.Testchain.Helper do
   # List of EVM statuses that should be propagated as standalone events
   @propagated_statuses [:ready, :terminated]
 
-  # Snapshots table name used as DETS file name
-  @snapshots_table "snapshots"
-
   # File name where all details will be written on snapshoting
   @dump_file "chain_dump.bin"
 
@@ -68,6 +65,7 @@ defmodule Staxx.Testchain.Helper do
   def generate_id!(config) when is_map(config) do
     config
     |> Map.put(:id, Testchain.unique_id())
+
   end
 
   def generate_id!(config),
@@ -398,26 +396,6 @@ defmodule Staxx.Testchain.Helper do
         Logger.error(fn -> "Failed to read file #{file}: #{inspect(err)}" end)
         {:error, "failed to load data from #{file}"}
     end
-  end
-
-  @doc """
-  Returns path to DETS files directory
-  """
-  @spec dets_db_path() :: binary
-  def dets_db_path() do
-    :testchain
-    |> Application.get_env(:dets_db_path)
-    |> Path.expand()
-  end
-
-  @doc """
-  Returns path to DETS file for snapshots table
-  """
-  @spec snapshots_table :: any()
-  def snapshots_table() do
-    dets_db_path()
-    |> Path.join(@snapshots_table)
-    |> String.to_atom()
   end
 
   ########################################

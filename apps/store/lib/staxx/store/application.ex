@@ -6,10 +6,11 @@ defmodule Staxx.Store.Application do
   use Application
 
   def start(_type, _args) do
-    children = [
-      Staxx.Store.Repo
-      # Staxx.Store.EventHandler
-    ]
+    children =
+      [
+        Staxx.Store.Repo,
+        #Staxx.Store.EventHandler
+      ] ++ Staxx.Store.Testchain.SnapshotsStore.child_spec()
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options

@@ -40,3 +40,5 @@ chains
 *.iml
 
 _rel
+
+**/.DS_Store

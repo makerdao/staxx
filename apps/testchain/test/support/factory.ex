@@ -1,4 +1,5 @@
 defmodule Staxx.Testchain.Factory do
+  alias Faker
   alias Staxx.Testchain
   alias Staxx.Testchain.SnapshotDetails
   alias Staxx.Testchain.EVM.{Config}
