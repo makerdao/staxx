@@ -53,7 +53,8 @@ defmodule Staxx.MixProject do
   # Run "mix help deps" for examples and options.
   defp deps do
     [
-      {:telemetry, "~> 0.4"}
+      {:telemetry, "~> 0.4"},
+      {:credo, "~> 1.1.0", only: [:dev, :test], runtime: false}
     ]
   end
 end
