@@ -20,7 +20,8 @@ defmodule Staxx.EventStream.EventStreamTest do
 
     # subscribe to the EventSubscriber
     EventStream.subscribe({EventSubscriber, [".*"]})
-    Process.sleep(@receive_timeout) # timeout for subscribe
+    # timeout for subscribe
+    Process.sleep(@receive_timeout)
 
     # receive the chain message
     EventStream.dispatch({:chain, "test_msg"})
@@ -36,7 +37,8 @@ defmodule Staxx.EventStream.EventStreamTest do
 
     # unsubscribe from the EventSubscriber
     EventStream.unsubscribe(EventSubscriber)
-    Process.sleep(@receive_timeout) # timeout for unsubscribe
+    # timeout for unsubscribe
+    Process.sleep(@receive_timeout)
 
     # don't receive the message because haven't subscription
     EventStream.dispatch({:chain, "test_msg"})

@@ -33,4 +33,18 @@ defmodule Staxx.WebApiWeb.FallbackController do
     |> put_view(ErrorView)
     |> render("404.json", message: "Not found")
   end
+
+  def call(conn, error) do
+    Logger.error(fn ->
+      """
+      Unknown error catched in FallbackController:
+      #{inspect(error, pretty: true)}
+      """
+    end)
+
+    conn
+    |> put_status(500)
+    |> put_view(ErrorView)
+    |> render("500.json", message: "Unknown error")
+  end
 end

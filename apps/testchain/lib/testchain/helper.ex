@@ -65,7 +65,6 @@ defmodule Staxx.Testchain.Helper do
   def generate_id!(config) when is_map(config) do
     config
     |> Map.put(:id, Testchain.unique_id())
-
   end
 
   def generate_id!(config),

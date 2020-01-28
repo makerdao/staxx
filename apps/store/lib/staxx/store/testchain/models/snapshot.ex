@@ -6,11 +6,11 @@ defmodule Staxx.Store.Testchain.Models.Snapshot do
   import Ecto.Changeset
 
   @type t :: %__MODULE__{
-    id: binary,
-    description: binary,
-    path: binary,
-    chain: binary | atom
-  }
+          id: binary,
+          description: binary,
+          path: binary,
+          chain: binary | atom
+        }
 
   @primary_key {:id, :string, autogenerate: false}
   schema "snapshots" do

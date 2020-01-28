@@ -11,7 +11,7 @@ defmodule Staxx.WebApiWeb.ChainController do
   alias Staxx.WebApiWeb.ErrorView
 
   # content type of snapshot that will be uploaded
-  @filetype "application/gzip"
+  @filetypes ["application/x-gzip", "application/gzip"]
 
   # Get version for binaries and chain
   def version(conn, _) do
@@ -117,7 +117,7 @@ defmodule Staxx.WebApiWeb.ChainController do
       |> Map.get(:filename)
       |> String.replace(".tgz", "")
 
-    with @filetype <- Map.get(file, :content_type),
+    with true <- Map.get(file, :content_type) in @filetypes,
          true <- "" != description,
          true <- File.exists?(Map.get(file, :path)),
          :ok <- copy_snapshot(file),

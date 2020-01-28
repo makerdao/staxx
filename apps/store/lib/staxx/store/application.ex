@@ -8,8 +8,8 @@ defmodule Staxx.Store.Application do
   def start(_type, _args) do
     children =
       [
-        Staxx.Store.Repo,
-        #Staxx.Store.EventHandler
+        Staxx.Store.Repo
+        # Staxx.Store.EventHandler
       ] ++ Staxx.Store.Testchain.SnapshotsStore.child_spec()
 
     # See https://hexdocs.pm/elixir/Supervisor.html

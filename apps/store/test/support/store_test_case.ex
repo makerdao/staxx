@@ -18,7 +18,9 @@ defmodule Staxx.Store.StoreTestCase do
           %{id: id, description: description, path: path} = snapshot = build_snapshot_details()
           assert :ok == @adapter.store(snapshot)
 
-          assert %{id: id1, description: description1, path: path1} = found_snapshot = @adapter.by_id(id)
+          assert %{id: id1, description: description1, path: path1} =
+                   found_snapshot = @adapter.by_id(id)
+
           assert id == id1
           assert description == description1
           assert path == path1
@@ -29,9 +31,9 @@ defmodule Staxx.Store.StoreTestCase do
         end
 
         test "should return snapshots by chain type" do
-          assert :ok = build_snapshot_details()|> @adapter.store()
-          assert :ok = build_snapshot_details() |>@adapter.store()
-          assert :ok =build_snapshot_details(:geth) |> @adapter.store()
+          assert :ok = build_snapshot_details() |> @adapter.store()
+          assert :ok = build_snapshot_details() |> @adapter.store()
+          assert :ok = build_snapshot_details(:geth) |> @adapter.store()
           assert [%{chain: :ganache}, %{chain: :ganache}] = @adapter.by_chain(:ganache)
           assert [%{chain: :geth}] = @adapter.by_chain(:geth)
         end
