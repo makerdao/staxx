@@ -93,7 +93,7 @@ docker-push-evm:
 	@docker push $(DOCKER_ID_USER)/$(GETH_IMAGE):$(GETH_TAG)
 .PHONY: docker-push-evm
 
-docker-push: docker-push-evm
+docker-push:
 	@echo "Pushing Staxx docker image"
 	@docker push $(DOCKER_ID_USER)/$(APP_NAME):$(TAG)
 .PHONY: docker-push
