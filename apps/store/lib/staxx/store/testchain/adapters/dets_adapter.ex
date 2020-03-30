@@ -29,7 +29,7 @@ defmodule Staxx.Store.Testchain.Adapters.DETS do
   """
   def init(state) do
     unless File.dir?(db_path()) do
-      File.mkdir(db_path())
+      File.mkdir_p!(db_path())
     end
 
     :dets.open_file(snapshots_table(), type: :set)
