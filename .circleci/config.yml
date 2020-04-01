@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  build:
+  test:
     machine: true
     branches:
       only:
@@ -72,4 +72,26 @@ jobs:
 
       - run: source ~/.bashrc && make run-elixir-env  # run all tests in project
       - run: source ~/.bashrc && mix test  # run all tests in project
-
+  build:
+    machine: true
+    branches:
+      only:
+        - master
+        - develop
+    environment:
+      MIX_ENV: "prod"
+    parallelism: 1  # run only one instance of this job in parallel
+    working_directory: ~/app  # directory where steps will run
+    steps:
+      - checkout  # check out source code to working directory
+      # - run: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+      - run: make build TAG=dev
+      # - run: make docker-push TAG=dev
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - test
+      - build:
+          requires:
+            - test
