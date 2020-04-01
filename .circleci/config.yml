@@ -72,6 +72,15 @@ jobs:
 
       - run: source ~/.bashrc && make run-elixir-env  # run all tests in project
       - run: source ~/.bashrc && mix test  # run all tests in project
-      - run: "[ $CIRCLE_BRANCH = 'develop' ] && make build TAG=dev"
-      - run: "[ $CIRCLE_BRANCH = 'master' ] && make build TAG=latest"
+      - run:
+          command: |
+            if [[ $CIRCLE_BRANCH = 'develop' ]]
+            then
+              make build TAG=dev
+            elif [[ $CIRCLE_BRANCH = 'master' ]]
+            then
+              make build TAG=latest
+            else
+              echo "No build process exist for branch ${CIRCLE_BRANCH}"
+            fi
 
