@@ -72,5 +72,6 @@ jobs:
 
       - run: source ~/.bashrc && make run-elixir-env  # run all tests in project
       - run: source ~/.bashrc && mix test  # run all tests in project
-      - run: make build TAG=dev
+      - run: [ $CIRCLE_BRANCH = 'develop' ] && make build TAG=dev
+      - run: [ $CIRCLE_BRANCH = 'master' ] && make build TAG=latest
 
