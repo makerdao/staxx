@@ -80,12 +80,12 @@ jobs:
           name: Running all required services
           command: source ~/.bashrc && make run-elixir-env  # run all tests in project
       - run:
-          name: Renning Tests
+          name: Running Tests
           command: source ~/.bashrc && mix test  # run all tests in project
       - run:
           name: Building & Releasing docker images
           command: |
-            echo "$DOCKER_PASSWORD" | docker login --username "$DOCKER_USERNAME" --password-stdin
+            echo "$DOCKER_PASSWORD" | docker login --username $DOCKER_USER --password-stdin
 
             if [[ $CIRCLE_BRANCH = 'develop' ]]
             then
