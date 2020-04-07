@@ -70,16 +70,25 @@ jobs:
           key: v1-build-cache
           paths: "_build"
 
-      - run: source ~/.bashrc && make run-elixir-env  # run all tests in project
-      - run: source ~/.bashrc && mix test  # run all tests in project
       - run:
+          name: Running all required services
+          command: source ~/.bashrc && make run-elixir-env  # run all tests in project
+      - run:
+          name: Renning Tests
+          command: source ~/.bashrc && mix test  # run all tests in project
+      - run:
+          name: Building & Releasing docker images
           command: |
+            echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+
             if [[ $CIRCLE_BRANCH = 'develop' ]]
             then
               make build TAG=dev
+              make docker-push TAG=dev
             elif [[ $CIRCLE_BRANCH = 'master' ]]
             then
               make build TAG=latest
+              make docker-push TAG=latest
             else
               echo "No build process exist for branch ${CIRCLE_BRANCH}"
             fi
