@@ -4,8 +4,7 @@
 
 
 ## Prerequisite Installations
-- [Node](https://nodejs.org/en/download/) (Version >= 8.9.0)
-- [Yarn](https://yarnpkg.com/en/)
+- [Docker](https://docs.docker.com/get-docker/)
 - [Docker Compose](https://docs.docker.com/compose/)
   - The docker compose service manages all the docker images needed for the setup and use of the testchain environment.
 
