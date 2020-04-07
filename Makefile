@@ -49,12 +49,12 @@ ganache-local:
 
 ganache-docker-image:
 	@echo "Building ganache docker image"
-	@docker build -f docker/evm/Dockerfile.ganache -t $(DOCKER_ID_USER)/$(GANACHE_IMAGE):$(GANACHE_TAG) .
+	@docker build --build-arg GANACHE_TAG=$(GANACHE_TAG) -f docker/evm/Dockerfile.ganache -t $(DOCKER_ID_USER)/$(GANACHE_IMAGE):$(GANACHE_TAG) .
 .PHONY: ganache-docker-image
 
 geth-docker-image:
 	@echo "Building geth docker image"
-	@docker build -f docker/evm/Dockerfile.geth -t $(DOCKER_ID_USER)/$(GETH_IMAGE):$(GETH_TAG) .
+	@docker build --build-arg GETH_TAG=$(GETH_TAG) -f docker/evm/Dockerfile.geth -t $(DOCKER_ID_USER)/$(GETH_IMAGE):$(GETH_TAG) .
 .PHONY: geth-docker-image
 
 geth-local:

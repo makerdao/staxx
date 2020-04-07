@@ -4,7 +4,6 @@ ARG ALPINE_VERSION=3.9
 
 FROM golang:1.11-alpine as builder
 
-ARG GANACHE_SUBDIR=./priv/presets/ganache-cli
 ARG GETH_TAG=v1.8.27
 ARG GETH_VDB_TAG=statediffing
 
