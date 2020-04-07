@@ -30,6 +30,7 @@ jobs:
           keys:
             - v0.2-asdf-otp
       - run:
+          name: Installing Elixir & Erlang
           command: ./circleci_setup.sh
           no_output_timeout: 20m
       - run:
@@ -59,7 +60,9 @@ jobs:
           keys:
             - v1-build-cache-{{ .Branch }}
             - v1-build-cache
-      - run: source ~/.bashrc && mix do deps.get, compile  # get updated dependencies & compile them
+      - run:
+          name: Downloading Elixir dependencies
+          command: source ~/.bashrc && mix do deps.get, compile  # get updated dependencies & compile them
       - save_cache:  # generate and store mix cache
           key: v1-mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
           paths: "deps"
@@ -77,7 +80,7 @@ jobs:
           paths: "_build"
 
       - run:
-          name: Running all required services
+          name: Starting test environment
           command: source ~/.bashrc && make run-elixir-env  # run all tests in project
       - run:
           name: Running Tests
