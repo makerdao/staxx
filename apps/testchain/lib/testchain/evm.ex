@@ -853,7 +853,7 @@ defmodule Staxx.Testchain.EVM do
             version
 
           _ ->
-            Logger.error("#{__MODULE__} Failed to parse version for geth")
+            Logger.error("#{__MODULE__} Failed to parse version for EVM")
             nil
         end
       end
@@ -874,9 +874,19 @@ defmodule Staxx.Testchain.EVM do
 
       @impl EVM
       def version() do
-        docker_image()
-        |> String.split(":")
-        |> List.last()
+        version =
+          docker_image()
+          |> String.split(":")
+          |> List.last()
+
+        # Checking version for cases like `v1.9.2`
+        case String.starts_with?(version, "v") do
+          true ->
+            String.replace(version, "v", "")
+
+          false ->
+            version
+        end
       end
 
       ########

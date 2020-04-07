@@ -7,9 +7,9 @@ MIX_ENV ?= prod
 TAG ?= latest
 DEPLOYMENT_WORKER_IMAGE ?= "makerdao/testchain-deployment-worker:$(TAG)"
 GETH_IMAGE ?= geth_evm
-GETH_TAG ?= 1.8.27
+GETH_TAG ?= v1.8.27
 GANACHE_IMAGE ?= ganache_evm
-GANACHE_TAG ?= 6.7.0
+GANACHE_TAG ?= v6.7.0
 GETH_VDB_TAG ?= v1.10-alpha.0
 
 help:

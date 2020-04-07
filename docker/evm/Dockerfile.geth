@@ -23,8 +23,8 @@ RUN git clone --single-branch --branch ${GETH_TAG} https://github.com/ethereum/g
 # Release image
 FROM alpine:${ALPINE_VERSION} as runtime
 
-ENV VERSION=v10.14.1 \
-    DOCKER=true
+RUN apk update && \
+    apk add --no-cache pcsc-lite
 
 # New user creation
 # RUN adduser -D -u 1000 app

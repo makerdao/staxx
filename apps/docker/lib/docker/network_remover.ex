@@ -12,6 +12,7 @@ defmodule Staxx.Docker.NetworkRemover do
   require Logger
 
   @timeout 360_000
+
   # @timeout 10_000
 
   @doc false

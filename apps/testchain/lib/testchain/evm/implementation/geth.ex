@@ -151,6 +151,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth do
     cmd = [
       "--datadir #{db_path}",
       "--networkid #{network_id}",
+      "--lightkdf",
       # Disabling network, node is private !
       "--maxpeers=0",
       "--port=0",
