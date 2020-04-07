@@ -152,6 +152,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth do
       "--datadir #{db_path}",
       "--networkid #{network_id}",
       "--lightkdf",
+      "--nodiscover",
       # Disabling network, node is private !
       "--maxpeers=0",
       "--port=0",
