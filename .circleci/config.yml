@@ -32,16 +32,22 @@ jobs:
       - run:
           command: ./circleci_setup.sh
           no_output_timeout: 20m
-      - run: source ~/.bashrc && asdf global erlang 22.1
-      - run: source ~/.bashrc && asdf global elixir 1.9.3
+      - run:
+          name: Setting Elixir & Erlang executables
+          command: |
+            source ~/.bashrc && asdf global erlang 22.1
+            source ~/.bashrc && asdf global elixir 1.9.3
       - save_cache:
           paths:
             - /root/.asdf
             - ~/.asdf
           key: v0.2-asdf-otp
-      - run: source ~/.bashrc && elixir --version && mix --version
-      - run: make docker-deps
-      - run: source ~/.bashrc && mix local.hex --force && mix local.rebar --force
+      - run:
+          name: Installing Staxx Dependencies (Elixir + Docker)
+          command: |
+            source ~/.bashrc && elixir --version && mix --version
+            source ~/.bashrc && mix local.hex --force && mix local.rebar --force
+            make docker-deps
 
       - restore_cache:  # restores saved mix cache
       # Read about caching dependencies: https://circleci.com/docs/2.0/caching/
