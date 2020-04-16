@@ -115,6 +115,12 @@
                     .receive('ok', () => console.log('Chain removed'))
                     .receive('error', console.error)
             }
+
+            function remove_snapshot(snapshot_id) {
+                api.push('remove_snapshot', { id: snapshot_id })
+                    .receive('ok', () => console.log('Snapshot removed'))
+                    .receive('error', console.error)
+            }
         </script>
     </head>
     <body>
@@ -230,6 +236,12 @@
             function remove_chain(id) {
                 api.push('remove_chain', { id: id })
                     .receive('ok', () => console.log('Chain removed'))
+                    .receive('error', console.error)
+            }
+
+            function remove_snapshot(snapshot_id) {
+                api.push('remove_snapshot', { id: snapshot_id })
+                    .receive('ok', () => console.log('Snapshot removed'))
                     .receive('error', console.error)
             }
         </pre>

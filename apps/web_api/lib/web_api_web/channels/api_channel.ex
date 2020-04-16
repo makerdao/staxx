@@ -69,4 +69,13 @@ defmodule Staxx.WebApiWeb.ApiChannel do
         {:reply, {:error, %{message: "Something wrong on removing chain"}}, socket}
     end
   end
+
+  def handle_in("remove_snapshot", %{"id" => id}, socket) do
+    with :ok <- SnapshotManager.remove(id) do
+      {:reply, {:ok, %{message: "Snapshot removed"}}, socket}
+    else
+      _ ->
+        {:reply, {:error, %{message: "Something wrong on removing snapshot"}}, socket}
+    end
+  end
 end
