@@ -40,7 +40,7 @@ defmodule Staxx.DeploymentScope.Stack.ConfigLoader do
 
     Logger.debug(fn ->
       """
-      #{__MODULE__}: Loaded list of staks configs
+      #{__MODULE__}: Loaded list of stacks configs
       #{inspect(state, pretty: true)}
       """
     end)

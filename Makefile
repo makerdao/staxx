@@ -128,6 +128,8 @@ run: ## Run the app in Docker
 .PHONY: run
 
 migrate-latest:
+	@docker-compose -f docker/docker-compose-dev.yml up -d db
+	@sleep 15
 	@docker-compose -f docker/docker-compose.yml run --rm staxx eval "Staxx.Store.Release.migrate()"
 .PHONY: migrate-latest
 
@@ -145,6 +147,8 @@ rm-latest:
 .PHONY: rm-latest
 
 migrate-dev:
+	@docker-compose -f docker/docker-compose-dev.yml up -d db
+	@sleep 15
 	@docker-compose -f docker/docker-compose-dev.yml run --rm staxx eval "Staxx.Store.Release.migrate()"
 .PHONY: migrate-dev
 
@@ -159,6 +163,7 @@ stop-dev:
 rm-dev: stop-dev
 	@echo "====== Stopping and removing running containers"
 	@docker-compose -f ./docker/docker-compose-dev.yml rm -s -f
+	@rm -rf ./docker/postgres-data
 .PHONY: rm-dev
 
 upgrade-dev: rm-dev
@@ -172,6 +177,10 @@ upgrade-dev: rm-dev
 clear-dev:
 	@rm -rf /tmp/chains /tmp/snapshots ./docker/postgres-data
 .PHONY: clear-dev
+
+ping-dev:
+	@curl "http://localhost:4000"
+.PHONY: ping-dev
 
 migrate-test:
 	@docker-compose -f docker/docker-compose-test.yml run --rm staxx eval "Staxx.Store.Release.migrate()"

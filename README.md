@@ -34,15 +34,50 @@ For **Linux** follow this: https://docs.docker.com/install/
 Next, the following command ensures you do not have any lingering chains left over from a past deployment  - `make clear-dev` (This step **only** applies to developers who have run the testchain environment before).
 
 ## Getting the testchain up and running:
+4. Add this lines to your `/etc/hosts` file (you might need to use `sudo` to edit file): 
 
-4. Run `make migrate-dev` to setup required DB tables.
+```txt
+127.0.0.1 nats.local
+127.0.0.1 db.local
+127.0.0.1 staxx.local
+```
 
-5. Next, we will pull everything from the docker container and will be ready to get the testchain up and running:
+5. Run `make migrate-dev` to setup required DB tables.
+
+Migrations should look like:
+```bash
+➜  staxx develop ✗ make migrate-dev
+Creating db.local ... done
+Starting db.local ... done
+Creating nats.local ... done
+09:26:16.478 [info] == Running 20191119092033 Staxx.Store.Repo.Migrations.Users.change/0 forward
+09:26:16.479 [info] create table users
+09:26:16.510 [info] create index users_email_index
+09:26:16.517 [info] == Migrated 20191119092033 in 0.0s
+09:26:16.548 [info] == Running 20191119092055 Staxx.Store.Repo.Migrations.Chain.change/0 forward
+09:26:16.549 [info] create table chains
+09:26:16.571 [info] create index chains_id_index
+09:26:16.576 [info] create index chains_node_type_index
+09:26:16.581 [info] == Migrated 20191119092055 in 0.0s
+09:26:16.585 [info] == Running 20191119092758 Staxx.Store.Repo.Migrations.ChainEvents.change/0 forward
+09:26:16.586 [info] create table chain_events
+09:26:16.602 [info] create index chain_events_chain_id_event_index
+09:26:16.607 [info] == Migrated 20191119092758 in 0.0s
+09:26:16.610 [info] == Running 20200109091056 Staxx.Store.Repo.Migrations.CreateSnapshotsTable.change/0 forward
+09:26:16.611 [info] create table snapshots
+09:26:16.624 [info] create index snapshots_id_index
+09:26:16.629 [info] == Migrated 20200109091056 in 0.0s
+```
+
+It means everything is ok. 
+
+6. Next, we will pull everything from the docker container and will be ready to get the testchain up and running:
     1. Run `make run-dev`
         1. This step pulls all the images from docker down and will start the QA portal in docker images and then will set `localhost:4001` - for UI and `localhost:4000` - for WS/Web API.
         2. You will see that it will immediately start pulling from the staxx.
+        3. You can also check Staxx by using `make ping-dev` command.
 
-6. Once everything has been pulled down, the next step is to check the logs:
+7. Once everything has been pulled down, the next step is to check the logs:
     1. Run `make logs-dev`
         1. This command will display all the logs from testchain network.
         2. When running this, you want to keep an eye out for the first code block to confirm. This will confirm that it is indeed working for you.
@@ -51,22 +86,20 @@ Next, the following command ensures you do not have any lingering chains left ov
 The first block will appear in your terminal window as follows:
 
 ```
-
-TODO: udpate deployment started logs
-
+staxx.local             | 09:27:27.396 [debug] Connected to Nats.io with config %{host: "nats.local", port: 4222}
+staxx.local             | 09:27:27.396 [debug] Subscribed to EventBus topics
+staxx.local             | 09:27:27.397 [debug] Starting Port Mapper
+staxx.local             | 09:27:27.397 [debug] New docker events spawned with port #Port<0.14>
+staxx.local             | 09:27:27.447 [debug] Elixir.Staxx.DeploymentScope.Terminator: Come with me if you want to live...
+staxx.local             | 09:27:27.450 [debug] Elixir.Staxx.DeploymentScope.Stack.ConfigLoader: Loaded list of staks configs
+staxx.local             | %{}
+staxx.local             |
+staxx.local             | 09:27:27.454 [debug] Starting Prometheus endpoint on port 9568, route: /metrics
+staxx.local             | 09:27:27.468 [info] Running Staxx.WebApiWeb.Endpoint with cowboy 2.7.0 at :::4000 (http)
+staxx.local             | 09:27:27.468 [info] Access Staxx.WebApiWeb.Endpoint at http://localhost:4000
 ```
 
-After the appearance of the first code block, you will have to wait between 1-15 minutes before it has fully booted.
-
-Once the testchain has fully booted, you will see similar output as displayed below (this will constantly update as you interact with testchain services):
-
-```
-
-TODO: Update deployment success logs
-
-```
-
-Your testchain is now up and running! You are now able to start using services, such as interacting with the [testchain dashboard](https://github.com/makerdao/testchain-dashboard).
+Your testchain is now up and running! You are now able to start using services, such as interacting with the [testchain dashboard](https://github.com/makerdao/testchain-dashboard) or using raw API.
 
 ## Docker Compose
 
