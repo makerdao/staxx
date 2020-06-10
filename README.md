@@ -9,17 +9,6 @@
   - The docker compose service manages all the docker images needed for the setup and use of the testchain environment.
 
 
-## Docker Compose
-
-1. Build all images.
-2. Use `make migrate` to setup DB schema for app.
-3. Use `make run-latest` to run.
-4. Use `make stop-latest` to stop containers.
-5. Use `make rm-latest` to remove containers (except PostgreSQL data `./docker/postgres-data`).
-
-Instead of doing steps 2 and 3, you can run the `docker-compose` command in your console.
-NOTE: You will have to use `docker-compose -f ./docker/docker-compose.yaml` to point compose to correct file.
-
 ## Installation
 
 Before starting, you should confirm that you have docker compose up and running.
@@ -44,20 +33,16 @@ For **Linux** follow this: https://docs.docker.com/install/
 
 Next, the following command ensures you do not have any lingering chains left over from a past deployment  - `make clear-dev` (This step **only** applies to developers who have run the testchain environment before).
 
-## Pulling docker EVM container (Etherial Virtual Machine)
-
-For now only `geth|ganache` supported.
-Run `make pull-evms` and system will download latest versions for EVM docker images.
-
 ## Getting the testchain up and running:
 
+4. Run `make migrate-dev` to setup required DB tables.
 
-4. Next, we will pull everything from the docker container and will be ready to get the testchain up and running:
+5. Next, we will pull everything from the docker container and will be ready to get the testchain up and running:
     1. Run `make run-dev`
         1. This step pulls all the images from docker down and will start the QA portal in docker images and then will set `localhost:4001` - for UI and `localhost:4000` - for WS/Web API.
         2. You will see that it will immediately start pulling from the staxx.
 
-5. Once everything has been pulled down, the next step is to check the logs:
+6. Once everything has been pulled down, the next step is to check the logs:
     1. Run `make logs-dev`
         1. This command will display all the logs from testchain network.
         2. When running this, you want to keep an eye out for the first code block to confirm. This will confirm that it is indeed working for you.
@@ -83,6 +68,32 @@ TODO: Update deployment success logs
 
 Your testchain is now up and running! You are now able to start using services, such as interacting with the [testchain dashboard](https://github.com/makerdao/testchain-dashboard).
 
+## Docker Compose
+
+Docker-compose script supports several `ENV`:
+ - `dev` - Mostly used on your local machine. All latest changes and cool features included.
+ - `latest` - Most stable but almost always a little bit outdated version. For production use.
+ - `test` - Made for testing source code, probably nobody will use it. 
+
+You can use any of this `ENV` in your commands, just replace `${ENV}` to required one.
+Example: `make migrate-dev && make run-dev`
+
+#### Usage: 
+
+1. Build or download all required images `make docker-deps`.
+2. Use `make migrate-${ENV}` to setup DB schema for app.
+3. Use `make run-${ENV}` to run.
+4. Use `make stop-${ENV}` to stop containers.
+5. Use `make rm-${ENV}` to remove containers (except PostgreSQL data `./docker/postgres-data`).
+
+Instead of doing steps 2 and 3, you can run the `docker-compose` command in your console.
+NOTE: You will have to use `docker-compose -f ./docker/docker-compose.yaml` to point compose to correct file.
+
+
+## Pulling docker EVM container (Etherial Virtual Machine)
+
+For now only `geth|ganache` supported.
+Run `make pull-evms` and system will download latest versions for EVM docker images.
 
 ## Full List of Testchain Commands (Docker Compose):
 
