@@ -1,4 +1,10 @@
 version: 2
+workflows:
+  dockerhub-auth:
+    jobs:
+      - build:
+          context: dockerhub
+
 jobs:
   build:
     machine: true
@@ -88,7 +94,7 @@ jobs:
       - run:
           name: Building & Releasing docker images
           command: |
-            echo "$DOCKER_PASSWORD" | docker login --username $DOCKER_USER --password-stdin
+            echo "$DOCKER_PASSWORD" | docker login --username $DOCKER_USERNAME --password-stdin
 
             if [[ $CIRCLE_BRANCH = 'develop' ]]
             then
