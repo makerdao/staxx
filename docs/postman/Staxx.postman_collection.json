@@ -22,7 +22,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"stack_id\": \"{{chain_id}}\",\n\t\"stack_name\": \"{{stack_name}}\",\n\t\"image\": \"postgres\",\n\t\"ports\": [5432],\n\t\"dev_mode\": true,\n\t\"env\": {\n\t\t\"POSTGRES_PASSWORD\": \"postgres\"\n\t}\n}"
+							"raw": "{\n\t\"extension_id\": \"{{chain_id}}\",\n\t\"extension_name\": \"{{extension_name}}\",\n\t\"image\": \"postgres\",\n\t\"ports\": [5432],\n\t\"dev_mode\": true,\n\t\"env\": {\n\t\t\"POSTGRES_PASSWORD\": \"postgres\"\n\t}\n}"
 						},
 						"url": {
 							"raw": "{{STAXX_URL}}/docker/start",
@@ -41,20 +41,20 @@
 			"protocolProfileBehavior": {}
 		},
 		{
-			"name": "Stacks",
+			"name": "Extensions",
 			"item": [
 				{
-					"name": "List stacks configs",
+					"name": "List extensions configs",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/stack/list",
+							"raw": "{{STAXX_URL}}/extension/list",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"stack",
+								"extension",
 								"list"
 							]
 						}
@@ -62,17 +62,17 @@
 					"response": []
 				},
 				{
-					"name": "Reload all stacks configs",
+					"name": "Reload all extensions configs",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/stack/reload",
+							"raw": "{{STAXX_URL}}/extension/reload",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"stack",
+								"extension",
 								"reload"
 							]
 						}
@@ -80,17 +80,17 @@
 					"response": []
 				},
 				{
-					"name": "Get Stack details",
+					"name": "Get Extension details",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/stack/info/{{chain_id}}",
+							"raw": "{{STAXX_URL}}/extension/info/{{chain_id}}",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"stack",
+								"extension",
 								"info",
 								"{{chain_id}}"
 							]
@@ -99,17 +99,17 @@
 					"response": []
 				},
 				{
-					"name": "Stop stack",
+					"name": "Stop extension",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/stack/stop/{{chain_id}}",
+							"raw": "{{STAXX_URL}}/extension/stop/{{chain_id}}",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"stack",
+								"extension",
 								"stop",
 								"{{chain_id}}"
 							]
@@ -143,6 +143,7 @@
 							}
 						}
 					],
+					"name": "Start new Extension",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -158,12 +159,12 @@
 							"raw": "{\n\t\"testchain\": {\n\t\t\"config\": {\n\t\t\t\"type\": \"{{evm}}\",\n\t\t\t\"accounts\": 2,\n\t\t\t\"block_mine_time\": 0,\n\t\t\t\"clean_on_stop\": false,\n\t\t\t\"snapshot_id\": null, \n\t\t\t\"step_id\": 1\n\t\t},\n\t\t\"deps\": []\n\t}\n}"
 						},
 						"url": {
-							"raw": "{{STAXX_URL}}/stack/start",
+							"raw": "{{STAXX_URL}}/extension/start",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"stack",
+								"extension",
 								"start"
 							]
 						}
@@ -171,7 +172,7 @@
 					"response": []
 				},
 				{
-					"name": "Start Empty Stack",
+					"name": "Start Empty Extension",
 					"event": [
 						{
 							"listen": "test",
@@ -216,12 +217,12 @@
 							"raw": "{\n    \"testchain\": {\n        \"config\": {\n            \"type\": \"{{evm}}\",\n            \"accounts\": 1,\n            \"block_mine_time\": 0,\n            \"clean_on_stop\": true,\n            \"snapshot_id\": null,\n            \"deploy_ref\": \"refs/tags/staxx-testrunner\",\n            \"deploy_step_id\": 1\n        },\n        \"deps\": []\n    }\n}"
 						},
 						"url": {
-							"raw": "{{STAXX_URL}}/stack/start",
+							"raw": "{{STAXX_URL}}/extension/start",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"stack",
+								"extension",
 								"start"
 							],
 							"query": [
@@ -261,6 +262,7 @@
 							}
 						}
 					],
+					"name": "Start Empty Extension From Snapshot",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -282,12 +284,12 @@
 							"raw": "{\n    \"testchain\": {\n        \"config\": {\n            \"type\": \"{{evm}}\",\n            \"accounts\": 1,\n            \"block_mine_time\": 0,\n            \"clean_on_stop\": true,\n            \"snapshot_id\": \"{{snapshot_id}}\",\n            \"deploy_tag\": \"tags/staxx-deployment\",\n            \"step_id\": 0\n        },\n        \"deps\": []\n    }\n}"
 						},
 						"url": {
-							"raw": "{{STAXX_URL}}/stack/start",
+							"raw": "{{STAXX_URL}}/extension/start?=",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"stack",
+								"extension",
 								"start"
 							]
 						}
@@ -310,6 +312,7 @@
 							}
 						}
 					],
+					"name": "Start existing extension",
 					"request": {
 						"method": "POST",
 						"header": [
@@ -325,12 +328,12 @@
 							"raw": "{\n\t\"testchain\": {\n\t\t\"config\": {\n\t\t\t\"id\": \"{{chain_id}}\"\n\t\t},\n\t\t\"deps\": []\n\t}\n}"
 						},
 						"url": {
-							"raw": "{{STAXX_URL}}/stack/start",
+							"raw": "{{STAXX_URL}}/extension/start",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"stack",
+								"extension",
 								"start"
 							]
 						}

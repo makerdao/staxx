@@ -92,6 +92,13 @@ defmodule Staxx.Store.Testchain.Adapters.DETS do
   def remove(id), do: :dets.delete(snapshots_table(), id)
 
   @doc """
+  Removes all snapshots.
+  """
+  @impl true
+  @spec remove_all() :: :ok
+  def remove_all(), do: clear_snapshots_table()
+
+  @doc """
   Removes all data in DETS snapshots table.
   Returns :ok in success case.
   Returns {:error, term()} in error case.

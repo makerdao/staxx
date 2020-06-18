@@ -33,7 +33,7 @@ priv/presets/geth/geth_vdb
 postgres-data
 
 # DETS databases
-user_deployment_scope
+user_environment
 snapshots
 chains
 .idea
@@ -42,3 +42,6 @@ chains
 _rel
 
 **/.DS_Store
+
+#Test files directory for transport app
+apps/transport/test/files/

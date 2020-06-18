@@ -1,0 +1,61 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "$id": "http://localhost:4000/docker.schema.json",
+    "title": "Docker",
+    "description": "A schema for the Docker container struct.",
+    "type": "object",
+    "properties": {
+        "permanent": {
+            "type": "boolean",
+            "default": true
+        },
+        "existing": {
+            "type": "boolean",
+            "default": true
+        },
+        "id": {
+            "type": "string",
+            "description": "Docker container identifier"
+        },
+        "image": {
+            "type": "string",
+            "description": "Path to the Docker image"
+        },
+        "name": {
+            "type": "string",
+            "description": "Name of the Docker image"
+        },
+        "description": {
+            "type": "string",
+            "description": "Description of the Docker image"
+        },
+        "network": {
+            "type": "string",
+            "description": "Name of the Docker network"
+        },
+        "cmd": {
+            "type": "string"
+        },
+        "ports": {
+            "type": "array"
+        },
+        "env": {
+            "type": "object"
+        },
+        "dev_mode": {
+            "type": "boolean",
+            "default": false
+        },
+        "rm": {
+            "type": "boolean",
+            "default": true
+        },
+        "volumes": {
+            "type": "array"
+        },
+        "assign_user": {
+            "type": "boolean",
+            "default": true
+        }
+    }
+}

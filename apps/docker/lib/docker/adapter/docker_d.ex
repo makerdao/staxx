@@ -182,7 +182,7 @@ defmodule Staxx.Docker.Adapter.DockerD do
   end
 
   @doc """
-  Create new docker network for stack
+  Create new docker network for extension
   """
   @impl true
   @spec create_network(binary) :: {:ok, binary} | {:error, term}

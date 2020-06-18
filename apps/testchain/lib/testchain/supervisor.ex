@@ -1,11 +1,6 @@
 defmodule Staxx.Testchain.Supervisor do
   @moduledoc """
-  Deployment scope supervisor.
-  It controll specific scope for user.
-
-  Part of is will be:
-   - chain - Exact EVM that will be started for scope
-   - list of stacks - set of stack workers that control different stacks
+  Testchain supervisor
   """
   use Supervisor
 

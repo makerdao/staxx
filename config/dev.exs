@@ -1,6 +1,6 @@
 import Config
 
-config :deployment_scope, stacks_dir: "/tmp/stacks"
+config :environment, extensions_dir: "/tmp/extensions"
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
@@ -39,9 +39,9 @@ config :web_api, Staxx.WebApiWeb.Endpoint,
 # configured to run both http and https servers on
 # different ports.
 
-# Set a higher stacktrace during development. Avoid configuring such
-# in production as building large stacktraces may be expensive.
-config :phoenix, :stacktrace_depth, 20
+# Set a higher extensiontrace during development. Avoid configuring such
+# in production as building large extensiontraces may be expensive.
+config :phoenix, :extensiontrace_depth, 20
 
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime

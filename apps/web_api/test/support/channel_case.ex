@@ -25,7 +25,12 @@ defmodule Staxx.WebApiWeb.ChannelCase do
     end
   end
 
-  setup _tags do
-    :ok
+  setup tags do
+    # Ecto.Adapters.SQL.Sandbox.mode(Staxx.Store.Repo, :auto)
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Staxx.Store.Repo)
+
+    unless tags[:async] do
+      Ecto.Adapters.SQL.Sandbox.mode(Staxx.Store.Repo, :auto)
+    end
   end
 end

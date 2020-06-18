@@ -6,7 +6,7 @@ defmodule Staxx.WebApiWeb.ChainChannel do
   require Logger
 
   alias Staxx.Testchain
-  alias Staxx.DeploymentScope
+  alias Staxx.Environment
 
   use Phoenix.Channel, log_join: false, log_handle_in: :debug
   # alias Chain.Snapshot.Details, as: SnapshotDetails
@@ -17,7 +17,7 @@ defmodule Staxx.WebApiWeb.ChainChannel do
 
   # Stop chain
   def handle_in("stop", _, %{topic: "chain:" <> id} = socket) do
-    :ok = DeploymentScope.stop(id)
+    :ok = Environment.stop(id)
     {:reply, :ok, socket}
   end
 

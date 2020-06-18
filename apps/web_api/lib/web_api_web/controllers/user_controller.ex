@@ -5,6 +5,8 @@ defmodule Staxx.WebApiWeb.UserController do
   alias Staxx.Store.Models.User
 
   alias Staxx.WebApiWeb.SuccessView
+  alias Staxx.WebApiWeb.Schemas.UserSchema
+
   action_fallback Staxx.WebApiWeb.FallbackController
 
   @doc """
@@ -23,7 +25,8 @@ defmodule Staxx.WebApiWeb.UserController do
   Create new user in system
   """
   def create(conn, params) do
-    with {:ok, user} <- User.create(params) do
+    with :ok <- UserSchema.validate(params),
+         {:ok, user} <- User.create(params) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)
@@ -35,7 +38,8 @@ defmodule Staxx.WebApiWeb.UserController do
   Update given user
   """
   def update(conn, %{"id" => user_id} = params) do
-    with %User{} = user <- User.get(user_id),
+    with :ok <- UserSchema.validate(params),
+         %User{} = user <- User.get(user_id),
          {:ok, updated} <- User.update(user, params) do
       conn
       |> put_status(200)

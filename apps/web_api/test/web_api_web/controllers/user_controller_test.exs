@@ -3,6 +3,8 @@ defmodule Staxx.WebApiWeb.UserControllerTest do
 
   alias Staxx.Store.Models.User
 
+  @moduletag :api
+
   @tag :web_api
   test "new user should be created", %{conn: conn} do
     user = build(:user)

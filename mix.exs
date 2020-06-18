@@ -18,15 +18,16 @@ defmodule Staxx.MixProject do
         include_executables_for: [:unix],
         applications: [
           runtime_tools: :permanent,
-          deployment_scope: :permanent,
+          environment: :permanent,
           docker: :permanent,
           event_stream: :permanent,
-          metrix: :permanent,
-          web_api: :permanent,
           json_rpc: :permanent,
-          testchain: :permanent,
+          metrix: :permanent,
           store: :permanent,
-          utils: :permanent
+          # snapshot_registry: :permanent,
+          testchain: :permanent,
+          utils: :permanent,
+          web_api: :permanent
         ]
       ]
     ]
