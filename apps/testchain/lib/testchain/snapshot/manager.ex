@@ -189,7 +189,7 @@ defmodule Staxx.Testchain.SnapshotManager do
   @doc """
   Load list of existing snapshots by chain type
   """
-  @spec by_chain(ExChain.evm_type()) :: [SnapshotDetails.t()]
+  @spec by_chain(ExChain.evm_type() | atom()) :: [SnapshotDetails.t()]
   def by_chain(chain), do: SnapshotsStore.by_chain(chain)
 
   @doc """

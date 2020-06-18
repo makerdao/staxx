@@ -30,7 +30,7 @@ RUN apk update && \
 
 # This copies our app mix.exs and mix.lock source code into the build container
 COPY mix.* ./
-COPY apps/deployment_scope/mix.* ./apps/deployment_scope/
+COPY apps/environment/mix.* ./apps/environment/
 COPY apps/docker/mix.* ./apps/docker/
 COPY apps/event_stream/mix.* ./apps/event_stream/
 COPY apps/json_rpc/mix.* ./apps/json_rpc/
@@ -87,10 +87,10 @@ ENV APP_NAME=${APP_NAME} \
     CHAINS_FRONT_URL=host.docker.internal \
     CHAINS_DB_PATH=/opt/chains \
     NATS_URL=nats.local \
-    STACKS_DIR=/opt/stacks \
+    EXTENSIONS_DIR=/opt/extensions \
     SNAPSHOTS_DB_PATH="/opt/snapshots" \
     INTERNAL_EVM_HOST=localhost \
-    STACKS_FRONT_URL=http://localhost \
+    EXTENSIONS_FRONT_URL=http://localhost \
     RELEASE_COOKIE="W_cC]7^rUeVZc|}$UL{@&1sQwT3}p507mFlh<E=/f!cxWI}4gpQx7Yu{ZUaD0cuK" \
     RELEASE_NODE=staxx@staxx.local \
     DOCKER_DEV_MODE_ALLOWED=false \

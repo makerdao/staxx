@@ -1,0 +1,104 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "$id": "http://localhost:4000/testchain.schema.json",
+    "title": "Testchain",
+    "description": "A schema for the Testchain data",
+    "additionalProperties": false,
+    "type": "object",
+    "properties": {
+        "id": {
+            "description": "The unique identifier",
+            "type": "string"
+        },
+        "title": {
+            "description": "Description of chain",
+            "type": "string"
+        },
+        "node_type": {
+            "description": "Type of node: geth, ganache",
+            "type": "string"
+        },
+        "status": {
+            "description": "Status of chain",
+            "type": "string"
+        },
+        "config": {
+            "description": "Start configuration for the new EVM. Look into the Staxx.Testchain.EVM.Config module.",
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "id": {
+                    "description": "Random unique internal process identificator. If empty system will generate it automatically",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Type of node: geth, ganache",
+                    "type": "string",
+                    "default": "ganache"
+                },
+                "email": {
+                    "description": "User email",
+                    "type": "string"
+                },
+                "network_id": {
+                    "description": "Network ID",
+                    "type": "integer",
+                    "minimum": 0
+                },
+                "existing": {
+                    "description": " Identifies if we need to start already existing chain. In that case all other options except `id` will be ignored.",
+                    "type": "boolean",
+                    "default": false
+                },
+                "db_path": {
+                    "description": "Specify a path to a directory to save the chain database",
+                    "type": "string"
+                },
+                "gas_limit": {
+                    "description": "The block gas limit (defaults to `9000000000000`)",
+                    "type": "integer",
+                    "minimum": 0,
+                    "default": 9000000000000
+                },
+                "container_name": {
+                    "description": "EVM container name",
+                    "type": "string"
+                },
+                "snapshot_id": {
+                    "description": "Snapshot ID that should be loaded on chain start",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "Chain description for storage",
+                    "type": "string"
+                },
+                "accounts": {
+                    "description": "How many accoutn should be created on start (Default: 1)",
+                    "type": "integer",
+                    "default": 1,
+                    "minimum": 1
+                },
+                "block_mine_time": {
+                    "description": "Block period to use in developer mode (0 = mine only if transaction pending) (default: 0)",
+                    "type": "integer",
+                    "default": 0,
+                    "minimum": 0
+                },
+                "clean_on_stop": {
+                    "description": "Clean up after chain is stopped",
+                    "type": "boolean",
+                    "default": false
+                },
+                "deploy_ref": {
+                    "description": "Deployment scripts git reference",
+                    "type": "string"
+                },
+                "deploy_step_id": {
+                    "description": "Deployment scripts step/scenario id",
+                    "type": "integer",
+                    "minimum": 0
+                }
+            }
+        }
+    }
+}

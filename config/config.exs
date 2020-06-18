@@ -12,20 +12,20 @@ import Config
 #
 # Deployemnt Scope configs
 #
-config :deployment_scope, stacks_dir: "/tmp/stacks"
-config :deployment_scope, deployment_service_url: "http://localhost:5001/rpc"
-config :deployment_scope, deployment_steps_fetch_timeout: 30_000
+config :environment, extensions_dir: "/tmp/extensions"
+config :environment, deployment_service_url: "http://localhost:5001/rpc"
+config :environment, deployment_steps_fetch_timeout: 30_000
 # DB path where all list of chain workers will be stored
-config :deployment_scope, dets_db_path: "/tmp/chains"
+config :environment, dets_db_path: "/tmp/chains"
 # deployment timeout
-config :deployment_scope, deployment_timeout: 1_800_000
-config :deployment_scope, action_timeout: 600_000
-config :deployment_scope, deployment_worker_image: "makerdao/testchain-deployment-worker:dev"
+config :environment, deployment_timeout: 1_800_000
+config :environment, action_timeout: 600_000
+config :environment, deployment_worker_image: "makerdao/testchain-deployment-worker:dev"
 
 #
-# Deployment scope adapters
+# Environment adapters
 #
-config :deployment_scope, testchain_supervisor_module: Staxx.Testchain.Supervisor
+config :environment, testchain_supervisor_module: Staxx.Testchain.Supervisor
 
 #
 # Docker configs
@@ -163,8 +163,8 @@ config :testchain, default_deployment_scripts_git_ref: "refs/tags/staxx-testrunn
 # For dev env it will be in related to project root. In Docker it will be replaced with
 # file from `rel/config/config.exs`
 config :testchain,
-  geth_docker_image: "makerdao/geth_evm:1.8.27",
-  ganache_docker_image: "makerdao/ganache_evm:6.7.0"
+  geth_docker_image: "makerdao/geth_evm:v1.8.27",
+  ganache_docker_image: "makerdao/ganache_evm:v6.7.0"
 
 #
 # Utils configs
@@ -174,5 +174,34 @@ config :testchain,
 config :utils, file_chmod: 0o777
 # Default mode for newly created folders
 config :utils, dir_chmod: 0o755
+
+#
+# SnapshotRegistry configs
+#
+# Default path where snapshots will be stored
+config :snapshot_registry,
+  snapshot_temporary_path: "/tmp/temporary_snapshots",
+  snapshot_base_path: "/tmp/snapshots"
+
+config :snapshot_registry, Staxx.SnapshotRegistry.Repo,
+  username: System.get_env("SR_POSTGRES_USER", "postgres"),
+  password: System.get_env("SR_POSTGRES_PASSWORD", "postgres"),
+  database: System.get_env("SR_POSTGRES_DB", "snapshot_registry"),
+  hostname: System.get_env("SR_POSTGRES_HOST", "localhost")
+
+config :snapshot_registry, ecto_repos: [Staxx.SnapshotRegistry.Repo]
+
+# Socket port number
+config :snapshot_registry, socket_port: 3134
+
+# JWT secret key
+config :joken, default_signer: "secret_key"
+
+#
+# Transport app configs
+#
+# Size in bytes of data packet sending by socket.
+# Max  size is 2 Gbytes. See :inet.setopts/2 documentation, especially :packet option description.
+config :transport, data_packet_size_bytes: 10_000_000
 
 import_config "#{Mix.env()}.exs"

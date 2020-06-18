@@ -12,6 +12,8 @@ defmodule Staxx.Store.Testchain.Models.Snapshot do
           chain: binary | atom
         }
 
+  @derive {Jason.Encoder, only: [:id, :description, :path, :chain]}
+
   @primary_key {:id, :string, autogenerate: false}
   schema "snapshots" do
     field(:description, :string)

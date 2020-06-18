@@ -82,6 +82,23 @@ defmodule Staxx.Docker.Container do
   end
 
   @doc """
+  Creates Docker container struct with given parameters and extension id.
+  Returns `Staxx.Docker.Container.t() `
+  """
+  @spec create_container(map, binary()) :: Staxx.Docker.Container.t()
+  def create_container(params, extension_id) do
+    %__MODULE__{
+      image: Map.get(params, "image", ""),
+      name: Map.get(params, "name", ""),
+      network: Map.get(params, "network", extension_id),
+      cmd: Map.get(params, "cmd", ""),
+      ports: Map.get(params, "ports", []),
+      env: parse_env(Map.get(params, "env", %{})),
+      dev_mode: Map.get(params, "dev_mode", false)
+    }
+  end
+
+  @doc """
   Starts already existing container.
   Will call `Staxx.Docker.start/1` function.
   On docker level it will use `docker start name` command for starting.
@@ -234,7 +251,7 @@ defmodule Staxx.Docker.Container do
 
     # because EVM handles `{:EXIT, pid, reason}` we have to catch it here
     # otherwise EVM will decide that container failed and something wrong
-    # and as result will terminate whole supervision tree for deployment scope
+    # and as result will terminate whole supervision tree for environment
     receive do
       {:EXIT, _pid, {:shutdown, :temporary}} ->
         :ok
@@ -341,6 +358,9 @@ defmodule Staxx.Docker.Container do
 
   defp refine_port(port),
     do: port
+
+  defp parse_env(map) when is_map(map), do: map
+  defp parse_env(_some), do: %{}
 end
 
 defimpl Poison.Encoder, for: Staxx.Docker.Container do

@@ -20,6 +20,17 @@ defmodule Staxx.WebApiWeb.FallbackController do
     |> render("500.json", message: msg)
   end
 
+  def call(conn, {:error, errors}) when is_list(errors) do
+    # json schema validator returns list of validation errors in tuples {error_msg, property_name}
+    {error_msg, property_name} = List.first(errors)
+    msg = error_msg <> " " <> property_name
+
+    conn
+    |> put_status(500)
+    |> put_view(ErrorView)
+    |> render("500.json", message: msg)
+  end
+
   def call(conn, false) do
     conn
     |> put_status(500)

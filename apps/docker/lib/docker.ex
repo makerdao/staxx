@@ -44,7 +44,7 @@ defmodule Staxx.Docker do
               {:ok, binary} | {:error, term}
 
   @doc """
-  Create new docker network with given ID for stack
+  Create new docker network with given ID for extension
   """
   @callback create_network(id :: binary) :: {:ok, binary} | {:error, term}
 
@@ -192,7 +192,7 @@ defmodule Staxx.Docker do
     do: adapter().inspect_container(id_or_name, format)
 
   @doc """
-  Create new docker network for stack
+  Create new docker network for extension
   """
   @spec create_network(binary) :: {:ok, binary} | {:error, term}
   def create_network(id),

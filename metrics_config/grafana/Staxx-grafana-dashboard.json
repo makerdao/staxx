@@ -54,7 +54,7 @@
       "renderer": "flot",
       "seriesOverrides": [],
       "spaceLength": 10,
-      "stack": false,
+      "extension": false,
       "steppedLine": false,
       "targets": [
         {
@@ -144,7 +144,7 @@
       "renderer": "flot",
       "seriesOverrides": [],
       "spaceLength": 10,
-      "stack": false,
+      "extension": false,
       "steppedLine": false,
       "targets": [
         {
@@ -251,7 +251,7 @@
       "renderer": "flot",
       "seriesOverrides": [],
       "spaceLength": 10,
-      "stack": false,
+      "extension": false,
       "steppedLine": false,
       "targets": [
         {
@@ -356,7 +356,7 @@
       "renderer": "flot",
       "seriesOverrides": [],
       "spaceLength": 10,
-      "stack": false,
+      "extension": false,
       "steppedLine": false,
       "targets": [
         {
@@ -455,7 +455,7 @@
       "renderer": "flot",
       "seriesOverrides": [],
       "spaceLength": 10,
-      "stack": false,
+      "extension": false,
       "steppedLine": false,
       "targets": [
         {
@@ -549,7 +549,7 @@
       "renderer": "flot",
       "seriesOverrides": [],
       "spaceLength": 10,
-      "stack": false,
+      "extension": false,
       "steppedLine": false,
       "targets": [
         {

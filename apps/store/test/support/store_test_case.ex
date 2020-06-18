@@ -44,6 +44,15 @@ defmodule Staxx.Store.StoreTestCase do
           @adapter.remove(id)
           assert nil == @adapter.by_id(id)
         end
+
+        test "should remove all snapshots" do
+          assert :ok = build_snapshot_details() |> @adapter.store()
+          assert :ok = build_snapshot_details() |> @adapter.store()
+          assert :ok = build_snapshot_details() |> @adapter.store()
+
+          assert :ok = @adapter.remove_all()
+          assert [] == @adapter.by_chain(:ganache)
+        end
       end
     end
   end

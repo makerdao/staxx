@@ -20,12 +20,16 @@ defmodule Staxx.Utils do
     end
   end
 
-  def file_write(file, content, modes \\ []) do
-    file
+  @doc """
+  Writes `content` to the file `path`.
+  """
+  @spec file_write(Path.t(), iodata(), [File.mode()]) :: :ok | {:error, term}
+  def file_write(path, content, modes \\ []) do
+    path
     |> File.write(content, modes)
     |> case do
       :ok ->
-        File.chmod(file, Application.get_env(:utils, :file_chmod, 0o644))
+        File.chmod(path, Application.get_env(:utils, :file_chmod, 0o644))
         :ok
 
       err ->

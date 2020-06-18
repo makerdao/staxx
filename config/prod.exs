@@ -11,7 +11,7 @@ config :logger,
 
 config :docker, adapter: Staxx.Docker.Adapter.DockerD
 
-config :deployment_scope, stacks_dir: "/tmp/stacks"
+config :environment, extensions_dir: "/tmp/extensions"
 
 # For production, don't forget to configure the url host
 # to something meaningful, Phoenix uses this information

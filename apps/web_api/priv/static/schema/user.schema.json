@@ -1,0 +1,39 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema",
+    "$id": "http://localhost:4000/user.schema.json",
+    "title": "User",
+    "description": "A schema for the User model.",
+    "additionalProperties": false,
+    "type": "object",
+    "properties": {
+        "id": {
+            "description": "User identifier",
+            "type": "string"
+        },
+        "email": {
+            "description": "User email",
+            "type": "string"
+        },
+        "admin": {
+            "description": "Is user admin or not.",
+            "type": "boolean",
+            "default": false
+        },
+        "active": {
+            "description": "Is user active or not.",
+            "type": "boolean",
+            "default": true
+        },
+        "name": {
+            "description": "User name",
+            "type": "string"
+        },
+        "preferences": {
+            "description": "User related preference for a future use.",
+            "type": "object"
+        }
+    },
+    "required": [
+        "email"
+    ]
+}
