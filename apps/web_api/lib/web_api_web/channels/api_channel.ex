@@ -8,9 +8,10 @@ defmodule Staxx.WebApiWeb.ApiChannel do
   require Logger
 
   alias Staxx.Testchain
-  alias Staxx.DeploymentScope
+  alias Staxx.Environment
   alias Staxx.Testchain.SnapshotManager
   alias Staxx.Store.Models.Chain, as: ChainRecord
+  alias Staxx.WebApiWeb.Schemas.TestchainSchema
 
   def join(_, _, socket), do: {:ok, %{message: "Welcome to ExTestchain !"}, socket}
 
@@ -18,24 +19,14 @@ defmodule Staxx.WebApiWeb.ApiChannel do
   Start existing chain
   """
   def handle_in("start_existing", payload, socket) do
-    with {:ok, id} <- DeploymentScope.start(payload) do
-      {:reply, {:ok, %{id: id}}, socket}
-    else
-      {:error, err} ->
-        {:reply, {:error, %{message: err}}, socket}
-    end
+    validate_and_start_chain(payload, socket)
   end
 
   @doc """
   Start new chain handler
   """
   def handle_in("start", payload, socket) do
-    with {:ok, id} <- DeploymentScope.start(payload) do
-      {:reply, {:ok, %{id: id}}, socket}
-    else
-      {:error, err} ->
-        {:reply, {:error, %{message: err}}, socket}
-    end
+    validate_and_start_chain(payload, socket)
   end
 
   @doc """
@@ -76,6 +67,16 @@ defmodule Staxx.WebApiWeb.ApiChannel do
     else
       _ ->
         {:reply, {:error, %{message: "Something wrong on removing snapshot"}}, socket}
+    end
+  end
+
+  defp validate_and_start_chain(payload, socket) do
+    with :ok <- TestchainSchema.validate_with_payload(payload),
+         {:ok, id} <- Environment.start(payload) do
+      {:reply, {:ok, %{id: id}}, socket}
+    else
+      {:error, err} ->
+        {:reply, {:error, %{message: err}}, socket}
     end
   end
 end

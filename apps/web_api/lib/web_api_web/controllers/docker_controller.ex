@@ -9,24 +9,18 @@ defmodule Staxx.WebApiWeb.DockerController do
   alias Staxx.WebApiWeb.ErrorView
   alias Staxx.Docker
   alias Staxx.Docker.Container
-  alias Staxx.DeploymentScope
+  alias Staxx.Environment
+  alias Staxx.WebApiWeb.Schemas.DockerSchema
 
-  def start(conn, %{"stack_id" => id, "stack_name" => stack_name} = params) do
+  def start(conn, %{"environment_id" => id, "extension_name" => extension_name} = params) do
     # We wouldn't let users to control `rm` flag for container
     # Otherwise we will have a log of dead containers in our system
-    container = %Container{
-      image: Map.get(params, "image", ""),
-      name: Map.get(params, "name", ""),
-      network: Map.get(params, "network", id),
-      cmd: Map.get(params, "cmd", ""),
-      ports: Map.get(params, "ports", []),
-      env: parse_env(Map.get(params, "env", %{})),
-      dev_mode: Map.get(params, "dev_mode", false)
-    }
 
-    Logger.debug("Stack #{id} Starting new docker container #{inspect(container)}")
+    with :ok <- DockerSchema.validate(params),
+         container <- Container.create_container(params, id),
+         {:ok, container} <- Environment.start_container(id, extension_name, container) do
+      Logger.debug("Environment #{id}: Starting new docker container #{inspect(container)}")
 
-    with {:ok, container} <- DeploymentScope.start_container(id, stack_name, container) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)
@@ -49,9 +43,6 @@ defmodule Staxx.WebApiWeb.DockerController do
         |> render("500.json", message: err)
     end
   end
-
-  defp parse_env(map) when is_map(map), do: map
-  defp parse_env(_some), do: %{}
 
   defp encode(%Container{ports: ports} = container) do
     updated_ports =

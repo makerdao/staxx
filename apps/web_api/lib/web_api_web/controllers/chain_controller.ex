@@ -9,6 +9,7 @@ defmodule Staxx.WebApiWeb.ChainController do
   alias Staxx.Store.Models.User, as: UserRecord
   alias Staxx.WebApiWeb.SuccessView
   alias Staxx.WebApiWeb.ErrorView
+  alias Staxx.WebApiWeb.Schemas.TestchainSchema
 
   # content type of snapshot that will be uploaded
   @filetypes ["application/x-gzip", "application/gzip"]
@@ -23,7 +24,8 @@ defmodule Staxx.WebApiWeb.ChainController do
 
   # Take snapshot command
   def take_snapshot(conn, %{"id" => id} = params) do
-    with :ok <- Testchain.take_snapshot(id, Map.get(params, "description", "")) do
+    with :ok <- TestchainSchema.validate(params),
+         :ok <- Testchain.take_snapshot(id, Map.get(params, "description", "")) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)

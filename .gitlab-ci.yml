@@ -1,0 +1,28 @@
+image: iliakg/gitlab_ci
+
+variables:
+  MIX_ENV: test
+  DOCKER_HOST: tcp://docker:2375
+  POSTGRES_PASSWORD: postgres
+  POSTGRES_HOST: postgres
+  SR_POSTGRES_HOST: postgres
+  TESTCHAIN_INTERNAL_HOST: docker
+
+services:
+  - docker:18.09.7-dind
+  - postgres:11-alpine
+
+before_script:
+  - docker pull makerdao/ganache_evm:v6.7.0
+  - mix local.rebar --force
+  - mix local.hex --force
+  - mix deps.get --only test
+  - mix ecto.create
+  - mix ecto.migrate
+  - mkdir /tmp/transfered_files
+  - mkdir apps/transport/test/files
+  - echo "test" > apps/transport/test/files/test_file
+
+mix:
+  script:
+    - mix test

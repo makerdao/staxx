@@ -10,7 +10,8 @@ defmodule Staxx.WebApi.Application do
     children = [
       # Start the endpoint when the application starts
       Staxx.WebApiWeb.Endpoint,
-      Staxx.WebApi.ChainMessageHandler
+      Staxx.WebApi.ChainMessageHandler,
+      Staxx.WebApiWeb.JSONSchemaCache
       # Starts a worker by calling: WebApi.Worker.start_link(arg)
       # {WebApi.Worker, arg},
     ]

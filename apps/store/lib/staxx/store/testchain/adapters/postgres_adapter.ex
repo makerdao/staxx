@@ -83,9 +83,18 @@ defmodule Staxx.Store.Testchain.Adapters.Postgres do
     :ok
   end
 
+  @doc """
+  Removes all snapshots.
+  """
+  @impl true
+  @spec remove_all :: :ok
+  def remove_all() do
+    Repo.delete_all(Snapshot)
+    :ok
+  end
+
   defp prepare_for_output(snapshot) do
     snapshot
-    |> Map.from_struct()
     |> atomize_chain_type()
   end
 

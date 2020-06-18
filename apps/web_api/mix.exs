@@ -36,7 +36,7 @@ defmodule Staxx.WebApi.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:deployment_scope, in_umbrella: true},
+      {:environment, in_umbrella: true},
       {:event_stream, in_umbrella: true},
       {:store, in_umbrella: true},
       {:testchain, in_umbrella: true},
@@ -49,7 +49,8 @@ defmodule Staxx.WebApi.MixProject do
       {:plug_cowboy, "~> 2.0"},
       {:corsica, "~> 1.1"},
       {:faker, "~> 0.12", only: :test},
-      {:ex_machina, "~> 2.3", only: :test}
+      {:ex_machina, "~> 2.3", only: :test},
+      {:ex_json_schema, "~> 0.7.3"}
     ]
   end
 end

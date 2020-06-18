@@ -13,7 +13,7 @@ defmodule Staxx.WebApiWeb.Endpoint do
     at: "/",
     from: :web_api,
     gzip: false,
-    only: ~w(css fonts images js index.html upload.html favicon.ico robots.txt)
+    only: ~w(css fonts images js schema index.html upload.html favicon.ico robots.txt)
 
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.

@@ -45,6 +45,12 @@ defmodule Staxx.Store.Testchain.SnapshotsStore do
   @callback remove(binary) :: :ok
 
   @doc """
+  Removes all snapshots.
+  Always returns :ok.
+  """
+  @callback remove_all() :: :ok
+
+  @doc """
   Calls child_spec function of configured adapter.
   """
   @spec child_spec() :: Supervisor.child_spec()
@@ -85,7 +91,7 @@ defmodule Staxx.Store.Testchain.SnapshotsStore do
   Returns snapshot details map list with given chain type.
   Returns empty list if snapshot details are not found in storage.
   """
-  @spec by_chain(binary) :: [map()]
+  @spec by_chain(binary | atom()) :: [map()]
   def by_chain(chain), do: adapter().by_chain(chain)
 
   @doc """
@@ -93,6 +99,13 @@ defmodule Staxx.Store.Testchain.SnapshotsStore do
   Always returns :ok.
   """
   def remove(id), do: adapter().remove(id)
+
+  @doc """
+  Applies :remove_all function from Staxx.Store.Testchain.Adapter behaviour in configured adapter to remove all snapshots.
+  Always returns :ok.
+  """
+  @spec remove_all() :: :ok
+  def remove_all(), do: adapter().remove_all()
 
   @doc """
   Returns adapter defined in configs.

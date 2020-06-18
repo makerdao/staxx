@@ -228,5 +228,5 @@ defmodule Staxx.Testchain.Deployment.Worker do
     do: {:via, Registry, {DeploymentRegistry, request_id}}
 
   defp docker_image(),
-    do: Application.get_env(:deployment_scope, :deployment_worker_image)
+    do: Application.get_env(:environment, :deployment_worker_image)
 end

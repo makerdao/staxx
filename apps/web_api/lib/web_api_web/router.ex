@@ -43,18 +43,22 @@ defmodule Staxx.WebApiWeb.Router do
     get "/stop/:id", DockerController, :stop
   end
 
-  scope "/stack", Staxx.WebApiWeb do
+  scope "/environment", Staxx.WebApiWeb do
     pipe_through :api
-    get "/list", StackController, :list
-    get "/reload", StackController, :reload_config
-    post "/start", StackController, :start
-    get "/stop/:id", StackController, :stop
-    get "/info/:id", StackController, :info
-    post "/manager/start/:id", StackController, :spawn_stack_manager
-    post "/manager/stop/:id", StackController, :stop_stack_manager
-    post "/notify", StackController, :notify
-    post "/notify/ready", StackController, :stack_ready
-    post "/notify/failed", StackController, :stack_failed
+    post "/start", EnvironmentController, :start
+    get "/stop/:id", EnvironmentController, :stop
+    get "/info/:id", EnvironmentController, :info
+  end
+
+  scope "/environment/extension", Staxx.WebApiWeb do
+    pipe_through :api
+    get "/list_config", ExtensionController, :list_config
+    get "/reload_config", ExtensionController, :reload_config
+    post "/start/:environment_id", ExtensionController, :start
+    post "/stop/:environment_id", ExtensionController, :stop
+    post "/notify", ExtensionController, :notify
+    post "/notify/ready", ExtensionController, :notify_ready
+    post "/notify/failed", ExtensionController, :notify_failed
   end
 
   scope "/user", Staxx.WebApiWeb do

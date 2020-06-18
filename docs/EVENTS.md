@@ -1,12 +1,12 @@
 # Testchain events
 
-When you work with testchain/stacks you will receive set of event from system.
+When you work with testchain/environment you will receive set of event from system.
 All events has similar format:
 
 ```js
 {
-  "id": "2538928139759187250", // <-- Stack/chain ID
-  "event": "ready", // <-- Stack/chain event name
+  "id": "2538928139759187250", // <-- Environment/chain ID
+  "event": "ready", // <-- Environment/chain event name
   "data": {} // <-- Event details
 }
 ```
@@ -21,8 +21,8 @@ But there are several main events you will need to controll environment:
  - `snapshot_reverted` - Snapshot reverted sucessfuly. [More details](#snapshot-reverted)
  - `error` - Error happened in system [More details](#evm-error)
  - `terminated` - EVM terminated [More details](#evm-terminated)
- - `stack:ready` - Stack ready
- - `stack:failed` - Stack failed
+ - `extension:ready` - Extension ready
+ - `extension:failed` - Extension failed
 
 ### EVM Statuses
 
@@ -102,7 +102,7 @@ For some errors EVM will be terminated (like errors on EVM start/initialization)
 Error event example:
 ```js
 {
-  id: "15511618343318382659", // <- Stack/Testchain ID
+  id: "15511618343318382659", // <- Environment/Testchain ID
   event: "error",
   data: {
      "message": "Some error message from system..."
@@ -182,7 +182,7 @@ You have to wait for [ready status](#evm-statuses)
 Deployment failed event example:
 ```js
 {
-  id: "15511618343318382659", // <- Stack/Testchain ID
+  id: "15511618343318382659", // <- Environment/Testchain ID
   event: "deployment_failed",
   data: {
      "error": "tones of logs from scripts..."
@@ -201,7 +201,7 @@ Snapshot taken event example:
 
 ```js
 {
-  id: "15511618343318382659", // <- Stack/Testchain ID
+  id: "15511618343318382659", // <- Environment/Testchain ID
   event: "snapshot_taken",
   data: {
       chain: "ganache" // <- EVM type
@@ -224,7 +224,7 @@ Snapshot reverted event example:
 
 ```js
 {
-  id: "15511618343318382659", // <- Stack/Testchain ID
+  id: "15511618343318382659", // <- Environment/Testchain ID
   event: "snapshot_reverted",
   data: { // <- Reverted snapshot details
       chain: "ganache" // <- EVM type
@@ -236,16 +236,16 @@ Snapshot reverted event example:
 }
 ```
 
-### Stack status event
-This event will be fired every time stack changes it's status
+### Extension status event
+This event will be fired every time extension changes it's status
 
 ```js
 {
   id: "15511618343318382659",
-  event: "stack:status",
+  event: "extension:status",
   data: {
-    "scope_id": "15511618343318382659",
-    "stack_name": "some_stack_name",
+    "environment_id": "15511618343318382659",
+    "extension_name": "some_extension_name",
     "status": "ready" // "failed", "initializing", "terminate"
   }
 }

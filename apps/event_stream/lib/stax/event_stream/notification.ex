@@ -7,7 +7,7 @@ defmodule Staxx.EventStream.Notification do
 
   ```elixir
   %Staxx.EventStream.Notification{
-    id: "15054686724791906538", 
+    id: "15054686724791906538",
     event: :started,
     data: %{
       accounts: ["0x51ef0fe1fe60af27f400ab42ddc9a6b99b277d38"],
@@ -33,7 +33,7 @@ defmodule Staxx.EventStream.Notification do
   @typedoc """
   Default Notification structure.
   Consist of:
-   - `id` - Stack/Testchain id
+   - `id` - Extension/Testchain id
    - `event` - Event that happened
    - `data` - Map with any data you need to pass with event
   """

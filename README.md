@@ -9,6 +9,13 @@
   - The docker compose service manages all the docker images needed for the setup and use of the testchain environment.
 
 
+## Naming convention
+
+ - `Staxx` - Main project name.
+ - `Environment` - Your testing environment containing `Testchain` and other `Extensions`.
+ - `Testchain` - Ethereum Virtual Machine (EVM) that will be seted up for your `Environment`.
+ - `Extension` - Plugin (set of docker images) provides additional functionality and running near `Testchain`, controlled by your `Environment`.
+
 ## Installation
 
 Before starting, you should confirm that you have docker compose up and running.
@@ -145,29 +152,29 @@ Run `make pull-evms` and system will download latest versions for EVM docker ima
 - `make upgrade-dev`
     - This command will stop all of the running containers and remove them as well as images.
 
-## Setting up Stacks
+## Setting up Extensions
 
-**Defining a Stack:** a Stack is a collection of backend services brought together for a specific purpose.
+**Defining a Extension:** a Extension is a collection of backend services brought together for a specific purpose.
 
 
-### Stack Manager Services:
-- VulcanizeDB Stack
-- Price Oracles Stack
+### Extension Services:
+- VulcanizeDB Extension
+- Price Oracles Extension
 - Keepers
 
-**What is a `Stack Manager Service`?**
+**What is a `Extension Service`?**
 
-In short, the stack manager service is essentially a plugin interface for your the specific stack you want to work with.
+In short, the extension service is essentially a plugin interface for your the specific extension you want to work with.
 
-For example, the Testchain Vulcanize DB stack manager service will handle list of events from testchain.
+For example, the Testchain Vulcanize DB extension service will handle list of events from testchain.
 
-For now we support only `vdb` stack available
+For now we support only `vdb` extension available
 [Github VDB repo](https://github.com/makerdao/testchain-stack-vdb)
 
-**Example:** Testchain Vulcanize DB Stack Manager Service
+**Example:** Testchain Vulcanize DB Extension Service
 
-**Note:** If you are using `docker-compose` for starting QA Dashboard from https://github.com/makerdao/staxx, you will have to put the 3 above files from stack_config into the `/tmp/stacks/vdb` folder on your local machine before starting the local environment.The following three files will be:
+**Note:** If you are using `docker-compose` for starting QA Dashboard from https://github.com/makerdao/staxx, you will have to put the 3 above files from extension_config into the `/tmp/extensions/vdb` folder on your local machine before starting the local environment.The following three files will be:
 
 1. Docker-compose.yml
 2. Icon.png
-3. Stack.json
+3. Extension.json

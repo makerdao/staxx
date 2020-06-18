@@ -43,10 +43,12 @@ services:
       # - "4369:4369"
       # - "9100:9100"
       - "4000:4000"
+      - "8080:8080"
+      - "3134:3134"
     environment:
       DOCKER_STAXX_NETWORK: docker_staxx
       DOCKER_NATS_NETWORK: docker_staxx
-      STACKS_DIR: /tmp/stacks
+      EXTENSIONS_DIR: /tmp/extensions
       CHAINS_DB_PATH: /tmp/chains
       SNAPSHOTS_DB_PATH: /tmp/snapshots
       HOST: staxx.local
@@ -57,7 +59,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - "/tmp/chains:/tmp/chains"
       - "/tmp/snapshots:/tmp/snapshots"
-      - "/tmp/stacks:/tmp/stacks"
+      - "/tmp/extensions:/tmp/extensions"
     networks:
      - staxx
   testchain-deployment:

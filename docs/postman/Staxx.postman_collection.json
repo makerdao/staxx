@@ -16,13 +16,16 @@
 							{
 								"key": "Content-Type",
 								"name": "Content-Type",
-								"value": "application/json",
-								"type": "text"
+								"type": "text",
+								"value": "application/json"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"stack_id\": \"{{chain_id}}\",\n\t\"stack_name\": \"{{stack_name}}\",\n\t\"image\": \"postgres\",\n\t\"ports\": [5432],\n\t\"dev_mode\": true,\n\t\"env\": {\n\t\t\"POSTGRES_PASSWORD\": \"postgres\"\n\t}\n}"
+							"raw": "{\n\t\"environment_id\": \"{{environment_id}}\",\n\t\"extension_name\": \"{{extension_name}}\",\n\t\"image\": \"postgres\",\n\t\"ports\": [5432],\n\t\"dev_mode\": true,\n\t\"env\": {\n\t\t\"POSTGRES_PASSWORD\": \"postgres\"\n\t}\n}",
+							"options": {
+								"raw": {}
+							}
 						},
 						"url": {
 							"raw": "{{STAXX_URL}}/docker/start",
@@ -41,84 +44,86 @@
 			"protocolProfileBehavior": {}
 		},
 		{
-			"name": "Stacks",
+			"name": "Environment",
 			"item": [
 				{
-					"name": "List stacks configs",
+					"name": "List extensions configs",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/stack/list",
+							"raw": "{{STAXX_URL}}/environment/extension/list_config",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"stack",
-								"list"
+								"environment",
+								"extension",
+								"list_config"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Reload all stacks configs",
+					"name": "Reload all extension configs",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/stack/reload",
+							"raw": "{{STAXX_URL}}/environment/extension/reload_config",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"stack",
-								"reload"
+								"environment",
+								"extension",
+								"reload_config"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Get Stack details",
+					"name": "Get extension details",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/stack/info/{{chain_id}}",
+							"raw": "{{STAXX_URL}}/extension/info/{{environment_id}}",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"stack",
+								"extension",
 								"info",
-								"{{chain_id}}"
+								"{{environment_id}}"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Stop stack",
+					"name": "Stop environment",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/stack/stop/{{chain_id}}",
+							"raw": "{{STAXX_URL}}/environment/stop/{{environment_id}}",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"stack",
+								"environment",
 								"stop",
-								"{{chain_id}}"
+								"{{environment_id}}"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Start new Stack",
+					"name": "Start new Environment",
 					"event": [
 						{
 							"listen": "test",
@@ -136,7 +141,7 @@
 									"    pm.expect(jsonData.data).to.have.own.property(\"id\");",
 									"    pm.expect(jsonData.data.id).to.not.be.empty;",
 									"    ",
-									"    pm.environment.set(\"chain_id\", jsonData.data.id); ",
+									"    pm.environment.set(\"environment_id\", jsonData.data.id); ",
 									"});"
 								],
 								"type": "text/javascript"
@@ -151,19 +156,27 @@
 								"name": "Content-Type",
 								"value": "application/json",
 								"type": "text"
+							},
+							{
+								"key": "X-User-Email",
+								"value": "konstantin@makerdao.com",
+								"type": "text"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"testchain\": {\n\t\t\"config\": {\n\t\t\t\"type\": \"{{evm}}\",\n\t\t\t\"accounts\": 2,\n\t\t\t\"block_mine_time\": 0,\n\t\t\t\"clean_on_stop\": false,\n\t\t\t\"snapshot_id\": null, \n\t\t\t\"step_id\": 1\n\t\t},\n\t\t\"deps\": []\n\t}\n}"
+							"raw": "{\n\t\"testchain\": {\n\t\t\"config\": {\n\t\t\t\"type\": \"{{evm}}\",\n\t\t\t\"accounts\": 2,\n\t\t\t\"block_mine_time\": 0,\n\t\t\t\"clean_on_stop\": false,\n\t\t\t\"snapshot_id\": null, \n\t\t\t\"deploy_step_id\": 1\n\t\t},\n\t\t\"deps\": []\n\t}\n}",
+							"options": {
+								"raw": {}
+							}
 						},
 						"url": {
-							"raw": "{{STAXX_URL}}/stack/start",
+							"raw": "{{STAXX_URL}}/environment/start",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"stack",
+								"environment",
 								"start"
 							]
 						}
@@ -171,7 +184,7 @@
 					"response": []
 				},
 				{
-					"name": "Start Empty Stack",
+					"name": "Start Empty environment",
 					"event": [
 						{
 							"listen": "test",
@@ -189,7 +202,7 @@
 									"    pm.expect(jsonData.data).to.have.own.property(\"id\");",
 									"    pm.expect(jsonData.data.id).to.not.be.empty;",
 									"    ",
-									"    pm.environment.set(\"chain_id\", jsonData.data.id); ",
+									"    pm.environment.set(\"environment_id\", jsonData.data.id); ",
 									"});"
 								],
 								"type": "text/javascript"
@@ -213,15 +226,18 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"testchain\": {\n        \"config\": {\n            \"type\": \"{{evm}}\",\n            \"accounts\": 1,\n            \"block_mine_time\": 0,\n            \"clean_on_stop\": true,\n            \"snapshot_id\": null,\n            \"deploy_ref\": \"refs/tags/staxx-testrunner\",\n            \"deploy_step_id\": 1\n        },\n        \"deps\": []\n    }\n}"
+							"raw": "{\n    \"testchain\": {\n        \"config\": {\n            \"type\": \"{{evm}}\",\n            \"accounts\": 1,\n            \"block_mine_time\": 0,\n            \"clean_on_stop\": true,\n            \"snapshot_id\": null,\n            \"deploy_ref\": \"refs/tags/staxx-testrunner\",\n            \"deploy_step_id\": 0\n        },\n        \"deps\": []\n    }\n}",
+							"options": {
+								"raw": {}
+							}
 						},
 						"url": {
-							"raw": "{{STAXX_URL}}/stack/start",
+							"raw": "{{STAXX_URL}}/environment/start",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"stack",
+								"environment",
 								"start"
 							],
 							"query": [
@@ -236,7 +252,7 @@
 					"response": []
 				},
 				{
-					"name": "Start Empty Stack From Snapshot",
+					"name": "Start Empty environment From Snapshot",
 					"event": [
 						{
 							"listen": "test",
@@ -254,7 +270,7 @@
 									"    pm.expect(jsonData.data).to.have.own.property(\"id\");",
 									"    pm.expect(jsonData.data.id).to.not.be.empty;",
 									"    ",
-									"    pm.environment.set(\"chain_id\", jsonData.data.id); ",
+									"    pm.environment.set(\"environment_id\", jsonData.data.id); ",
 									"});"
 								],
 								"type": "text/javascript"
@@ -279,15 +295,18 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"testchain\": {\n        \"config\": {\n            \"type\": \"{{evm}}\",\n            \"accounts\": 1,\n            \"block_mine_time\": 0,\n            \"clean_on_stop\": true,\n            \"snapshot_id\": \"{{snapshot_id}}\",\n            \"deploy_tag\": \"tags/staxx-deployment\",\n            \"step_id\": 0\n        },\n        \"deps\": []\n    }\n}"
+							"raw": "{\n    \"testchain\": {\n        \"config\": {\n            \"type\": \"{{evm}}\",\n            \"accounts\": 1,\n            \"block_mine_time\": 0,\n            \"clean_on_stop\": true,\n            \"snapshot_id\": \"{{snapshot_id}}\",\n            \"deploy_tag\": \"tags/staxx-deployment\",\n            \"step_id\": 0\n        },\n        \"deps\": []\n    }\n}",
+							"options": {
+								"raw": {}
+							}
 						},
 						"url": {
-							"raw": "{{STAXX_URL}}/stack/start",
+							"raw": "{{STAXX_URL}}/environment/start",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"stack",
+								"environment",
 								"start"
 							]
 						}
@@ -295,7 +314,7 @@
 					"response": []
 				},
 				{
-					"name": "Start existing stack",
+					"name": "Start existing environment",
 					"event": [
 						{
 							"listen": "test",
@@ -322,15 +341,18 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"testchain\": {\n\t\t\"config\": {\n\t\t\t\"id\": \"{{chain_id}}\"\n\t\t},\n\t\t\"deps\": []\n\t}\n}"
+							"raw": "{\n\t\"testchain\": {\n\t\t\"config\": {\n\t\t\t\"id\": \"{{environment_id}}\"\n\t\t},\n\t\t\"deps\": []\n\t}\n}",
+							"options": {
+								"raw": {}
+							}
 						},
 						"url": {
-							"raw": "{{STAXX_URL}}/stack/start",
+							"raw": "{{STAXX_URL}}/environment/start",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"stack",
+								"environment",
 								"start"
 							]
 						}
@@ -380,13 +402,13 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/chain/{{chain_id}}",
+							"raw": "{{STAXX_URL}}/chain/{{environment_id}}",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
 								"chain",
-								"{{chain_id}}"
+								"{{environment_id}}"
 							]
 						}
 					},
@@ -398,13 +420,13 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/chain/{{chain_id}}",
+							"raw": "{{STAXX_URL}}/chain/{{environment_id}}",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
 								"chain",
-								"{{chain_id}}"
+								"{{environment_id}}"
 							]
 						}
 					},
@@ -462,13 +484,13 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/chain/{{chain_id}}/take_snapshot",
+							"raw": "{{STAXX_URL}}/chain/{{environment_id}}/take_snapshot",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
 								"chain",
-								"{{chain_id}}",
+								"{{environment_id}}",
 								"take_snapshot"
 							]
 						}
@@ -481,13 +503,13 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/chain/{{chain_id}}/revert_snapshot/{{snapshot_id}}",
+							"raw": "{{STAXX_URL}}/chain/{{environment_id}}/revert_snapshot/{{snapshot_id}}",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
 								"chain",
-								"{{chain_id}}",
+								"{{environment_id}}",
 								"revert_snapshot",
 								"{{snapshot_id}}"
 							]
@@ -525,13 +547,13 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/snapshot/10490151790622365815",
+							"raw": "{{STAXX_URL}}/snapshot/{{snapshot_id}}",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
 								"snapshot",
-								"10490151790622365815"
+								"{{snapshot_id}}"
 							]
 						}
 					},

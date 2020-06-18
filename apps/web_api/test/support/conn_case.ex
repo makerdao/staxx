@@ -28,6 +28,13 @@ defmodule Staxx.WebApiWeb.ConnCase do
   end
 
   setup _tags do
-    {:ok, conn: Phoenix.ConnTest.build_conn()}
+    conn =
+      Phoenix.ConnTest.build_conn()
+      |> Plug.Conn.put_req_header(
+        "x-user-email",
+        Application.get_env(:web_api, :test_email, "test@test.com")
+      )
+
+    {:ok, conn: conn}
   end
 end

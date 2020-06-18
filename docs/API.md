@@ -15,30 +15,32 @@ Web API for working with QA Dashboard backend
  - `GET /chain/stop/:id` - Stop chain by ID
  - `POST /chain/:id/take_snapshot` - Start taking snapshot (result will be received by WS)
  - `POST /chain/:id/revert_snapshot/snapshot_id` - Start reverting snapshot (result will be received by WS)
+ - `POST /environment/start` - Start new environment.
+ - `GET /environment/stop/:id` - Stops running environment.
 
 ## Postman APIs and Envs
 
 There are exported Postman environments available [here](./postman)
 
-## STACKS API
+## Environment API
 
 ### Staxx configuration
-Stack configuration should be placed to `:stacks_dir` configured.
-By default it's configured to `/tmp/stacks`.
+Extension configuration should be placed to `:extensions_dir` configured.
+By default it's configured to `/tmp/extensions`.
 
-Stack configuration consists of 3 files under folder with stack name.
+Extension configuration consists of 3 files under folder with extension name.
 
- - `stack.json` - Main stack configuration
- - `docker-compose.yml` - List of containers stack will start.
- - `icon.png` - Stack icon for QA dashboard UI
+ - `extension.json` - Main extension configuration
+ - `docker-compose.yml` - List of containers extension will start.
+ - `icon.png` - Extension icon for QA dashboard UI
 
-So for example for `vdb` stack you have to place it into `/tmp/stacks/vdb/stack.json`
+So for example for `vdb` extension you have to place it into `/tmp/extensions/vdb/extension.json`
 
-`stack.json` file example:
+`extension.json` file example:
 
 ```js
 {
-  "title": "VulcanizeDB Stack",
+  "title": "VulcanizeDB Extension",
   "scope": "global | user | testchain",
   "manager": "testchain-vdb",
   "deps": [
@@ -49,13 +51,13 @@ So for example for `vdb` stack you have to place it into `/tmp/stacks/vdb/stack.
 
 Property list:
 
- - `title` - Stack title
- - `scope` - Stack scope
- - `manager` - Stack manager service
- - `deps` - Stack dependencies
+ - `title` - Extension title
+ - `scope` - Extension scope
+ - `manager` - Extension manager service
+ - `deps` - Extension dependencies
 
-### Starting new stack
-POST `/stack/start` with payload:
+### Starting new extension
+POST `/environment/start` with payload:
 
 ```js
 {
@@ -66,12 +68,12 @@ POST `/stack/start` with payload:
       "block_mine_time": 0, // Block mining time
       "clean_on_stop": true, // Remove all files after chain will be stopped
       "snapshot_id": null, // Snapshot ID
-      "deploy_tag": null, // tag or commit id we need to switch before deployemnt
-      "step_id": 1 // deployment step
+      "deploy_ref": null, // tag or commit id we need to switch before deployemnt
+      "deploy_step_id": 1 // deployment step
     },
     "deps": [] // For testchain we have no dependencies
   },
-  "vdb": { // <-- Your stack name
+  "vdb": { // <-- Your extension name
     "config": {}, // No config needed to start VDB
     "deps": [  // VDB have to wait till testchain to start
       "testchain"
@@ -84,7 +86,7 @@ Example:
 
 ```bash
 curl --request POST \
-  --url http://localhost:4000/stack/start \
+  --url http://localhost:4000/environment/start \
   --header 'content-type: application/json' \
   --data '{
 	"testchain": {
@@ -94,7 +96,7 @@ curl --request POST \
 			"block_mine_time": 0,
 			"clean_on_stop": true,
 			"snapshot_id": null,
-			"step_id": 1
+			"deploy_step_id": 1
 		},
 		"deps": []
 	},
@@ -113,17 +115,17 @@ Response:
   "message": "",
   "errors": [],
   "data": {
-    "id": "5341658974976052158" // Generated stack ID
+    "id": "5341658974976052158" // Generated environment ID
   }
 }
 ```
 
-### Stop stack
-GET `/stack/stop/{stack_id}`
+### Stop environment
+GET `/environment/stop/{environment_id}`
 
 ```bash
 curl --request GET \
-  --url http://localhost:4000/stack/stop/5341658974976052158
+  --url http://localhost:4000/environment/stop/5341658974976052158
 ```
 
 ```json
@@ -135,13 +137,13 @@ curl --request GET \
 }
 ```
 
-### Stack info
-Will show list of exported resources for stack
-GET `/stack/info/{stack_id}`
+### Environment info
+Will show list of exported resources by extension for environment
+GET `/environment/info/{environment_id}`
 
 ```bash
 curl --request GET \
-  --url http://localhost:4000/stack/info/5341658974976052158
+  --url http://localhost:4000/environment/info/5341658974976052158
 ```
 
 ```javascript
@@ -151,7 +153,7 @@ curl --request GET \
   "errors": [],
   "data": {
     "urls": {
-      "vdb": [ // stack name
+      "vdb": [ // extension name
         "http://localhost:51329" // exported resource
       ]
     }
@@ -160,15 +162,15 @@ curl --request GET \
 ```
 
 ### Notifications
-Send any notification for stack
+Send any notification for extension into running environment
 
-Route: `POST /stack/notify`
+Route: `POST /environment/extension/notify`
 Request payload:
 
 ```js
 {
-  "id": "5424541485621730355", // <-- Stack ID
-  "event": "stack:vdb:event", // <-- your event
+  "environment_id": "5424541485621730355", // <-- environment ID
+  "event": "event", // <-- your event
   "data": {} // <-- Data you want to send
 }
 ```
@@ -188,25 +190,25 @@ Example:
 
 ```bash
 curl --request POST \
-  --url http://localhost:4000/stack/notify \
+  --url http://localhost:4000/environment/extension/notify \
   --header 'content-type: application/json' \
   --data '{
-	"id": "5424541485621730355",
+	"environment_id": "5424541485621730355",
 	"event": "vdb_ready",
 	"data": {}
 }'
 ```
 
-### Stack ready notification
-Send Stack ready event
+### Extension ready notification
+Send Extension ready event
 
-Route `POST /stack/notify/ready`
+Route `POST /environment/extension/notify/ready`
 Request payload:
 
 ```js
 {
-  "id": "16020459699138145532", // <-- Stack ID
-  "stack_name": "vdb", // <-- Stack name
+  "environment_id": "16020459699138145532", // <-- Environment ID
+  "extension_name": "vdb", // <-- Extension name
   "data": {} // <-- details you need to send
 }
 ```
@@ -226,25 +228,25 @@ Example:
 
 ```bash
 curl --request POST \
-  --url http://localhost:4000/stack/notify/ready \
+  --url http://localhost:4000/environment/extension/notify/ready \
   --header 'content-type: application/json' \
   --data '{
-	"id": "16020459699138145532",
-	"stack_name": "vdb",
+	"environment_id": "16020459699138145532",
+	"extension_name": "vdb",
   "data": {}
 }'
 ```
 
-### Stack failed notification
-Send Stack ready event
+### Extension failed notification
+Send Extension ready event
 
-Route `POST /stack/notify/failed`
+Route `POST /environment/extension/notify/failed`
 Request payload:
 
 ```js
 {
-  "id": "16020459699138145532", // <-- Stack ID
-  "stack_name": "vdb", // <-- Stack name
+  "environment_id": "16020459699138145532", // <-- Environment ID
+  "extension_name": "vdb", // <-- Extension name
 	"data": {} // <-- details you need to send
 }
 ```
@@ -264,28 +266,28 @@ Example:
 
 ```bash
 curl --request POST \
-  --url http://localhost:4000/stack/notify/failed \
+  --url http://localhost:4000/environment/extension/notify/failed \
   --header 'content-type: application/json' \
   --data '{
-	"id": "16020459699138145532",
-	"stack_name": "vdb",
+	"environment_id": "16020459699138145532",
+	"extension_name": "vdb",
   "data": {}
 }'
 ```
 
 ### Start Docker Container
-Send command to start new docker container under specified stack.
-All containers will be stopped when you stop stack.
+Send command to start new docker container under specified extension.
+All containers will be stopped when you stop extension.
 
 Route: `POST /docker/start`
 
 Request payload:
 ```js
 {
-  "stack_id": "2538928139759187250", // <-- Stack ID (Required)
-  "stack_name": "vdb", // <-- stack name (Required)
+  "environment_id": "2538928139759187250", // <-- Environment ID (Required)
+  "extension_name": "vdb", // <-- extension name (Required)
   "image": "postgres", // <-- Docker image needs to be started (Note you have to specify it into docker-compose.yml)
-  "network": "2538928139759187250", // <-- Docker network ID (Optional. Same to Stack ID)
+  "network": "2538928139759187250", // <-- Docker network ID (Optional. Same to Extension ID)
   "cmd": "--help", // <-- See Dockerfile CMD for more details (Optional)
   "ports": [5432], // <-- Port list needs to be open for public
   "dev_mode": false, // <-- ONLY FOR TESTING ! will run container without removing it after stop.
@@ -322,8 +324,8 @@ curl --request POST \
   --url http://localhost:4000/docker/start \
   --header 'content-type: application/json' \
   --data '{
-	"stack_id": "2538928139759187250",
-  "stack_name": "vdb",
+	"environment_id": "2538928139759187250",
+  "extension_name": "vdb",
 	"image": "postgres",
 	"network": "2538928139759187250",
 	"ports": [5432],
@@ -350,8 +352,8 @@ curl --request POST \
   --url http://localhost:4000/docker/start \
   --header 'content-type: application/json' \
   --data '{
-	"stack_id": "2538928139759187250",
-  "stack_name": "vdb",
+	"environment_id": "2538928139759187250",
+  "extension_name": "vdb",
 	"image": "postgres",
 	"network": "2538928139759187250",
 	"ports": [5432],
@@ -363,8 +365,8 @@ curl --request POST \
 ```
 
 ### Chain details
-For your stack you might need details of chain that was started for you.
-Route: `GET /chain/{stack_id}`
+For your environment you might need details of testchain that was started for you.
+Route: `GET /chain/{environment_id}`
 
 It does not have any request details.
 Response:
@@ -495,13 +497,13 @@ Response:
 }
 ```
 
-### Reload stacks configuration
-In case of some changes in stack configuration you might need to reload stacks configurations.
-It could be done by calling `GET /stack/reload` route.
+### Reload extensions configuration
+In case of some changes in extension configuration you might need to reload extensions configurations.
+It could be done by calling `GET /environment/extension/reload` route.
 
 ```bash
 curl --request GET \
-  --url http://localhost:4000/stack/reload
+  --url http://localhost:4000/environment/extension/reload
 ```
 It does not have any request details.
 Response:
@@ -515,13 +517,13 @@ Response:
 }
 ```
 
-### Get list of available stacks
-For some reason you might need list of available stacks configs.
+### Get list of available extensions configs
+For some reason you might need list of available extensions configs.
 
 Request:
 ```bash
 curl --request GET \
-  --url http://localhost:4000/stack/list
+  --url http://localhost:4000/environment/extension/list_config
 ```
 
 Response example:
@@ -532,10 +534,10 @@ Response example:
   "errors": [],
   "data": {
     "helloworld": {
-      "title": "Hello World Stack",
+      "title": "Hello World Extension",
       "scope": "global",
       "name": "helloworld",
-      "manager": "makerdao/testchain-stack-helloworld",
+      "manager": "makerdao/testchain-extension-helloworld",
       "deps": [
         "testchain"
       ],
@@ -544,7 +546,7 @@ Response example:
           "ports": [
             3000
           ],
-          "image": "makerdao/testchain-stack-helloworld-display"
+          "image": "makerdao/testchain-extension-helloworld-display"
         }
       }
     }
