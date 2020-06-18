@@ -45,7 +45,7 @@ defmodule Staxx.Environment.Environment.Supervisor do
           Terminator.monitor(pid)
       end
 
-      start_extension_managers(id, extensions)
+      start_extensions(id, extensions)
     end
 
     res
@@ -92,8 +92,8 @@ defmodule Staxx.Environment.Environment.Supervisor do
   @doc """
   Starts new `Extension` in environment for `extension_name`.
   """
-  @spec start_extension_manager(binary, binary) :: DynamicSupervisor.on_start_child()
-  def start_extension_manager(environment_id, extension_name) do
+  @spec start_extension(binary, binary) :: DynamicSupervisor.on_start_child()
+  def start_extension(environment_id, extension_name) do
     case Environment.alive?(environment_id) do
       false ->
         {:error, "No working environment with such id found"}
@@ -113,10 +113,10 @@ defmodule Staxx.Environment.Environment.Supervisor do
     do: Application.get_env(:environment, :testchain_supervisor_module)
 
   # Start list of extension managers
-  defp start_extension_managers(environment_id, extensions) do
+  defp start_extensions(environment_id, extensions) do
     extensions
     |> Map.keys()
     |> Enum.uniq()
-    |> Enum.map(&start_extension_manager(environment_id, &1))
+    |> Enum.map(&start_extension(environment_id, &1))
   end
 end

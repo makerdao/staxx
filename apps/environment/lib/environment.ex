@@ -109,16 +109,16 @@ defmodule Staxx.Environment do
   Spawns new extension manager service.
   Helpful for dynamically starting new extensions for existing environment that already running.
   """
-  @spec spawn_extension_manager(binary, binary) :: DynamicSupervisor.on_start_child()
-  def spawn_extension_manager(environment_id, extension_name),
-    do: EnvironmentSupervisor.start_extension_manager(environment_id, extension_name)
+  @spec start_extension(binary, binary) :: DynamicSupervisor.on_start_child()
+  def start_extension(environment_id, extension_name),
+    do: EnvironmentSupervisor.start_extension(environment_id, extension_name)
 
   @doc """
   Stops extension manager in runnint environment.
   Will terminate all containers/resources binded to extension.
   """
-  @spec stop_extension_manager(binary, binary) :: :ok
-  def stop_extension_manager(environment_id, extension_name),
+  @spec stop_extension(binary, binary) :: :ok
+  def stop_extension(environment_id, extension_name),
     do: Extension.stop(environment_id, extension_name)
 
   @doc """

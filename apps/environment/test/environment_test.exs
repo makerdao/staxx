@@ -79,9 +79,9 @@ defmodule Staxx.EnvironmentTest do
     end
   end
 
-  describe "spawn_extension_manager/2 :: " do
+  describe "start_extension/2 :: " do
     test "fails if no scope is running" do
-      {:error, _} = Environment.spawn_extension_manager(Faker.String.base64(), "test")
+      {:error, _} = Environment.start_extension(Faker.String.base64(), "test")
     end
 
     test "spawns new Extension for running scope" do
@@ -89,7 +89,7 @@ defmodule Staxx.EnvironmentTest do
       assert is_binary(id)
       assert Environment.alive?(id)
 
-      assert {:ok, pid} = Environment.spawn_extension_manager(id, "test")
+      assert {:ok, pid} = Environment.start_extension(id, "test")
       assert is_pid(pid)
       assert Process.alive?(pid)
 
@@ -99,18 +99,18 @@ defmodule Staxx.EnvironmentTest do
     end
   end
 
-  describe "stop_extension_manager/2 :: " do
+  describe "stop_extension/2 :: " do
     test "stops running Extension" do
       {:ok, id} = Environment.start(build(:chain_valid))
       assert is_binary(id)
       assert Environment.alive?(id)
 
-      assert {:ok, pid} = Environment.spawn_extension_manager(id, "test")
+      assert {:ok, pid} = Environment.start_extension(id, "test")
       assert is_pid(pid)
       assert Process.alive?(pid)
       assert Extension.alive?(id, "test")
 
-      assert :ok == Environment.stop_extension_manager(id, "test")
+      assert :ok == Environment.stop_extension(id, "test")
 
       :timer.sleep(100)
       refute Process.alive?(pid)
@@ -137,7 +137,7 @@ defmodule Staxx.EnvironmentTest do
     test "starts new container" do
       {:ok, id} = Environment.start(build(:chain_valid))
       assert Environment.alive?(id)
-      assert {:ok, pid} = Environment.spawn_extension_manager(id, "test")
+      assert {:ok, pid} = Environment.start_extension(id, "test")
       assert Extension.alive?(id, "test")
 
       container = build(:container_valid)
@@ -159,7 +159,7 @@ defmodule Staxx.EnvironmentTest do
     test "provide info about running scope" do
       {:ok, id} = Environment.start(build(:chain_valid))
       assert Environment.alive?(id)
-      assert {:ok, pid} = Environment.spawn_extension_manager(id, "test")
+      assert {:ok, pid} = Environment.start_extension(id, "test")
       assert Extension.alive?(id, "test")
 
       container = build(:container_valid)

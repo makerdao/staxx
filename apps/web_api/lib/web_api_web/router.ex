@@ -45,16 +45,20 @@ defmodule Staxx.WebApiWeb.Router do
 
   scope "/environment", Staxx.WebApiWeb do
     pipe_through :api
-    get "/list", EnvironmentController, :list
-    get "/reload", EnvironmentController, :reload_config
     post "/start", EnvironmentController, :start
     get "/stop/:id", EnvironmentController, :stop
     get "/info/:id", EnvironmentController, :info
-    post "/manager/start/:id", EnvironmentController, :spawn_extension_manager
-    post "/manager/stop/:id", EnvironmentController, :stop_extension_manager
-    post "/notify", EnvironmentController, :notify
-    post "/notify/ready", EnvironmentController, :extension_ready
-    post "/notify/failed", EnvironmentController, :extension_failed
+  end
+
+  scope "/environment/extension", Staxx.WebApiWeb do
+    pipe_through :api
+    get "/list_config", ExtensionController, :list_config
+    get "/reload_config", ExtensionController, :reload_config
+    post "/start/:environment_id", ExtensionController, :start
+    post "/stop/:environment_id", ExtensionController, :stop
+    post "/notify", ExtensionController, :notify
+    post "/notify/ready", ExtensionController, :notify_ready
+    post "/notify/failed", ExtensionController, :notify_failed
   end
 
   scope "/user", Staxx.WebApiWeb do
