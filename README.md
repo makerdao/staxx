@@ -157,21 +157,21 @@ Run `make pull-evms` and system will download latest versions for EVM docker ima
 **Defining a Extension:** a Extension is a collection of backend services brought together for a specific purpose.
 
 
-### Extension Manager Services:
+### Extension Services:
 - VulcanizeDB Extension
 - Price Oracles Extension
 - Keepers
 
-**What is a `Extension Manager Service`?**
+**What is a `Extension Service`?**
 
-In short, the extension manager service is essentially a plugin interface for your the specific extension you want to work with.
+In short, the extension service is essentially a plugin interface for your the specific extension you want to work with.
 
-For example, the Testchain Vulcanize DB extension manager service will handle list of events from testchain.
+For example, the Testchain Vulcanize DB extension service will handle list of events from testchain.
 
 For now we support only `vdb` extension available
 [Github VDB repo](https://github.com/makerdao/testchain-stack-vdb)
 
-**Example:** Testchain Vulcanize DB Extension Manager Service
+**Example:** Testchain Vulcanize DB Extension Service
 
 **Note:** If you are using `docker-compose` for starting QA Dashboard from https://github.com/makerdao/staxx, you will have to put the 3 above files from extension_config into the `/tmp/extensions/vdb` folder on your local machine before starting the local environment.The following three files will be:
 

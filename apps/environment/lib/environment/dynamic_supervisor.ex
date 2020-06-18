@@ -8,7 +8,7 @@ defmodule Staxx.Environment.DynamicSupervisor do
 
   require Logger
 
-  alias Staxx.Environment.Environment.Supervisor, as: EnvironmentSupervisor
+  alias Staxx.Environment.Supervisor, as: EnvironmentSupervisor
 
   @doc false
   def start_link(arg),

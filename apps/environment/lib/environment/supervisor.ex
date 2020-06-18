@@ -1,4 +1,4 @@
-defmodule Staxx.Environment.Environment.Supervisor do
+defmodule Staxx.Environment.Supervisor do
   @moduledoc """
   Supervises everything inside Environment.
 
@@ -31,7 +31,7 @@ defmodule Staxx.Environment.Environment.Supervisor do
   def start_link({id, _chain_config_or_id, extensions} = params) do
     res = Supervisor.start_link(__MODULE__, params, name: via_tuple(id))
 
-    # have to start extension managers here. Because need to be sure that testchain
+    # have to start extensions here. Because need to be sure that testchain
     # already started, before starting extensions.
     if {:ok, pid} = res do
       pid
@@ -112,7 +112,7 @@ defmodule Staxx.Environment.Environment.Supervisor do
   defp get_testchain_supervisor_module(),
     do: Application.get_env(:environment, :testchain_supervisor_module)
 
-  # Start list of extension managers
+  # Start list of extensions
   defp start_extensions(environment_id, extensions) do
     extensions
     |> Map.keys()

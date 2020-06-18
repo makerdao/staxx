@@ -60,7 +60,7 @@ defmodule Staxx.Environment.Extension do
     Logger.debug(fn ->
       """
       Environment ID: #{environment_id}
-      Starting new extension manager for extension: #{name}
+      Starting new extension: #{name}
       """
     end)
 
@@ -214,7 +214,7 @@ defmodule Staxx.Environment.Extension do
   end
 
   @doc """
-  Send stop comnmand to Extension Manager service
+  Send stop comnmand to Extension service
   """
   @spec stop(binary, binary) :: :ok
   def stop(environment_id, name) do

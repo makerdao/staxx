@@ -11,7 +11,7 @@ defmodule Staxx.Environment do
   alias Staxx.Testchain
   alias Staxx.Testchain.Helper
   alias Staxx.Environment.DynamicSupervisor, as: EnvironmentsDynamicSupervisor
-  alias Staxx.Environment.Environment.Supervisor, as: EnvironmentSupervisor
+  alias Staxx.Environment.Supervisor, as: EnvironmentSupervisor
   alias Staxx.Environment.Extension
   alias Staxx.Environment.Extension.ConfigLoader
 
@@ -106,7 +106,7 @@ defmodule Staxx.Environment do
   end
 
   @doc """
-  Spawns new extension manager service.
+  Spawns new extension service.
   Helpful for dynamically starting new extensions for existing environment that already running.
   """
   @spec start_extension(binary, binary) :: DynamicSupervisor.on_start_child()
@@ -114,7 +114,7 @@ defmodule Staxx.Environment do
     do: EnvironmentSupervisor.start_extension(environment_id, extension_name)
 
   @doc """
-  Stops extension manager in runnint environment.
+  Stops extension in runnint environment.
   Will terminate all containers/resources binded to extension.
   """
   @spec stop_extension(binary, binary) :: :ok
