@@ -15,12 +15,14 @@ Web API for working with QA Dashboard backend
  - `GET /chain/stop/:id` - Stop chain by ID
  - `POST /chain/:id/take_snapshot` - Start taking snapshot (result will be received by WS)
  - `POST /chain/:id/revert_snapshot/snapshot_id` - Start reverting snapshot (result will be received by WS)
+ - `POST /environment/start` - Start new environment.
+ - `GET /environment/stop/:id` - Stops running environment.
 
 ## Postman APIs and Envs
 
 There are exported Postman environments available [here](./postman)
 
-## EXTENSIONS API
+## Environment API
 
 ### Staxx configuration
 Extension configuration should be placed to `:extensions_dir` configured.
@@ -55,7 +57,7 @@ Property list:
  - `deps` - Extension dependencies
 
 ### Starting new extension
-POST `/extension/start` with payload:
+POST `/environment/start` with payload:
 
 ```js
 {
@@ -66,8 +68,8 @@ POST `/extension/start` with payload:
       "block_mine_time": 0, // Block mining time
       "clean_on_stop": true, // Remove all files after chain will be stopped
       "snapshot_id": null, // Snapshot ID
-      "deploy_tag": null, // tag or commit id we need to switch before deployemnt
-      "step_id": 1 // deployment step
+      "deploy_ref": null, // tag or commit id we need to switch before deployemnt
+      "deploy_step_id": 1 // deployment step
     },
     "deps": [] // For testchain we have no dependencies
   },
@@ -84,7 +86,7 @@ Example:
 
 ```bash
 curl --request POST \
-  --url http://localhost:4000/extension/start \
+  --url http://localhost:4000/environment/start \
   --header 'content-type: application/json' \
   --data '{
 	"testchain": {
@@ -94,7 +96,7 @@ curl --request POST \
 			"block_mine_time": 0,
 			"clean_on_stop": true,
 			"snapshot_id": null,
-			"step_id": 1
+			"deploy_step_id": 1
 		},
 		"deps": []
 	},
@@ -113,17 +115,17 @@ Response:
   "message": "",
   "errors": [],
   "data": {
-    "id": "5341658974976052158" // Generated extension ID
+    "id": "5341658974976052158" // Generated environment ID
   }
 }
 ```
 
-### Stop extension
-GET `/extension/stop/{extension_id}`
+### Stop environment
+GET `/environment/stop/{environment_id}`
 
 ```bash
 curl --request GET \
-  --url http://localhost:4000/extension/stop/5341658974976052158
+  --url http://localhost:4000/environment/stop/5341658974976052158
 ```
 
 ```json
@@ -135,13 +137,13 @@ curl --request GET \
 }
 ```
 
-### Extension info
-Will show list of exported resources for extension
-GET `/extension/info/{extension_id}`
+### Environment info
+Will show list of exported resources by extension for environment
+GET `/environment/info/{environment_id}`
 
 ```bash
 curl --request GET \
-  --url http://localhost:4000/extension/info/5341658974976052158
+  --url http://localhost:4000/environment/info/5341658974976052158
 ```
 
 ```javascript
@@ -160,15 +162,15 @@ curl --request GET \
 ```
 
 ### Notifications
-Send any notification for extension
+Send any notification for extension into running environment
 
-Route: `POST /extension/notify`
+Route: `POST /environment/extension/notify`
 Request payload:
 
 ```js
 {
-  "id": "5424541485621730355", // <-- Extension ID
-  "event": "extension:vdb:event", // <-- your event
+  "environment_id": "5424541485621730355", // <-- environment ID
+  "event": "event", // <-- your event
   "data": {} // <-- Data you want to send
 }
 ```
@@ -188,10 +190,10 @@ Example:
 
 ```bash
 curl --request POST \
-  --url http://localhost:4000/extension/notify \
+  --url http://localhost:4000/environment/extension/notify \
   --header 'content-type: application/json' \
   --data '{
-	"id": "5424541485621730355",
+	"environment_id": "5424541485621730355",
 	"event": "vdb_ready",
 	"data": {}
 }'
@@ -200,12 +202,12 @@ curl --request POST \
 ### Extension ready notification
 Send Extension ready event
 
-Route `POST /extension/notify/ready`
+Route `POST /environment/extension/notify/ready`
 Request payload:
 
 ```js
 {
-  "id": "16020459699138145532", // <-- Extension ID
+  "environment_id": "16020459699138145532", // <-- Environment ID
   "extension_name": "vdb", // <-- Extension name
   "data": {} // <-- details you need to send
 }
@@ -226,10 +228,10 @@ Example:
 
 ```bash
 curl --request POST \
-  --url http://localhost:4000/extension/notify/ready \
+  --url http://localhost:4000/environment/extension/notify/ready \
   --header 'content-type: application/json' \
   --data '{
-	"id": "16020459699138145532",
+	"environment_id": "16020459699138145532",
 	"extension_name": "vdb",
   "data": {}
 }'
@@ -238,12 +240,12 @@ curl --request POST \
 ### Extension failed notification
 Send Extension ready event
 
-Route `POST /extension/notify/failed`
+Route `POST /environment/extension/notify/failed`
 Request payload:
 
 ```js
 {
-  "id": "16020459699138145532", // <-- Extension ID
+  "environment_id": "16020459699138145532", // <-- Environment ID
   "extension_name": "vdb", // <-- Extension name
 	"data": {} // <-- details you need to send
 }
@@ -264,10 +266,10 @@ Example:
 
 ```bash
 curl --request POST \
-  --url http://localhost:4000/extension/notify/failed \
+  --url http://localhost:4000/environment/extension/notify/failed \
   --header 'content-type: application/json' \
   --data '{
-	"id": "16020459699138145532",
+	"environment_id": "16020459699138145532",
 	"extension_name": "vdb",
   "data": {}
 }'
@@ -282,7 +284,7 @@ Route: `POST /docker/start`
 Request payload:
 ```js
 {
-  "extension_id": "2538928139759187250", // <-- Extension ID (Required)
+  "environment_id": "2538928139759187250", // <-- Environment ID (Required)
   "extension_name": "vdb", // <-- extension name (Required)
   "image": "postgres", // <-- Docker image needs to be started (Note you have to specify it into docker-compose.yml)
   "network": "2538928139759187250", // <-- Docker network ID (Optional. Same to Extension ID)
@@ -322,7 +324,7 @@ curl --request POST \
   --url http://localhost:4000/docker/start \
   --header 'content-type: application/json' \
   --data '{
-	"extension_id": "2538928139759187250",
+	"environment_id": "2538928139759187250",
   "extension_name": "vdb",
 	"image": "postgres",
 	"network": "2538928139759187250",
@@ -350,7 +352,7 @@ curl --request POST \
   --url http://localhost:4000/docker/start \
   --header 'content-type: application/json' \
   --data '{
-	"extension_id": "2538928139759187250",
+	"environment_id": "2538928139759187250",
   "extension_name": "vdb",
 	"image": "postgres",
 	"network": "2538928139759187250",
@@ -363,8 +365,8 @@ curl --request POST \
 ```
 
 ### Chain details
-For your extension you might need details of chain that was started for you.
-Route: `GET /chain/{extension_id}`
+For your environment you might need details of testchain that was started for you.
+Route: `GET /chain/{environment_id}`
 
 It does not have any request details.
 Response:
@@ -497,11 +499,11 @@ Response:
 
 ### Reload extensions configuration
 In case of some changes in extension configuration you might need to reload extensions configurations.
-It could be done by calling `GET /extension/reload` route.
+It could be done by calling `GET /environment/extension/reload` route.
 
 ```bash
 curl --request GET \
-  --url http://localhost:4000/extension/reload
+  --url http://localhost:4000/environment/extension/reload
 ```
 It does not have any request details.
 Response:
@@ -515,13 +517,13 @@ Response:
 }
 ```
 
-### Get list of available extensions
+### Get list of available extensions configs
 For some reason you might need list of available extensions configs.
 
 Request:
 ```bash
 curl --request GET \
-  --url http://localhost:4000/extension/list
+  --url http://localhost:4000/environment/extension/list_config
 ```
 
 Response example:

@@ -66,7 +66,7 @@
                 },
                 "snapshot_id": {
                     "description": "Snapshot ID that should be loaded on chain start",
-                    "type": "string"
+                    "type": ["string", "null"]
                 },
                 "description": {
                     "description": "Chain description for storage",
@@ -98,6 +98,13 @@
                     "type": "integer",
                     "minimum": 0
                 }
+            }
+        },
+        "deps": {
+            "description": "List of Extensions",
+            "type": "array",
+            "items": {
+                "type": "string"
             }
         }
     }

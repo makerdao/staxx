@@ -1,12 +1,12 @@
 # Testchain events
 
-When you work with testchain/extensions you will receive set of event from system.
+When you work with testchain/environment you will receive set of event from system.
 All events has similar format:
 
 ```js
 {
-  "id": "2538928139759187250", // <-- Extension/chain ID
-  "event": "ready", // <-- Extension/chain event name
+  "id": "2538928139759187250", // <-- Environment/chain ID
+  "event": "ready", // <-- Environment/chain event name
   "data": {} // <-- Event details
 }
 ```
@@ -102,7 +102,7 @@ For some errors EVM will be terminated (like errors on EVM start/initialization)
 Error event example:
 ```js
 {
-  id: "15511618343318382659", // <- Extension/Testchain ID
+  id: "15511618343318382659", // <- Environment/Testchain ID
   event: "error",
   data: {
      "message": "Some error message from system..."
@@ -182,7 +182,7 @@ You have to wait for [ready status](#evm-statuses)
 Deployment failed event example:
 ```js
 {
-  id: "15511618343318382659", // <- Extension/Testchain ID
+  id: "15511618343318382659", // <- Environment/Testchain ID
   event: "deployment_failed",
   data: {
      "error": "tones of logs from scripts..."
@@ -201,7 +201,7 @@ Snapshot taken event example:
 
 ```js
 {
-  id: "15511618343318382659", // <- Extension/Testchain ID
+  id: "15511618343318382659", // <- Environment/Testchain ID
   event: "snapshot_taken",
   data: {
       chain: "ganache" // <- EVM type
@@ -224,7 +224,7 @@ Snapshot reverted event example:
 
 ```js
 {
-  id: "15511618343318382659", // <- Extension/Testchain ID
+  id: "15511618343318382659", // <- Environment/Testchain ID
   event: "snapshot_reverted",
   data: { // <- Reverted snapshot details
       chain: "ganache" // <- EVM type
@@ -244,7 +244,7 @@ This event will be fired every time extension changes it's status
   id: "15511618343318382659",
   event: "extension:status",
   data: {
-    "scope_id": "15511618343318382659",
+    "environment_id": "15511618343318382659",
     "extension_name": "some_extension_name",
     "status": "ready" // "failed", "initializing", "terminate"
   }
