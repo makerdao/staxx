@@ -83,13 +83,13 @@ defmodule Staxx.Environment.Extension do
 
   @impl true
   def handle_cast(:stop, %State{environment_id: id, name: name} = state) do
-    Logger.debug(fn -> "#{id}: Terminating Extension #{name}" end)
+    Logger.debug(fn -> "Environment #{id}: Terminating Extension #{name}" end)
     {:stop, :normal, state}
   end
 
   @impl true
   def handle_cast({:set_status, status}, %State{environment_id: id, name: name} = state) do
-    Logger.debug(fn -> "#{id}: Extension #{name} changed status to #{status}" end)
+    Logger.debug(fn -> "Environment #{id}: Extension #{name} changed status to #{status}" end)
     # Send notification about extension status event
     notify_status(state, status)
 
@@ -106,7 +106,7 @@ defmodule Staxx.Environment.Extension do
       {:ok, pid} ->
         Logger.debug(fn ->
           """
-          #{id}: Starting new container for extension #{name}:
+          Environment #{id}: Starting new container for extension #{name}:
           #{inspect(container, pretty: true)}
           """
         end)
@@ -115,7 +115,7 @@ defmodule Staxx.Environment.Extension do
 
       {:error, err} ->
         Logger.error(fn ->
-          "#{id}: Error starting container for extension #{name}: #{inspect(err)}"
+          "Environment #{id}: Error starting container for extension #{name}: #{inspect(err)}"
         end)
 
         {:reply, {:error, err}, state}
@@ -149,7 +149,10 @@ defmodule Staxx.Environment.Extension do
 
   @impl true
   def terminate(_reason, %State{environment_id: id, name: name} = state) do
-    Logger.debug(fn -> "#{id}: Terminating extension #{name} and it's manager process" end)
+    Logger.debug(fn ->
+      "Environment #{id}: Terminating extension #{name} and it's manager process"
+    end)
+
     notify_status(state, :terminate)
     :ok
   end
@@ -235,7 +238,7 @@ defmodule Staxx.Environment.Extension do
   #
   defp do_init(%Config{manager: nil}, environment_id, name) do
     Logger.debug(fn ->
-      "#{environment_id}: No manager container for extension #{name}"
+      "Environment #{environment_id}: No manager container for extension #{name}"
     end)
 
     {:ok, %State{environment_id: environment_id, name: name, children: []}}
@@ -245,14 +248,18 @@ defmodule Staxx.Environment.Extension do
     with container <- manager_config(environment_id, name, image),
          {:ok, pid} <- do_start_container(container, name) do
       Logger.debug(fn ->
-        "#{environment_id}: Loaded manager #{image} for extension #{name} #{inspect(pid)}"
+        "Environment #{environment_id}: Loaded manager #{image} for extension #{name} #{
+          inspect(pid)
+        }"
       end)
 
       {:ok, %State{environment_id: environment_id, name: name, children: [pid]}}
     else
       err ->
         Logger.debug(fn ->
-          "#{environment_id}: Something went wrong on starting manager: #{inspect(err)}"
+          "Environment #{environment_id}: Something went wrong on starting manager: #{
+            inspect(err)
+          }"
         end)
 
         {:error, :failed_to_start}
