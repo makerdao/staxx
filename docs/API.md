@@ -4,19 +4,30 @@
 
 Web API for working with QA Dashboard backend
 
- - `GET /chains` - List of available chains
- - `GET /snapshots/:chain_type` - List of snapshots for given chain type (`ganache`, `geth`)
- - `GET /snapshot/:id` - Get snapshot details
- - `DELETE /snapshot/:id` - Delete snapshot by it's ID
- - `GET /deployment/steps` - Load list of deployment steps
- - `GET /deployment/commits` - List of available commits
- - `GET /chain/:id` - Chain details by chain ID
- - `DELETE /chain/:id` - Remove all chain data from system (only for stopped chain !)
- - `GET /chain/stop/:id` - Stop chain by ID
- - `POST /chain/:id/take_snapshot` - Start taking snapshot (result will be received by WS)
- - `POST /chain/:id/revert_snapshot/snapshot_id` - Start reverting snapshot (result will be received by WS)
- - `POST /environment/start` - Start new environment.
- - `GET /environment/stop/:id` - Stops running environment.
+#### Snapshots
+
+ - `GET /snapshots/:evm_type` - List of snapshots for given EVM type (`ganache`, `geth`)
+ - `GET /snapshots/:id` - Get snapshot details
+ - `DELETE /snapshots/:id` - Delete snapshot by it's ID
+
+#### Deployments
+
+ - `GET /deployments/steps` - Load list of deployment steps
+ - `GET /deployments/commits` - List of available commits
+
+#### Environments
+
+ - `POST /environments/start` - Start new environment.
+ - `GET /environments` - List of available environments
+ - `GET /environments/:id` - Environment details by environments ID
+ - `DELETE /environments/:id` - Remove all environment data from system (only for stopped environment !)
+ - `GET /environments/:id/stop` - Stop environment by ID
+ - `POST /environments/:id/take_snapshot` - Start taking snapshot (result will be received by WS)
+ - `POST /environments/:id/revert_snapshot/:snapshot_id` - Start reverting snapshot (result will be received by WS)
+
+#### Stacks helper routes
+
+#### Docker containers
 
 ## Postman APIs and Envs
 
@@ -57,7 +68,7 @@ Property list:
  - `deps` - stack dependencies
 
 ### Starting new stack
-POST `/environment/start` with payload:
+POST `/environments/start` with payload:
 
 ```js
 {
@@ -86,7 +97,7 @@ Example:
 
 ```bash
 curl --request POST \
-  --url http://localhost:4000/environment/start \
+  --url http://localhost:4000/environments/start \
   --header 'content-type: application/json' \
   --data '{
 	"testchain": {
@@ -121,11 +132,11 @@ Response:
 ```
 
 ### Stop environment
-GET `/environment/stop/{environment_id}`
+GET `/environments/{environment_id}/stop`
 
 ```bash
 curl --request GET \
-  --url http://localhost:4000/environment/stop/5341658974976052158
+  --url http://localhost:4000/environments/5341658974976052158/stop
 ```
 
 ```json
@@ -137,236 +148,9 @@ curl --request GET \
 }
 ```
 
-### Environment info
-Will show list of exported resources by stack for environment
-GET `/environment/info/{environment_id}`
-
-```bash
-curl --request GET \
-  --url http://localhost:4000/environment/info/5341658974976052158
-```
-
-```javascript
-{
-  "status": 0,
-  "message": "",
-  "errors": [],
-  "data": {
-    "urls": {
-      "vdb": [ // stack name
-        "http://localhost:51329" // exported resource
-      ]
-    }
-  }
-}
-```
-
-### Notifications
-Send any notification for stack into running environment
-
-Route: `POST /environment/stack/notify`
-Request payload:
-
-```js
-{
-  "environment_id": "5424541485621730355", // <-- environment ID
-  "event": "event", // <-- your event
-  "data": {} // <-- Data you want to send
-}
-```
-
-Response:
-
-```json
-{
-  "status": 0,
-  "message": "",
-  "errors": [],
-  "data": {}
-}
-```
-
-Example:
-
-```bash
-curl --request POST \
-  --url http://localhost:4000/environment/stack/notify \
-  --header 'content-type: application/json' \
-  --data '{
-	"environment_id": "5424541485621730355",
-	"event": "vdb_ready",
-	"data": {}
-}'
-```
-
-### Stack ready notification
-Send stack ready event
-
-Route `POST /environment/stack/notify/ready`
-Request payload:
-
-```js
-{
-  "environment_id": "16020459699138145532", // <-- Environment ID
-  "stack_name": "vdb", // <-- stack name
-  "data": {} // <-- details you need to send
-}
-```
-
-Response:
-
-```js
-{
-  "status": 0,
-  "message": "",
-  "errors": [],
-  "data": {}
-}
-```
-
-Example:
-
-```bash
-curl --request POST \
-  --url http://localhost:4000/environment/stack/notify/ready \
-  --header 'content-type: application/json' \
-  --data '{
-	"environment_id": "16020459699138145532",
-	"stack_name": "vdb",
-  "data": {}
-}'
-```
-
-### Stack failed notification
-Send stack ready event
-
-Route `POST /environment/stack/notify/failed`
-Request payload:
-
-```js
-{
-  "environment_id": "16020459699138145532", // <-- Environment ID
-  "stack_name": "vdb", // <-- stack name
-	"data": {} // <-- details you need to send
-}
-```
-
-Response:
-
-```json
-{
-  "status": 0,
-  "message": "",
-  "errors": [],
-  "data": {}
-}
-```
-
-Example:
-
-```bash
-curl --request POST \
-  --url http://localhost:4000/environment/stack/notify/failed \
-  --header 'content-type: application/json' \
-  --data '{
-	"environment_id": "16020459699138145532",
-	"stack_name": "vdb",
-  "data": {}
-}'
-```
-
-### Start Docker Container
-Send command to start new docker container under specified stack.
-All containers will be stopped when you stop stack.
-
-Route: `POST /docker/start`
-
-Request payload:
-```js
-{
-  "environment_id": "2538928139759187250", // <-- Environment ID (Required)
-  "stack_name": "vdb", // <-- stack name (Required)
-  "image": "postgres", // <-- Docker image needs to be started (Note you have to specify it into docker-compose.yml)
-  "network": "2538928139759187250", // <-- Docker network ID (Optional. Same to stack ID)
-  "cmd": "--help", // <-- See Dockerfile CMD for more details (Optional)
-  "ports": [5432], // <-- Port list needs to be open for public
-  "dev_mode": false, // <-- ONLY FOR TESTING ! will run container without removing it after stop.
-  "env": { // <-- List of ENV variables needs to be set for docker container
-    "POSTGRES_PASSWORD": "postgres"
-  }
-}
-```
-
-Response:
-```js
-{
-  "status": 0,
-  "message": "",
-  "errors": [],
-  "data": {
-    "ports": [
-      5432
-    ],
-    "network": "2538928139759187250",
-    "name": "cL6dvX3sl-M9v3aIY2w6y0V1Qv1fSHAKnZN-wRsTV6soMfkS", // <-- Host name that your container is accessible in network
-    "image": "postgres",
-    "id": "39f2097d78495d0db552ee16c6ba6a9bbcf36ead263e198cd0f823e5e8f318d0", // <-- Container ID
-    "cmd": "--help",
-    "env": {
-      "POSTGRES_PASSWORD": "postgres"
-    }
-  }
-}
-```
-
-```bash
-curl --request POST \
-  --url http://localhost:4000/docker/start \
-  --header 'content-type: application/json' \
-  --data '{
-	"environment_id": "2538928139759187250",
-  "stack_name": "vdb",
-	"image": "postgres",
-	"network": "2538928139759187250",
-	"ports": [5432],
-	"env": {
-		"POSTGRES_PASSWORD": "postgres"
-	}
-}'
-```
-
-**Dev mode**
-By default all containers are running with `--rm` flag.
-This means that as soon as container stops, system will remove it and all it's logs from system.
-
-In case you need logs for debugging purposes you might start new container with `dev_mode: true`.
-It will let Staxx know that container should not be removed from system after stop.
-
-**Danger**
-You wouldn't be able to do that in production system. `dev_mode` flag will be ignored there.
-On your machine you will be responsible for removing useless containers !
-
-Example:
-```bash
-curl --request POST \
-  --url http://localhost:4000/docker/start \
-  --header 'content-type: application/json' \
-  --data '{
-	"environment_id": "2538928139759187250",
-  "stack_name": "vdb",
-	"image": "postgres",
-	"network": "2538928139759187250",
-	"ports": [5432],
-  "dev_mode": true,
-	"env": {
-		"POSTGRES_PASSWORD": "postgres"
-	}
-}'
-```
-
-### Chain details
+### Environment details
 For your environment you might need details of testchain that was started for you.
-Route: `GET /chain/{environment_id}`
+Route: `GET /environments/{environment_id}`
 
 It does not have any request details.
 Response:
@@ -497,13 +281,275 @@ Response:
 }
 ```
 
+### Get list of existing environments
+
+Load list of chains existing in system
+
+```bash
+curl --location --request GET 'http://localhost:4000/environments'
+```
+
+```json
+{
+    "data": [
+        {
+            "id": "10895108818319810900",
+            "stacks": {
+                "testchain": {
+                    "id": "10895108818319810900",
+                    "title": "10895108818319810900",
+                    "node_type": "geth",
+                    "status": "ready",
+                    "config": {
+                        "accounts": 1,
+                        "block_mine_time": 0,
+                        "clean_on_stop": true,
+                        "db_path": "/tmp/chains/10895108818319810900",
+                        "deploy_ref": "refs/tags/staxx-testrunner",
+                        "deploy_step_id": 0,
+                        "description": "",
+                        "gas_limit": 9000000000000,
+                        "id": "10895108818319810900",
+                        "network_id": 999,
+                        "snapshot_id": null,
+                        "type": "geth"
+                    },
+                    "details": {
+                        "accounts": [
+                            {
+                                "address": "0x53464ce927fd596f80b8816f417c5b32e20e077e",
+                                "balance": 100000000000000000000000,
+                                "priv_key": "549510aec52cb6d7ff9f4a5de7feb14065447df0195814be740e3e45a1f7e0f7"
+                            }
+                        ],
+                        "coinbase": "0x53464ce927fd596f80b8816f417c5b32e20e077e",
+                        "gas_limit": 9000000000000,
+                        "id": "10895108818319810900",
+                        "network_id": 999,
+                        "rpc_url": "http://localhost:60969",
+                        "ws_url": "ws://localhost:60867"
+                    },
+                    "deployment": {}
+                }
+            }
+        }
+    ],
+    "errors": [],
+    "message": "",
+    "status": 0
+}
+```
+
+### Notifications (Debug only)
+Send any notification for stack into running environment
+
+Route: `POST /stacks/notify`
+Request payload:
+
+```js
+{
+  "environment_id": "5424541485621730355", // <-- environment ID
+  "event": "event", // <-- your event
+  "data": {} // <-- Data you want to send
+}
+```
+
+Response:
+
+```json
+{
+  "status": 0,
+  "message": "",
+  "errors": [],
+  "data": {}
+}
+```
+
+Example:
+
+```bash
+curl --request POST \
+  --url http://localhost:4000/stacks/notify \
+  --header 'content-type: application/json' \
+  --data '{
+	"environment_id": "5424541485621730355",
+	"event": "vdb_ready",
+	"data": {}
+}'
+```
+
+### Stack ready notification
+Send stack ready event
+
+Route `POST /stacks/notify/ready`
+Request payload:
+
+```js
+{
+  "environment_id": "16020459699138145532", // <-- Environment ID
+  "stack_name": "vdb", // <-- stack name
+  "data": {} // <-- details you need to send
+}
+```
+
+Response:
+
+```js
+{
+  "status": 0,
+  "message": "",
+  "errors": [],
+  "data": {}
+}
+```
+
+Example:
+
+```bash
+curl --request POST \
+  --url http://localhost:4000/stacks/notify/ready \
+  --header 'content-type: application/json' \
+  --data '{
+	"environment_id": "16020459699138145532",
+	"stack_name": "vdb",
+  "data": {}
+}'
+```
+
+### Stack failed notification
+Send stack ready event
+
+Route `POST /stacks/notify/failed`
+Request payload:
+
+```js
+{
+  "environment_id": "16020459699138145532", // <-- Environment ID
+  "stack_name": "vdb", // <-- stack name
+	"data": {} // <-- details you need to send
+}
+```
+
+Response:
+
+```json
+{
+  "status": 0,
+  "message": "",
+  "errors": [],
+  "data": {}
+}
+```
+
+Example:
+
+```bash
+curl --request POST \
+  --url http://localhost:4000/stacks/notify/failed \
+  --header 'content-type: application/json' \
+  --data '{
+	"environment_id": "16020459699138145532",
+	"stack_name": "vdb",
+  "data": {}
+}'
+```
+
+### Start Docker Container
+Send command to start new docker container under specified stack.
+All containers will be stopped when you stop stack.
+
+Route: `POST /containers/start`
+
+Request payload:
+```js
+{
+  "environment_id": "2538928139759187250", // <-- Environment ID (Required)
+  "stack_name": "vdb", // <-- stack name (Required)
+  "image": "postgres", // <-- Docker image needs to be started (Note you have to specify it into docker-compose.yml)
+  "network": "2538928139759187250", // <-- Docker network ID (Optional. Same to stack ID)
+  "cmd": "--help", // <-- See Dockerfile CMD for more details (Optional)
+  "ports": [5432], // <-- Port list needs to be open for public
+  "dev_mode": false, // <-- ONLY FOR TESTING ! will run container without removing it after stop.
+  "env": { // <-- List of ENV variables needs to be set for docker container
+    "POSTGRES_PASSWORD": "postgres"
+  }
+}
+```
+
+Response:
+```js
+{
+  "status": 0,
+  "message": "",
+  "errors": [],
+  "data": {
+    "ports": [
+      5432
+    ],
+    "network": "2538928139759187250",
+    "name": "cL6dvX3sl-M9v3aIY2w6y0V1Qv1fSHAKnZN-wRsTV6soMfkS", // <-- Host name that your container is accessible in network
+    "image": "postgres",
+    "id": "39f2097d78495d0db552ee16c6ba6a9bbcf36ead263e198cd0f823e5e8f318d0", // <-- Container ID
+    "cmd": "--help",
+    "env": {
+      "POSTGRES_PASSWORD": "postgres"
+    }
+  }
+}
+```
+
+```bash
+curl --request POST \
+  --url http://localhost:4000/containers/start \
+  --header 'content-type: application/json' \
+  --data '{
+	"environment_id": "2538928139759187250",
+  "stack_name": "vdb",
+	"image": "postgres",
+	"network": "2538928139759187250",
+	"ports": [5432],
+	"env": {
+		"POSTGRES_PASSWORD": "postgres"
+	}
+}'
+```
+
+**Dev mode**
+By default all containers are running with `--rm` flag.
+This means that as soon as container stops, system will remove it and all it's logs from system.
+
+In case you need logs for debugging purposes you might start new container with `dev_mode: true`.
+It will let Staxx know that container should not be removed from system after stop.
+
+**Danger**
+You wouldn't be able to do that in production system. `dev_mode` flag will be ignored there.
+On your machine you will be responsible for removing useless containers !
+
+Example:
+```bash
+curl --request POST \
+  --url http://localhost:4000/containers/start \
+  --header 'content-type: application/json' \
+  --data '{
+	"environment_id": "2538928139759187250",
+  "stack_name": "vdb",
+	"image": "postgres",
+	"network": "2538928139759187250",
+	"ports": [5432],
+  "dev_mode": true,
+	"env": {
+		"POSTGRES_PASSWORD": "postgres"
+	}
+}'
+```
+
 ### Reload stacks configuration
 In case of some changes in stack configuration you might need to reload stacks configurations.
-It could be done by calling `GET /environment/stack/reload` route.
+It could be done by calling `GET /stacks/reload` route.
 
 ```bash
 curl --request GET \
-  --url http://localhost:4000/environment/stack/reload
+  --url http://localhost:4000/stacks/reload
 ```
 It does not have any request details.
 Response:
@@ -517,13 +563,13 @@ Response:
 }
 ```
 
-### Get list of available stacks configs
-For some reason you might need list of available stacks configs.
+### Get list of available stack configs
+For some reason you might need list of available stack configs.
 
 Request:
 ```bash
 curl --request GET \
-  --url http://localhost:4000/environment/stack/list_config
+  --url http://localhost:4000/stacks/list_config
 ```
 
 Response example:
@@ -551,64 +597,5 @@ Response example:
       }
     }
   }
-}
-```
-
-### Get list of axisting chains
-
-Load list of chains existing in system
-
-```bash
-curl --location --request GET 'http://localhost:4000/chains'
-```
-
-```json
-{
-    "data": [
-        {
-            "id": "5255695394902452494",
-            "title": "5255695394902452494",
-            "node_type": "geth",
-            "status": "ready",
-            "config": {
-                "accounts": 2,
-                "block_mine_time": 0,
-                "clean_on_stop": true,
-                "db_path": "/tmp/chains/5255695394902452494",
-                "deploy_ref": "refs/tags/staxx-testrunner",
-                "deploy_step_id": 0,
-                "description": "",
-                "gas_limit": 9000000000000,
-                "id": "5255695394902452494",
-                "network_id": 999,
-                "snapshot_id": null,
-                "type": "geth"
-            },
-            "details": {
-                "accounts": [
-                    {
-                        "address": "0x8a06769d94cb75014ec7b514ef31987b3c948667",
-                        "balance": 100000000000000000000000,
-                        "priv_key": "48de33e0f192268c850caae2caa9de07b20ba54315efc7f1b0fcba279254f06e"
-                    },
-                    {
-                        "address": "0x46900d6333ffd15498b1a1983310a6111ed138ed",
-                        "balance": 100000000000000000000000,
-                        "priv_key": "0c556d3b861b3d6e3f24f36aa62c842cf74bdfafed4461641770e09f53ffd031"
-                    }
-                ],
-                "coinbase": "0x8a06769d94cb75014ec7b514ef31987b3c948667",
-                "gas_limit": 9000000000000,
-                "id": "5255695394902452494",
-                "network_id": 999,
-                "rpc_url": "http://localhost:63185",
-                "ws_url": "ws://localhost:50968"
-            },
-            "deployment": {}
-        }
-    ],
-    "errors": [],
-    "message": "",
-    "status": 0
 }
 ```

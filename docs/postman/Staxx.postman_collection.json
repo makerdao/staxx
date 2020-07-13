@@ -6,7 +6,7 @@
 	},
 	"item": [
 		{
-			"name": "Docker",
+			"name": "Docker containers",
 			"item": [
 				{
 					"name": "Start container",
@@ -28,13 +28,32 @@
 							}
 						},
 						"url": {
-							"raw": "{{STAXX_URL}}/docker/start",
+							"raw": "{{STAXX_URL}}/containers/start",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"docker",
+								"containers",
 								"start"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Stop container",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{STAXX_URL}}/containers/{{container_id}}/stop",
+							"host": [
+								"{{STAXX_URL}}"
+							],
+							"path": [
+								"containers",
+								"{{container_id}}",
+								"stop"
 							]
 						}
 					},
@@ -44,21 +63,56 @@
 			"protocolProfileBehavior": {}
 		},
 		{
-			"name": "Environment",
+			"name": "Environments",
 			"item": [
+				{
+					"name": "Get all environments",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{STAXX_URL}}/environments",
+							"host": [
+								"{{STAXX_URL}}"
+							],
+							"path": [
+								"environments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get environment details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{STAXX_URL}}/environments/{{environment_id}}",
+							"host": [
+								"{{STAXX_URL}}"
+							],
+							"path": [
+								"environments",
+								"{{environment_id}}"
+							]
+						}
+					},
+					"response": []
+				},
 				{
 					"name": "List stack configs",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/environment/stack/list_config",
+							"raw": "{{STAXX_URL}}/environments/stacks/list_config",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"environment",
-								"stack",
+								"environments",
+								"stacks",
 								"list_config"
 							]
 						}
@@ -85,38 +139,19 @@
 					"response": []
 				},
 				{
-					"name": "Get environment details",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{STAXX_URL}}/environment/info/{{environment_id}}",
-							"host": [
-								"{{STAXX_URL}}"
-							],
-							"path": [
-								"environment",
-								"info",
-								"{{environment_id}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "Stop environment",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/environment/stop/{{environment_id}}",
+							"raw": "{{STAXX_URL}}/environments/{{environment_id}}/stop",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"environment",
-								"stop",
-								"{{environment_id}}"
+								"environments",
+								"{{environment_id}}",
+								"stop"
 							]
 						}
 					},
@@ -232,12 +267,12 @@
 							}
 						},
 						"url": {
-							"raw": "{{STAXX_URL}}/environment/start",
+							"raw": "{{STAXX_URL}}/environments/start",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"environment",
+								"environments",
 								"start"
 							],
 							"query": [
@@ -358,106 +393,20 @@
 						}
 					},
 					"response": []
-				}
-			],
-			"protocolProfileBehavior": {}
-		},
-		{
-			"name": "Chains",
-			"item": [
-				{
-					"name": "Get all environments",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{STAXX_URL}}/chains",
-							"host": [
-								"{{STAXX_URL}}"
-							],
-							"path": [
-								"chains"
-							]
-						}
-					},
-					"response": []
 				},
 				{
-					"name": "Get chain details",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "171a4bf0-6ef2-4fb3-bb90-e709bc7d5935",
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{STAXX_URL}}/chain/{{environment_id}}",
-							"host": [
-								"{{STAXX_URL}}"
-							],
-							"path": [
-								"chain",
-								"{{environment_id}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Delete chain",
+					"name": "Delete environment",
 					"request": {
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/chain/{{environment_id}}",
+							"raw": "{{STAXX_URL}}/environments/{{environment_id}}",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"chain",
+								"environments",
 								"{{environment_id}}"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Index",
-					"protocolProfileBehavior": {
-						"disableBodyPruning": true
-					},
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Content-Type",
-								"name": "Content-Type",
-								"value": "application/javascript",
-								"type": "text"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "{{STAXX_URL}}/",
-							"host": [
-								"{{STAXX_URL}}"
-							],
-							"path": [
-								""
 							]
 						}
 					},
@@ -484,12 +433,12 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/chain/{{environment_id}}/take_snapshot",
+							"raw": "{{STAXX_URL}}/environments/{{environment_id}}/take_snapshot",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"chain",
+								"environments",
 								"{{environment_id}}",
 								"take_snapshot"
 							]
@@ -503,12 +452,12 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/chain/{{environment_id}}/revert_snapshot/{{snapshot_id}}",
+							"raw": "{{STAXX_URL}}/environments/{{environment_id}}/revert_snapshot/{{snapshot_id}}",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"chain",
+								"environments",
 								"{{environment_id}}",
 								"revert_snapshot",
 								"{{snapshot_id}}"
@@ -558,9 +507,76 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Download snapshot",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{STAXX_URL}}/snapshots/{{snapshot_id}}/download",
+							"host": [
+								"{{STAXX_URL}}"
+							],
+							"path": [
+								"snapshots",
+								"{{snapshot_id}}",
+								"download"
+							]
+						}
+					},
+					"response": []
 				}
 			],
 			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Index",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/javascript",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{STAXX_URL}}/",
+					"host": [
+						"{{STAXX_URL}}"
+					],
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Version",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{STAXX_URL}}/version",
+					"host": [
+						"{{STAXX_URL}}"
+					],
+					"path": [
+						"version"
+					]
+				}
+			},
+			"response": []
 		}
 	],
 	"protocolProfileBehavior": {}
