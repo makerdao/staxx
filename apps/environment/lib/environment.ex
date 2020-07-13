@@ -1,7 +1,7 @@
 defmodule Staxx.Environment do
   @moduledoc """
-  Module is responsible for aggregation of testchain + extensions functions in one place.
-  It handles and manages starting testchain/extensions in correct order and does input validation.
+  Module is responsible for aggregation of testchain + stacks functions in one place.
+  It handles and manages starting testchain/stacks in correct order and does input validation.
   """
 
   require Logger
@@ -12,14 +12,14 @@ defmodule Staxx.Environment do
   alias Staxx.Testchain.Helper
   alias Staxx.Environment.DynamicSupervisor, as: EnvironmentsDynamicSupervisor
   alias Staxx.Environment.Supervisor, as: EnvironmentSupervisor
-  alias Staxx.Environment.Extension
-  alias Staxx.Environment.Extension.ConfigLoader
+  alias Staxx.Environment.Stack
+  alias Staxx.Environment.Stack.ConfigLoader
 
-  # Hardcoded testchain "extension" key. 
+  # Hardcoded testchain "stack" key. 
   @testchain_key "testchain"
 
   @doc """
-  Get predefined Testchain "extension" config anme.
+  Get predefined Testchain "stack" config anme.
   """
   @spec testchain_key() :: binary
   def testchain_key(), do: @testchain_key
@@ -31,17 +31,17 @@ defmodule Staxx.Environment do
   def start(params, email \\ "")
 
   def start(%{@testchain_key => %{"config" => %{"id" => id}}} = params, email) do
-    extensions = Map.drop(params, [@testchain_key])
+    stacks = Map.drop(params, [@testchain_key])
 
     Logger.debug(fn ->
       """
       Starting environment with existing testchain #{id}
-      Config:
-      #{inspect(extensions, pretty: true)}
+      Stack Configs:
+      #{inspect(stacks, pretty: true)}
       """
     end)
 
-    start(id, id, extensions, email)
+    start(id, id, stacks, email)
   end
 
   def start(%{@testchain_key => %{"config" => config}} = params, email) do
@@ -50,7 +50,7 @@ defmodule Staxx.Environment do
       |> Helper.config_from_payload()
       |> Helper.generate_id!()
 
-    extensions = Map.drop(params, [@testchain_key])
+    stacks = Map.drop(params, [@testchain_key])
 
     Logger.debug(fn ->
       """
@@ -58,12 +58,12 @@ defmodule Staxx.Environment do
       Testchain configuration:
       #{inspect(chain_config, pretty: true)}
 
-      Extensions Config:
-      #{inspect(extensions, pretty: true)}
+      Stack Configs:
+      #{inspect(stacks, pretty: true)}
       """
     end)
 
-    start(chain_config.id, chain_config, extensions, email)
+    start(chain_config.id, chain_config, stacks, email)
   end
 
   def start(_, _),
@@ -73,9 +73,9 @@ defmodule Staxx.Environment do
   Start supervision tree for new environment
   """
   @spec start(binary, binary | map, map, binary) :: {:ok, Testchain.evm_id()} | {:error, term}
-  def start(id, chain_config_or_id, extensions, email \\ "") when is_binary(id) do
-    extension_names = get_extension_names(extensions)
-    Logger.debug("Starting new environment with extensions: #{inspect(extension_names)}")
+  def start(id, chain_config_or_id, stacks, email \\ "") when is_binary(id) do
+    stack_names = get_stack_names(stacks)
+    Logger.debug("Starting new environment with stacks: #{inspect(stack_names)}")
 
     # Binding email to chain configuration
     chain_config_or_id =
@@ -88,9 +88,9 @@ defmodule Staxx.Environment do
           id
       end
 
-    with :ok <- validate_extensions(extension_names),
+    with :ok <- validate_stacks(stack_names),
          {:ok, pid} <-
-           EnvironmentsDynamicSupervisor.start_environment({id, chain_config_or_id, extensions}) do
+           EnvironmentsDynamicSupervisor.start_environment({id, chain_config_or_id, stacks}) do
       Logger.debug("Environment #{id}: Started supervisor tree #{inspect(pid)}")
 
       {:ok, id}
@@ -106,20 +106,20 @@ defmodule Staxx.Environment do
   end
 
   @doc """
-  Spawns new extension service.
-  Helpful for dynamically starting new extensions for existing environment that already running.
+  Spawns new stack service.
+  Helpful for dynamically starting new stacks for existing environment that already running.
   """
-  @spec start_extension(binary, binary) :: DynamicSupervisor.on_start_child()
-  def start_extension(environment_id, extension_name),
-    do: EnvironmentSupervisor.start_extension(environment_id, extension_name)
+  @spec start_stack(binary, binary) :: DynamicSupervisor.on_start_child()
+  def start_stack(environment_id, stack_name),
+    do: EnvironmentSupervisor.start_stack(environment_id, stack_name)
 
   @doc """
-  Stops extension in runnint environment.
-  Will terminate all containers/resources binded to extension.
+  Stops stack in runnint environment.
+  Will terminate all containers/resources binded to stack.
   """
-  @spec stop_extension(binary, binary) :: :ok
-  def stop_extension(environment_id, extension_name),
-    do: Extension.stop(environment_id, extension_name)
+  @spec stop_stack(binary, binary) :: :ok
+  def stop_stack(environment_id, stack_name),
+    do: Stack.stop(environment_id, stack_name)
 
   @doc """
   Stops supervision tree for environment with given ID
@@ -146,32 +146,32 @@ defmodule Staxx.Environment do
   end
 
   @doc """
-  Starts new container for given `extension_name` in running environment `id`.
+  Starts new container for given `stack_name` in running environment `id`.
   """
   @spec start_container(binary, binary, Container.t()) :: {:ok, Container.t()} | {:error, term}
-  def start_container(id, extension_name, %Container{name: ""} = container),
-    do: start_container(id, extension_name, %Container{container | name: Docker.random_name()})
+  def start_container(id, stack_name, %Container{name: ""} = container),
+    do: start_container(id, stack_name, %Container{container | name: Docker.random_name()})
 
-  def start_container(id, extension_name, %Container{network: ""} = container),
-    do: start_container(id, extension_name, %Container{container | network: id})
+  def start_container(id, stack_name, %Container{network: ""} = container),
+    do: start_container(id, stack_name, %Container{container | network: id})
 
-  def start_container(id, extension_name, %Container{image: image} = container) do
-    with {:alive, true} <- {:alive, Extension.alive?(id, extension_name)},
-         {:image, true} <- {:image, ConfigLoader.has_image?(extension_name, image)},
-         {:ok, _pid} <- Extension.start_container(id, extension_name, container) do
+  def start_container(id, stack_name, %Container{image: image} = container) do
+    with {:alive, true} <- {:alive, Stack.alive?(id, stack_name)},
+         {:image, true} <- {:image, ConfigLoader.has_image?(stack_name, image)},
+         {:ok, _pid} <- Stack.start_container(id, stack_name, container) do
       {:ok, container}
     else
       {:alive, _} ->
-        Logger.error("Environment #{id}: No active `Extension` found to start new container")
+        Logger.error("Environment #{id}: No active `stack` found to start new container")
 
-        {:error, "failed to find environment with id #{id} & extension name: #{extension_name}"}
+        {:error, "failed to find environment with id #{id} & stack name: #{stack_name}"}
 
       {:image, _} ->
         Logger.error(
-          "Environment #{id}: No image #{image} is allowed for extension #{extension_name}"
+          "Environment #{id}: No image #{image} is allowed for stack #{stack_name}"
         )
 
-        {:error, "#{image} image is not allowed for extension #{extension_name}"}
+        {:error, "#{image} image is not allowed for stack #{stack_name}"}
 
       err ->
         Logger.error(
@@ -193,11 +193,11 @@ defmodule Staxx.Environment do
 
       true ->
         id
-        |> EnvironmentSupervisor.get_extension_manager_supervisor()
+        |> EnvironmentSupervisor.get_stack_manager_supervisor()
         |> Supervisor.which_children()
-        |> Enum.filter(fn {_, _, _, mods} -> mods == [Extension] end)
+        |> Enum.filter(fn {_, _, _, mods} -> mods == [Stack] end)
         |> Enum.map(fn {_, pid, :worker, _} -> pid end)
-        |> Enum.map(&Extension.info/1)
+        |> Enum.map(&Stack.info/1)
         |> List.flatten()
     end
   end
@@ -216,32 +216,32 @@ defmodule Staxx.Environment do
   end
 
   @doc """
-  Force system to reload all extensions configs
+  Force system to reload all stacks configs
   """
   @spec reload_config() :: :ok
   def reload_config(),
     do: ConfigLoader.reload()
 
-  # Validate if all extensions are allowed to start
-  defp validate_extensions([]), do: :ok
+  # Validate if all stacks are allowed to start
+  defp validate_stacks([]), do: :ok
 
-  defp validate_extensions(list) do
+  defp validate_stacks(list) do
     result =
       list
       |> Enum.reject(&(&1 == @testchain_key))
-      |> Enum.filter(fn extension_name -> ConfigLoader.get(extension_name) == nil end)
+      |> Enum.filter(fn stack_name -> ConfigLoader.get(stack_name) == nil end)
 
     case result do
       [] ->
         :ok
 
       list ->
-        {:error, "Some extensions are not allowed to be started ! #{inspect(list)}"}
+        {:error, "Some stacks are not allowed to be started ! #{inspect(list)}"}
     end
   end
 
-  # Get list of extension names that need to be started
-  defp get_extension_names(params) when is_map(params) do
+  # Get list of stack names that need to be started
+  defp get_stack_names(params) when is_map(params) do
     params
     |> Map.keys()
     |> Enum.reject(&(&1 == @testchain_key))

@@ -13,7 +13,7 @@ config :docker, in_container?: System.get_env("IN_CONTAINER", "") != ""
 config :environment, deployment_service_url: System.fetch_env!("DEPLOYMENT_SERVICE_URL")
 config :environment, deployment_steps_fetch_timeout: 30_000
 config :environment, dets_db_path: System.fetch_env!("CHAINS_DB_PATH")
-config :environment, extensions_dir: System.get_env("EXTENSIONS_DIR", "/opt/extensions")
+config :environment, stacks_dir: System.get_env("STACKS_DIR", "/opt/stacks")
 
 config :environment,
   deployment_worker_image:

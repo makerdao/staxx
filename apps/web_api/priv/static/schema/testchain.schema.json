@@ -101,7 +101,7 @@
             }
         },
         "deps": {
-            "description": "List of Extensions",
+            "description": "List of Stack",
             "type": "array",
             "items": {
                 "type": "string"

@@ -1,7 +1,7 @@
-defmodule Staxx.Environment.Extension.Config do
+defmodule Staxx.Environment.Stack.Config do
   @moduledoc """
-  Default extension configuration structure.
-  Extension configuration should be stored into `extension_name/extension.json` file.
+  Default stack configuration structure.
+  Stack configuration should be stored into `stack_name/stack.json` file.
   """
 
   @type t :: %__MODULE__{
@@ -22,7 +22,7 @@ defmodule Staxx.Environment.Extension.Config do
             containers: %{}
 
   @doc """
-  Checks if given docker image exists in extension configuration.
+  Checks if given docker image exists in stack configuration.
   """
   @spec has_image?(t(), binary) :: boolean
   def has_image?(%__MODULE__{containers: containers, manager: manager}, image) do

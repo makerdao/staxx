@@ -25,7 +25,7 @@ defmodule Staxx.Environment.DynamicSupervisor do
   For more details see `Staxx.Environment.Scope.Supervisor`
   """
   @spec start_environment({binary, binary | map, map}) :: DynamicSupervisor.on_start_child()
-  def start_environment({_id, _chain, _extensions} = params),
+  def start_environment({_id, _chain, _stacks} = params),
     do: DynamicSupervisor.start_child(__MODULE__, {EnvironmentSupervisor, params})
 
   @doc """

@@ -1,4 +1,4 @@
-defmodule Staxx.WebApiWeb.ExtensionController do
+defmodule Staxx.WebApiWeb.StackController do
   use Staxx.WebApiWeb, :controller
 
   require Logger
@@ -7,12 +7,12 @@ defmodule Staxx.WebApiWeb.ExtensionController do
 
   alias Staxx.Environment
   alias Staxx.EventStream.Notification
-  alias Staxx.Environment.Extension
-  alias Staxx.Environment.Extension.ConfigLoader
+  alias Staxx.Environment.Stack
+  alias Staxx.Environment.Stack.ConfigLoader
 
   alias Staxx.WebApiWeb.SuccessView
 
-  # List of available extension configs
+  # List of available stack configs
   def list_config(conn, _params) do
     with {:ok, list} <- {:ok, ConfigLoader.get()} do
       conn
@@ -34,9 +34,9 @@ defmodule Staxx.WebApiWeb.ExtensionController do
 
   def start(conn, %{
         "environment_id" => environment_id,
-        "extension_name" => extension_name
+        "stack_name" => stack_name
       }) do
-    with {:ok, _} <- Environment.start_extension(environment_id, extension_name) do
+    with {:ok, _} <- Environment.start_stack(environment_id, stack_name) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)
@@ -46,9 +46,9 @@ defmodule Staxx.WebApiWeb.ExtensionController do
 
   def stop(conn, %{
         "environment_id" => environment_id,
-        "extension_name" => extension_name
+        "stack_name" => stack_name
       }) do
-    with :ok <- Environment.stop_extension(environment_id, extension_name) do
+    with :ok <- Environment.stop_stack(environment_id, stack_name) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)
@@ -56,7 +56,7 @@ defmodule Staxx.WebApiWeb.ExtensionController do
     end
   end
 
-  # Send notification to extension
+  # Send notification about stack
   def notify(conn, %{
         "environment_id" => environment_id,
         "event" => event,
@@ -71,9 +71,9 @@ defmodule Staxx.WebApiWeb.ExtensionController do
     end
   end
 
-  # Send extension ready notification
-  def notify_ready(conn, %{"environment_id" => environment_id, "extension_name" => extension}) do
-    with :ok <- Extension.set_status(environment_id, extension, :ready) do
+  # Send stack ready notification
+  def notify_ready(conn, %{"environment_id" => environment_id, "stack_name" => stack_name}) do
+    with :ok <- Stack.set_status(environment_id, stack_name, :ready) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)
@@ -81,9 +81,9 @@ defmodule Staxx.WebApiWeb.ExtensionController do
     end
   end
 
-  # Send extension failed notification
-  def notify_failed(conn, %{"environment_id" => environment_id, "extension_name" => extension}) do
-    with :ok <- Extension.set_status(environment_id, extension, :failed) do
+  # Send stack failed notification
+  def notify_failed(conn, %{"environment_id" => environment_id, "stack_name" => stack_name}) do
+    with :ok <- Stack.set_status(environment_id, stack_name, :failed) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)

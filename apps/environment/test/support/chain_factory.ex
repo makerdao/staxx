@@ -21,7 +21,7 @@ defmodule Staxx.Environment.ChainFactory do
     }
   end
 
-  def extension_valid_factory do
+  def stack_valid_factory do
     %{
       "test" => %{
         "config" => %{},
@@ -30,7 +30,7 @@ defmodule Staxx.Environment.ChainFactory do
     }
   end
 
-  def not_allowed_extension_factory do
+  def not_allowed_stack_factory do
     %{
       "some_other" => %{
         "config" => %{},
@@ -41,7 +41,7 @@ defmodule Staxx.Environment.ChainFactory do
 
   def container_valid_factory do
     %Container{
-      # see /priv/test/extension/test/extension.json
+      # see /priv/test/stack/test/stack.json
       image: "some/container",
       ports: [3000]
     }
@@ -49,7 +49,7 @@ defmodule Staxx.Environment.ChainFactory do
 
   def container_invalid_factory do
     %Container{
-      # see /priv/test/extension/test/extension.json
+      # see /priv/test/stack/test/stack.json
       image: "some/other-container"
     }
   end
