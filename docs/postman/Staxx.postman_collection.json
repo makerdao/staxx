@@ -22,7 +22,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"environment_id\": \"{{environment_id}}\",\n\t\"extension_name\": \"{{extension_name}}\",\n\t\"image\": \"postgres\",\n\t\"ports\": [5432],\n\t\"dev_mode\": true,\n\t\"env\": {\n\t\t\"POSTGRES_PASSWORD\": \"postgres\"\n\t}\n}",
+							"raw": "{\n\t\"environment_id\": \"{{environment_id}}\",\n\t\"stack_name\": \"{{stack_name}}\",\n\t\"image\": \"postgres\",\n\t\"ports\": [5432],\n\t\"dev_mode\": true,\n\t\"env\": {\n\t\t\"POSTGRES_PASSWORD\": \"postgres\"\n\t}\n}",
 							"options": {
 								"raw": {}
 							}
@@ -47,18 +47,18 @@
 			"name": "Environment",
 			"item": [
 				{
-					"name": "List extensions configs",
+					"name": "List stack configs",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/environment/extension/list_config",
+							"raw": "{{STAXX_URL}}/environment/stack/list_config",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
 								"environment",
-								"extension",
+								"stack",
 								"list_config"
 							]
 						}
@@ -66,18 +66,18 @@
 					"response": []
 				},
 				{
-					"name": "Reload all extension configs",
+					"name": "Reload all stack configs",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/environment/extension/reload_config",
+							"raw": "{{STAXX_URL}}/environment/stack/reload_config",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
 								"environment",
-								"extension",
+								"stack",
 								"reload_config"
 							]
 						}
@@ -85,17 +85,17 @@
 					"response": []
 				},
 				{
-					"name": "Get extension details",
+					"name": "Get environment details",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/extension/info/{{environment_id}}",
+							"raw": "{{STAXX_URL}}/environment/info/{{environment_id}}",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"extension",
+								"environment",
 								"info",
 								"{{environment_id}}"
 							]
@@ -123,7 +123,7 @@
 					"response": []
 				},
 				{
-					"name": "Start new Environment",
+					"name": "Start new Environment With Deployment",
 					"event": [
 						{
 							"listen": "test",
@@ -154,18 +154,18 @@
 							{
 								"key": "Content-Type",
 								"name": "Content-Type",
-								"value": "application/json",
-								"type": "text"
+								"type": "text",
+								"value": "application/json"
 							},
 							{
 								"key": "X-User-Email",
-								"value": "konstantin@makerdao.com",
-								"type": "text"
+								"type": "text",
+								"value": "konstantin@makerdao.com"
 							}
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"testchain\": {\n\t\t\"config\": {\n\t\t\t\"type\": \"{{evm}}\",\n\t\t\t\"accounts\": 2,\n\t\t\t\"block_mine_time\": 0,\n\t\t\t\"clean_on_stop\": false,\n\t\t\t\"snapshot_id\": null, \n\t\t\t\"deploy_step_id\": 1\n\t\t},\n\t\t\"deps\": []\n\t}\n}",
+							"raw": "{\n\t\"testchain\": {\n\t\t\"config\": {\n\t\t\t\"type\": \"{{evm}}\",\n\t\t\t\"accounts\": 2,\n\t\t\t\"block_mine_time\": 0,\n\t\t\t\"clean_on_stop\": false,\n\t\t\t\"snapshot_id\": null, \n\t\t\t\"deploy_ref\": \"refs/tags/staxx-testrunner\",\n\t\t\t\"deploy_step_id\": 1\n\t\t},\n\t\t\"deps\": []\n\t}\n}",
 							"options": {
 								"raw": {}
 							}
@@ -366,7 +366,7 @@
 			"name": "Chains",
 			"item": [
 				{
-					"name": "Get all chains",
+					"name": "Get all environments",
 					"request": {
 						"method": "GET",
 						"header": [],
