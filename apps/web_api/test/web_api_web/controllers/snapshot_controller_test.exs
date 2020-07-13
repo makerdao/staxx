@@ -1,11 +1,12 @@
-defmodule Staxx.WebApiWeb.ChainControllerTest do
+defmodule Staxx.WebApiWeb.SnapshotControllerTest do
   @moduledoc """
   Tests for ChainController.
   See apps/store/priv/repo/seeds.exs for information about test data in db.
   """
-  use Staxx.WebApiWeb.ChainConnCase
+  use Staxx.WebApiWeb.EnvironmentControllerCase
 
-  @moduletag :api_chain
+  @moduletag :api
+
   describe "Snapshot tests::" do
     test "new snapshot shouldn't be created because of random id", %{conn: conn} do
       params = %{
@@ -19,7 +20,7 @@ defmodule Staxx.WebApiWeb.ChainControllerTest do
         RuntimeError,
         fn ->
           conn
-          |> post(Routes.chain_path(conn, :take_snapshot, params.id), params)
+          |> post(Routes.snapshot_path(conn, :take_snapshot, params.id), params)
         end
       )
     end
@@ -28,7 +29,7 @@ defmodule Staxx.WebApiWeb.ChainControllerTest do
       params = %{id: Faker.UUID.v4(), config: %{prprp: Faker.String.base64()}}
 
       conn
-      |> post(Routes.chain_path(conn, :take_snapshot, params.id), params)
+      |> post(Routes.snapshot_path(conn, :take_snapshot, params.id), params)
       |> json_response(500)
     end
 
@@ -37,7 +38,7 @@ defmodule Staxx.WebApiWeb.ChainControllerTest do
 
       %{"data" => snapshots} =
         conn
-        |> get(Routes.chain_path(conn, :list_snapshots, chain_type))
+        |> get(Routes.snapshot_path(conn, :list_snapshots, chain_type))
         |> json_response(200)
 
       assert length(snapshots) == 3
@@ -49,13 +50,13 @@ defmodule Staxx.WebApiWeb.ChainControllerTest do
 
       assert %{"data" => []} =
                conn
-               |> get(Routes.chain_path(conn, :list_snapshots, chain_type))
+               |> get(Routes.snapshot_path(conn, :list_snapshots, chain_type))
                |> json_response(200)
     end
 
     test "should return 400 status code for wrong parameters", %{conn: conn} do
       conn
-      |> post(Routes.chain_path(conn, :upload_snapshot), %{})
+      |> post(Routes.snapshot_path(conn, :upload_snapshot), %{})
       |> json_response(400)
     end
 
@@ -63,7 +64,7 @@ defmodule Staxx.WebApiWeb.ChainControllerTest do
       id = Faker.UUID.v4()
 
       conn
-      |> get(Routes.chain_path(conn, :download_snapshot, id))
+      |> get(Routes.snapshot_path(conn, :download_snapshot, id))
       |> json_response(404)
     end
 
@@ -71,7 +72,7 @@ defmodule Staxx.WebApiWeb.ChainControllerTest do
       id = Faker.UUID.v4()
 
       conn
-      |> delete(Routes.chain_path(conn, :remove_snapshot, id))
+      |> delete(Routes.snapshot_path(conn, :remove_snapshot, id))
       |> json_response(200)
     end
 
@@ -80,39 +81,8 @@ defmodule Staxx.WebApiWeb.ChainControllerTest do
       snapshot_id = Faker.UUID.v4()
 
       conn
-      |> post(Routes.chain_path(conn, :revert_snapshot, id, snapshot_id))
+      |> post(Routes.snapshot_path(conn, :revert_snapshot, id, snapshot_id))
       |> json_response(500)
-    end
-  end
-
-  describe "Chain tests::" do
-    test "should return list of chains belongs to user", %{conn: conn} do
-      assert %{"data" => chains, "errors" => [], "status" => 0} =
-               conn
-               |> get(Routes.chain_path(conn, :list_chains))
-               |> json_response(200)
-
-      assert length(chains) == 3
-    end
-
-    test "should return chain details", %{conn: conn} do
-      id = "1234567890"
-
-      %{"data" => %{"id" => chain_id, "node_type" => node_type}} =
-        conn
-        |> get(Routes.chain_path(conn, :chain_details, id))
-        |> json_response(200)
-
-      assert id == chain_id
-      assert node_type == "geth"
-    end
-
-    test "should return 404 code status", %{conn: conn} do
-      id = Faker.UUID.v4()
-
-      conn
-      |> get(Routes.chain_path(conn, :chain_details, id))
-      |> json_response(404)
     end
   end
 end

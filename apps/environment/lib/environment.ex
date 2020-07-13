@@ -184,7 +184,7 @@ defmodule Staxx.Environment do
   Get environment details by `id`.
   Will make calls to every stack and get it's information.
   """
-  @spec info(binary) :: term
+  @spec info(binary) :: map | nil
   def info(id) do
     stacks_info =
       case alive?(id) do
@@ -212,7 +212,13 @@ defmodule Staxx.Environment do
       testchain_info ->
         stacks_info ++ [{@testchain_key, testchain_info}]
     end
-    |> Map.new()
+    |> case do
+      [] ->
+        nil
+
+      data ->
+        Map.new(data)
+    end
   end
 
   @doc """

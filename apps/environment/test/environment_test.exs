@@ -40,7 +40,7 @@ defmodule Staxx.EnvironmentTest do
       {:error, _} = Environment.start(build(:not_allowed_stack))
     end
 
-    test "start new scope with supervisors" do
+    test "start new environment with supervisors" do
       {:ok, id} =
         :chain_valid
         |> build()
@@ -54,11 +54,11 @@ defmodule Staxx.EnvironmentTest do
   end
 
   describe "stop/1 :: " do
-    test "not fail for stop non existing scope" do
+    test "not fail for stop non existing environment" do
       :ok = Environment.stop(Faker.String.base64())
     end
 
-    test "stops running scope and terminates all resources" do
+    test "stops running environment and terminates all resources" do
       {:ok, id} = Environment.start(build(:chain_valid))
       assert is_binary(id)
       assert Environment.alive?(id)
@@ -68,7 +68,7 @@ defmodule Staxx.EnvironmentTest do
   end
 
   describe "alive?/1 :: " do
-    test "validate if scope alive/not" do
+    test "validate if environment alive/not" do
       {:ok, id} = Environment.start(build(:chain_valid))
       assert is_binary(id)
 
@@ -80,11 +80,11 @@ defmodule Staxx.EnvironmentTest do
   end
 
   describe "start_stack/2 :: " do
-    test "fails if no scope is running" do
+    test "fails if no environment is running" do
       {:error, _} = Environment.start_stack(Faker.String.base64(), "test")
     end
 
-    test "spawns new Stack for running scope" do
+    test "spawns new Stack for running environment" do
       {:ok, id} = Environment.start(build(:chain_valid))
       assert is_binary(id)
       assert Environment.alive?(id)
@@ -124,7 +124,7 @@ defmodule Staxx.EnvironmentTest do
   end
 
   describe "start_container/3 :: " do
-    test "fails without running scope" do
+    test "fails without running environment" do
       {:error, _} =
         Environment.start_container(Faker.String.base64(), "test", build(:container_valid))
     end
@@ -152,11 +152,11 @@ defmodule Staxx.EnvironmentTest do
   end
 
   describe "info/1 :: " do
-    test "empty list without running scope" do
-      [] = Environment.info(Faker.String.base64())
+    test "empty response without existing environment" do
+      nil = Environment.info(Faker.String.base64())
     end
 
-    test "provide info about running scope" do
+    test "provide info about running environment" do
       {:ok, id} = Environment.start(build(:chain_valid))
       assert Environment.alive?(id)
       assert {:ok, pid} = Environment.start_stack(id, "test")
@@ -165,7 +165,7 @@ defmodule Staxx.EnvironmentTest do
       container = build(:container_valid)
       {:ok, _} = Environment.start_container(id, "test", container)
 
-      [%{containers: containers, stack_name: "test", status: :initializing}] =
+      %{"test" => %{containers: containers, stack_name: "test", status: :initializing}} =
         Environment.info(id)
 
       assert is_list(containers)

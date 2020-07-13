@@ -23,7 +23,7 @@ defmodule Staxx.Environment.Stack do
   @typedoc """
   Stack information format.
   """
-  @type info :: {binary, %{status: status(), containers: [Container.t()]}} | nil
+  @type info :: {binary, %{status: status(), stack_name: binary, containers: [Container.t()]}} | nil
 
   defmodule State do
     @moduledoc false
@@ -138,7 +138,7 @@ defmodule Staxx.Environment.Stack do
       |> Enum.map(&Task.async(GenServer, :call, [&1, :info]))
       |> Enum.map(&Task.await/1)
 
-    {:reply, {name, %{status: status, containers: res}}, state}
+    {:reply, {name, %{status: status, stack_name: name, containers: res}}, state}
   end
 
   @impl true

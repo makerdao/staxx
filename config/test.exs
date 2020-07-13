@@ -2,10 +2,14 @@ import Config
 
 config :logger,
   backends: [:console],
-  level: :info,
-  compile_time_purge_matching: [
-    [level_lower_than: :info]
-  ]
+  level: :error
+
+# config :logger,
+#   backends: [:console],
+#   level: :info,
+#   compile_time_purge_matching: [
+#     [level_lower_than: :info]
+#   ]
 
 # Configuring timeouts for receiving messages
 config :ex_unit, assert_receive_timeout: 60_000

@@ -10,6 +10,7 @@ defmodule Staxx.WebApiWeb.EnvironmentController do
   alias Staxx.WebApiWeb.Schemas.TestchainSchema
 
   alias Staxx.WebApiWeb.SuccessView
+  alias Staxx.WebApiWeb.ErrorView
 
   def start(conn, %{"testchain" => _} = params) do
     Logger.debug(fn -> "#{__MODULE__}: New environment is starting" end)
@@ -37,11 +38,17 @@ defmodule Staxx.WebApiWeb.EnvironmentController do
   def info(conn, %{"id" => id}) do
     Logger.debug(fn -> "#{__MODULE__}: Loading environment #{id} details" end)
 
-    with data <- Environment.info(id) do
+    with data when is_map(data) <- Environment.info(id) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)
       |> render("200.json", data: data)
+    else
+      nil ->
+        conn
+        |> put_status(404)
+        |> put_view(ErrorView)
+        |> render("404.json")
     end
   end
 
