@@ -7,20 +7,11 @@ defmodule Staxx.WebApiWeb.Router do
 
   scope "/", Staxx.WebApiWeb do
     match :*, "/", IndexController, :index
-    match :*, "/version", ChainController, :version
-  end
-
-  scope "/", Staxx.WebApiWeb do
-    pipe_through :api
+    match :*, "/version", IndexController, :version
     post "/rpc", InternalController, :rpc
-    get "/chains", ChainController, :list_chains
-    post "/snapshots", ChainController, :upload_snapshot
-    get "/snapshots/:chain", ChainController, :list_snapshots
-    get "/snapshot/:id", ChainController, :download_snapshot
-    delete "/snapshot/:id", ChainController, :remove_snapshot
   end
 
-  scope "/deployment", Staxx.WebApiWeb do
+  scope "/deployments", Staxx.WebApiWeb do
     pipe_through :api
     get "/steps", DeploymentController, :steps
     # This is tmp route for testing only !
@@ -28,32 +19,38 @@ defmodule Staxx.WebApiWeb.Router do
     get "/commits", DeploymentController, :commit_list
   end
 
-  scope "/chain", Staxx.WebApiWeb do
-    pipe_through :api
-    delete "/:id", ChainController, :remove_chain
-    get "/:id", ChainController, :chain_details
-    get "/stop/:id", ChainController, :stop
-    post "/:id/take_snapshot", ChainController, :take_snapshot
-    post "/:id/revert_snapshot/:snapshot", ChainController, :revert_snapshot
-  end
-
-  scope "/docker", Staxx.WebApiWeb do
+  scope "/containers", Staxx.WebApiWeb do
     pipe_through :api
     post "/start", DockerController, :start
-    get "/stop/:id", DockerController, :stop
+    get "/:id/stop", DockerController, :stop
   end
 
-  scope "/environment", Staxx.WebApiWeb do
+  scope "/snapshots", Staxx.WebApiWeb do
     pipe_through :api
-    post "/start", EnvironmentController, :start
-    get "/stop/:id", EnvironmentController, :stop
-    get "/info/:id", EnvironmentController, :info
+    post "/", SnapshotController, :upload_snapshot
+    get "/:evm_type", SnapshotController, :list_snapshots
+    get "/:id/download", SnapshotController, :download_snapshot
+    delete "/:id", SnapshotController, :remove_snapshot
   end
 
-  scope "/environment/stack", Staxx.WebApiWeb do
+  scope "/environments", Staxx.WebApiWeb do
+    pipe_through :api
+    get "/", EnvironmentController, :list
+    post "/start", EnvironmentController, :start
+    get "/:id", EnvironmentController, :info
+    delete "/:id", EnvironmentController, :remove
+    get "/:id/stop", EnvironmentController, :stop
+
+    post "/:id/take_snapshot", SnapshotController, :take_snapshot
+    post "/:id/revert_snapshot/:snapshot_id", SnapshotController, :revert_snapshot
+  end
+
+  scope "/stacks", Staxx.WebApiWeb do
     pipe_through :api
     get "/list_config", StackController, :list_config
     get "/reload_config", StackController, :reload_config
+
+    # Debug & helper routes. Not for all use !
     post "/start/:environment_id", StackController, :start
     post "/stop/:environment_id", StackController, :stop
     post "/notify", StackController, :notify

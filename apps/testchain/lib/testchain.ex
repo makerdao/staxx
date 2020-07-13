@@ -66,6 +66,21 @@ defmodule Staxx.Testchain do
   end
 
   @doc """
+  Load testchain details from DB.
+  `nil` will be returned in case of missing record.
+  """
+  @spec info(evm_id) :: ChainRecord.t() | nil
+  def info(id),
+    do: ChainRecord.get(id)
+
+  @doc """
+  Load list of available testchains for given `user_id`.
+  """
+  @spec list(pos_integer | nil) :: [ChainRecord.t()]
+  def list(user_id),
+    do: ChainRecord.list(user_id)
+
+  @doc """
   Removes chain data if chain is already stopped.
   If chain is running - error will be returned.
   """

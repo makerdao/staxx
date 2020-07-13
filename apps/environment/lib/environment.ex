@@ -167,9 +167,7 @@ defmodule Staxx.Environment do
         {:error, "failed to find environment with id #{id} & stack name: #{stack_name}"}
 
       {:image, _} ->
-        Logger.error(
-          "Environment #{id}: No image #{image} is allowed for stack #{stack_name}"
-        )
+        Logger.error("Environment #{id}: No image #{image} is allowed for stack #{stack_name}")
 
         {:error, "#{image} image is not allowed for stack #{stack_name}"}
 
@@ -183,36 +181,70 @@ defmodule Staxx.Environment do
   end
 
   @doc """
-  Get environment details by `id`
+  Get environment details by `id`.
+  Will make calls to every stack and get it's information.
   """
   @spec info(binary) :: term
   def info(id) do
-    case alive?(id) do
-      false ->
-        []
+    stacks_info =
+      case alive?(id) do
+        false ->
+          []
 
-      true ->
-        id
-        |> EnvironmentSupervisor.get_stack_manager_supervisor()
-        |> Supervisor.which_children()
-        |> Enum.filter(fn {_, _, _, mods} -> mods == [Stack] end)
-        |> Enum.map(fn {_, pid, :worker, _} -> pid end)
-        |> Enum.map(&Stack.info/1)
-        |> List.flatten()
+        true ->
+          id
+          |> EnvironmentSupervisor.get_stack_manager_supervisor()
+          |> Supervisor.which_children()
+          |> Enum.filter(fn {_, _, _, mods} -> mods == [Stack] end)
+          |> Enum.map(fn {_, pid, :worker, _} -> pid end)
+          |> Enum.map(&Stack.info/1)
+          |> List.flatten()
+          |> Enum.reject(&is_nil/1)
+      end
+
+    # Adding EVM information
+    id
+    |> Testchain.info()
+    |> case do
+      nil ->
+        stacks_info
+
+      testchain_info ->
+        stacks_info ++ [{@testchain_key, testchain_info}]
     end
+    |> Map.new()
   end
 
   @doc """
   Load list of all available environments in system
   """
-  @spec list() :: [map]
-  def list() do
+  @spec list(pos_integer | nil) :: [%{id: binary, stacks: %{required(binary) => map}}]
+  def list(user_id) do
     # EnvironmentsDynamicSupervisor
     # |> Supervisor.which_children()
     # |> Enum.map(fn {_, pid, :supervisor, _} -> pid end)
     # |> IO.inspect()
 
-    []
+    user_id
+    |> Testchain.list()
+    |> Enum.reject(&is_nil/1)
+    |> Enum.map(fn %{id: id} = details -> %{id: id, stacks: %{@testchain_key => details}} end)
+  end
+
+  @doc """
+  Remove environment if it's not alive (testchain is stopped and no running containers).
+  """
+  @spec remove(binary) :: :ok | {:error, term}
+  def remove(id) do
+    id
+    |> alive?()
+    |> case do
+      true ->
+        {:error, "environment #{id} have to be stopped before removing"}
+
+      false ->
+        Testchain.remove(id)
+    end
   end
 
   @doc """

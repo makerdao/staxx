@@ -20,6 +20,11 @@ defmodule Staxx.Environment.Stack do
   """
   @type status :: :initializing | :ready | :failed | :terminate
 
+  @typedoc """
+  Stack information format.
+  """
+  @type info :: {binary, %{status: status(), containers: [Container.t()]}} | nil
+
   defmodule State do
     @moduledoc false
 
@@ -27,9 +32,9 @@ defmodule Staxx.Environment.Stack do
             environment_id: binary,
             name: binary,
             status: Staxx.Environment.Stack.status(),
-            children: [pid]
+            container_pids: [pid]
           }
-    defstruct environment_id: "", name: "", status: :initializing, children: []
+    defstruct environment_id: "", name: "", status: :initializing, container_pids: []
   end
 
   def child_spec(environment_id, name) do
@@ -100,7 +105,7 @@ defmodule Staxx.Environment.Stack do
   def handle_call(
         {:start_container, container},
         _from,
-        %State{environment_id: id, name: name, children: children} = state
+        %State{environment_id: id, name: name, container_pids: container_pids} = state
       ) do
     case do_start_container(container, name) do
       {:ok, pid} ->
@@ -111,7 +116,7 @@ defmodule Staxx.Environment.Stack do
           """
         end)
 
-        {:reply, {:ok, pid}, %State{state | children: children ++ [pid]}}
+        {:reply, {:ok, pid}, %State{state | container_pids: container_pids ++ [pid]}}
 
       {:error, err} ->
         Logger.error(fn ->
@@ -123,22 +128,26 @@ defmodule Staxx.Environment.Stack do
   end
 
   @impl true
-  def handle_call(:info, _from, %State{name: name, status: status, children: children} = state) do
+  def handle_call(
+        :info,
+        _from,
+        %State{name: name, status: status, container_pids: container_pids} = state
+      ) do
     res =
-      children
+      container_pids
       |> Enum.map(&Task.async(GenServer, :call, [&1, :info]))
       |> Enum.map(&Task.await/1)
 
-    {:reply, %{stack_name: name, status: status, containers: res}, state}
+    {:reply, {name, %{status: status, containers: res}}, state}
   end
 
   @impl true
-  def handle_info({:EXIT, from, :normal}, %State{children: children} = state),
-    do: {:noreply, %State{state | children: List.delete(children, from)}}
+  def handle_info({:EXIT, from, :normal}, %State{container_pids: container_pids} = state),
+    do: {:noreply, %State{state | container_pids: List.delete(container_pids, from)}}
 
   @impl true
   def handle_info({:EXIT, from, reason}, state) do
-    # No need to remove container pid from children list.
+    # No need to remove container pid from `container_pids` list.
     # Manager service will terminate
     Logger.debug(fn ->
       "Some containers failed with non :normal reason #{inspect(from)} - #{inspect(reason)}"
@@ -202,7 +211,7 @@ defmodule Staxx.Environment.Stack do
   @doc """
   Get information about stack by pid
   """
-  @spec info(pid) :: list
+  @spec info(pid) :: info()
   def info(pid) when is_pid(pid),
     do: GenServer.call(pid, :info)
 
@@ -241,19 +250,17 @@ defmodule Staxx.Environment.Stack do
       "Environment #{environment_id}: No manager container for stack #{name}"
     end)
 
-    {:ok, %State{environment_id: environment_id, name: name, children: []}}
+    {:ok, %State{environment_id: environment_id, name: name, container_pids: []}}
   end
 
   defp do_init(%Config{manager: image}, environment_id, name) do
     with container <- manager_config(environment_id, name, image),
          {:ok, pid} <- do_start_container(container, name) do
       Logger.debug(fn ->
-        "Environment #{environment_id}: Loaded manager #{image} for stack #{name} #{
-          inspect(pid)
-        }"
+        "Environment #{environment_id}: Loaded manager #{image} for stack #{name} #{inspect(pid)}"
       end)
 
-      {:ok, %State{environment_id: environment_id, name: name, children: [pid]}}
+      {:ok, %State{environment_id: environment_id, name: name, container_pids: [pid]}}
     else
       err ->
         Logger.debug(fn ->

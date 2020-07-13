@@ -1,26 +1,16 @@
-defmodule Staxx.WebApiWeb.ChainController do
+defmodule Staxx.WebApiWeb.SnapshotController do
   use Staxx.WebApiWeb, :controller
 
   action_fallback Staxx.WebApiWeb.FallbackController
 
   alias Staxx.Testchain
   alias Staxx.Testchain.SnapshotManager
-  alias Staxx.Store.Models.Chain, as: ChainRecord
-  alias Staxx.Store.Models.User, as: UserRecord
   alias Staxx.WebApiWeb.SuccessView
   alias Staxx.WebApiWeb.ErrorView
   alias Staxx.WebApiWeb.Schemas.TestchainSchema
 
   # content type of snapshot that will be uploaded
   @filetypes ["application/x-gzip", "application/gzip"]
-
-  # Get version for binaries and chain
-  def version(conn, _) do
-    with version when is_binary(version) <- Testchain.version() do
-      conn
-      |> text(version)
-    end
-  end
 
   # Take snapshot command
   def take_snapshot(conn, %{"id" => id} = params) do
@@ -34,7 +24,7 @@ defmodule Staxx.WebApiWeb.ChainController do
   end
 
   # Take snapshot command
-  def revert_snapshot(conn, %{"id" => id, "snapshot" => snapshot_id})
+  def revert_snapshot(conn, %{"id" => id, "snapshot_id" => snapshot_id})
       when is_binary(snapshot_id) do
     with :ok <- Testchain.revert_snapshot(id, snapshot_id) do
       conn
@@ -44,55 +34,10 @@ defmodule Staxx.WebApiWeb.ChainController do
     end
   end
 
-  def list_chains(conn, _) do
-    list =
-      conn
-      |> get_user_email()
-      |> UserRecord.get_user_id()
-      |> ChainRecord.list()
-
-    conn
-    |> put_status(200)
-    |> put_view(SuccessView)
-    |> render("200.json", data: list)
-  end
-
-  # Load chain details for running chain
-  def chain_details(conn, %{"id" => id}) do
-    with info when is_map(info) <- ChainRecord.get(id) do
-      conn
-      |> put_status(200)
-      |> put_view(SuccessView)
-      |> render("200.json", data: info)
-    else
-      nil ->
-        conn
-        |> put_status(404)
-        |> put_view(ErrorView)
-        |> render("404.json")
-    end
-  end
-
-  # Remove chain details from internal storage
-  def remove_chain(conn, %{"id" => id}) do
-    with :ok <- Testchain.remove(id) do
-      conn
-      |> put_status(200)
-      |> put_view(SuccessView)
-      |> render("200.json", data: %{message: "Chain data will be deleted"})
-    else
-      {:error, msg} ->
-        conn
-        |> put_status(400)
-        |> put_view(ErrorView)
-        |> render("400.json", message: msg)
-    end
-  end
-
   # load list of snapshots for chain
-  def list_snapshots(conn, %{"chain" => chain}) do
+  def list_snapshots(conn, %{"evm_type" => evm_type}) do
     list =
-      chain
+      evm_type
       |> String.to_atom()
       |> SnapshotManager.by_chain()
 
