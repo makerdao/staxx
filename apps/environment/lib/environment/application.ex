@@ -9,10 +9,10 @@ defmodule Staxx.Environment.Application do
     # List all child processes to be supervised
     children = [
       {Registry, keys: :unique, name: Staxx.Environment.EnvironmentRegistry},
-      {Registry, keys: :unique, name: Staxx.Environment.ExtensionRegistry},
+      {Registry, keys: :unique, name: Staxx.Environment.StackRegistry},
       Staxx.Environment.Terminator,
       Staxx.Environment.DynamicSupervisor,
-      Staxx.Environment.Extension.ConfigLoader
+      Staxx.Environment.Stack.ConfigLoader
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

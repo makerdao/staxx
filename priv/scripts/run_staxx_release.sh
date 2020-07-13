@@ -5,7 +5,7 @@ NATS_URL=127.0.0.1 \
 DEPLOYMENT_SERVICE_URL=http://127.0.0.1:5001/rpc \
 CHAINS_FRONT_URL=localhost \
 CHAINS_DB_PATH=/tmp/chains \
-EXTENSIONS_DIR=/tmp/extensions \
+STACKS_DIR=/tmp/stacks \
 FRONT_URL=localhost \
 SNAPSHOTS_DB_PATH=/tmp/snapshots \
 RELEASE_COOKIE="W_cC]7^rUeVZc|}$UL{@&1sQwT3}p507mFlh<E=/f!cxWI}4gpQx7Yu{ZUaD0cuK" \

@@ -82,15 +82,15 @@ defmodule Staxx.Docker.Container do
   end
 
   @doc """
-  Creates Docker container struct with given parameters and extension id.
+  Creates Docker container struct with given parameters and stack id.
   Returns `Staxx.Docker.Container.t() `
   """
   @spec create_container(map, binary()) :: Staxx.Docker.Container.t()
-  def create_container(params, extension_id) do
+  def create_container(params, stack_id) do
     %__MODULE__{
       image: Map.get(params, "image", ""),
       name: Map.get(params, "name", ""),
-      network: Map.get(params, "network", extension_id),
+      network: Map.get(params, "network", stack_id),
       cmd: Map.get(params, "cmd", ""),
       ports: Map.get(params, "ports", []),
       env: parse_env(Map.get(params, "env", %{})),

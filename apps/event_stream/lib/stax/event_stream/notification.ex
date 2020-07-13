@@ -33,7 +33,7 @@ defmodule Staxx.EventStream.Notification do
   @typedoc """
   Default Notification structure.
   Consist of:
-   - `id` - Extension/Testchain id
+   - `id` - Stack/Testchain id
    - `event` - Event that happened
    - `data` - Map with any data you need to pass with event
   """

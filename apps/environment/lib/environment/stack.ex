@@ -1,8 +1,8 @@
-defmodule Staxx.Environment.Extension do
+defmodule Staxx.Environment.Stack do
   @moduledoc """
-  Manages extension lifecircle.
+  Manages stack lifecircle.
 
-  This process is an owner of all extension containers per environment.
+  This process is an owner of all stack containers per environment.
   """
   use GenServer, restart: :temporary
 
@@ -12,11 +12,11 @@ defmodule Staxx.Environment.Extension do
   alias Staxx.Docker
   alias Staxx.Docker.Container
   alias Staxx.EventStream.Notification
-  alias Staxx.Environment.ExtensionRegistry
-  alias Staxx.Environment.Extension.{ConfigLoader, Config}
+  alias Staxx.Environment.StackRegistry
+  alias Staxx.Environment.Stack.{ConfigLoader, Config}
 
   @typedoc """
-  Extension status
+  Stack status
   """
   @type status :: :initializing | :ready | :failed | :terminate
 
@@ -26,7 +26,7 @@ defmodule Staxx.Environment.Extension do
     @type t :: %__MODULE__{
             environment_id: binary,
             name: binary,
-            status: Staxx.Environment.Extension.status(),
+            status: Staxx.Environment.Stack.status(),
             children: [pid]
           }
     defstruct environment_id: "", name: "", status: :initializing, children: []
@@ -41,7 +41,7 @@ defmodule Staxx.Environment.Extension do
   end
 
   @doc """
-  Start new extension supervisor for application
+  Start new stack supervisor for application
   """
   @spec start_link({binary, binary}) :: GenServer.on_start()
   def start_link({environment_id, name}),
@@ -51,7 +51,7 @@ defmodule Staxx.Environment.Extension do
       )
 
   # TODO: start manager container
-  # get extension config
+  # get stack config
   # create new worker with manager
   # add functions for starting additional containers
   #
@@ -60,7 +60,7 @@ defmodule Staxx.Environment.Extension do
     Logger.debug(fn ->
       """
       Environment ID: #{environment_id}
-      Starting new extension: #{name}
+      Starting new stack: #{name}
       """
     end)
 
@@ -83,14 +83,14 @@ defmodule Staxx.Environment.Extension do
 
   @impl true
   def handle_cast(:stop, %State{environment_id: id, name: name} = state) do
-    Logger.debug(fn -> "Environment #{id}: Terminating Extension #{name}" end)
+    Logger.debug(fn -> "Environment #{id}: Terminating Stack #{name}" end)
     {:stop, :normal, state}
   end
 
   @impl true
   def handle_cast({:set_status, status}, %State{environment_id: id, name: name} = state) do
-    Logger.debug(fn -> "Environment #{id}: Extension #{name} changed status to #{status}" end)
-    # Send notification about extension status event
+    Logger.debug(fn -> "Environment #{id}: Stack #{name} changed status to #{status}" end)
+    # Send notification about stack status event
     notify_status(state, status)
 
     {:noreply, %State{state | status: status}}
@@ -106,7 +106,7 @@ defmodule Staxx.Environment.Extension do
       {:ok, pid} ->
         Logger.debug(fn ->
           """
-          Environment #{id}: Starting new container for extension #{name}:
+          Environment #{id}: Starting new container for stack #{name}:
           #{inspect(container, pretty: true)}
           """
         end)
@@ -115,7 +115,7 @@ defmodule Staxx.Environment.Extension do
 
       {:error, err} ->
         Logger.error(fn ->
-          "Environment #{id}: Error starting container for extension #{name}: #{inspect(err)}"
+          "Environment #{id}: Error starting container for stack #{name}: #{inspect(err)}"
         end)
 
         {:reply, {:error, err}, state}
@@ -129,7 +129,7 @@ defmodule Staxx.Environment.Extension do
       |> Enum.map(&Task.async(GenServer, :call, [&1, :info]))
       |> Enum.map(&Task.await/1)
 
-    {:reply, %{extension_name: name, status: status, containers: res}, state}
+    {:reply, %{stack_name: name, status: status, containers: res}, state}
   end
 
   @impl true
@@ -150,7 +150,7 @@ defmodule Staxx.Environment.Extension do
   @impl true
   def terminate(_reason, %State{environment_id: id, name: name} = state) do
     Logger.debug(fn ->
-      "Environment #{id}: Terminating extension #{name} and it's manager process"
+      "Environment #{id}: Terminating stack #{name} and it's manager process"
     end)
 
     notify_status(state, :terminate)
@@ -158,7 +158,7 @@ defmodule Staxx.Environment.Extension do
   end
 
   @doc """
-  Start new container for running extension
+  Start new container for running stack
   """
   @spec start_container(binary, binary, Container.t()) :: {:ok, pid} | {:error, term}
   def start_container(environment_id, name, %Container{} = container) do
@@ -173,7 +173,7 @@ defmodule Staxx.Environment.Extension do
   end
 
   @doc """
-  Check is extension is running for given scope id & extension name
+  Check is stack is running for given scope id & stack name
   """
   @spec alive?(binary, binary) :: boolean
   def alive?(environment_id, name) do
@@ -200,14 +200,14 @@ defmodule Staxx.Environment.Extension do
   end
 
   @doc """
-  Get information about extension by pid
+  Get information about stack by pid
   """
   @spec info(pid) :: list
   def info(pid) when is_pid(pid),
     do: GenServer.call(pid, :info)
 
   @doc """
-  Get information about extension by id/name pair
+  Get information about stack by id/name pair
   """
   @spec info(binary, binary) :: list
   def info(environment_id, name) do
@@ -217,7 +217,7 @@ defmodule Staxx.Environment.Extension do
   end
 
   @doc """
-  Send stop comnmand to Extension service
+  Send stop comnmand to stack service
   """
   @spec stop(binary, binary) :: :ok
   def stop(environment_id, name) do
@@ -227,18 +227,18 @@ defmodule Staxx.Environment.Extension do
   end
 
   @doc """
-  Generate naming via tuple for extension supervisor
+  Generate naming via tuple for stack supervisor
   """
-  @spec via_tuple(binary, binary) :: {:via, Registry, {ExtensionRegistry, binary}}
+  @spec via_tuple(binary, binary) :: {:via, Registry, {StackRegistry, binary}}
   def via_tuple(environment_id, name),
-    do: {:via, Registry, {ExtensionRegistry, "#{environment_id}:#{name}"}}
+    do: {:via, Registry, {StackRegistry, "#{environment_id}:#{name}"}}
 
   #
   # Private functions
   #
   defp do_init(%Config{manager: nil}, environment_id, name) do
     Logger.debug(fn ->
-      "Environment #{environment_id}: No manager container for extension #{name}"
+      "Environment #{environment_id}: No manager container for stack #{name}"
     end)
 
     {:ok, %State{environment_id: environment_id, name: name, children: []}}
@@ -248,7 +248,7 @@ defmodule Staxx.Environment.Extension do
     with container <- manager_config(environment_id, name, image),
          {:ok, pid} <- do_start_container(container, name) do
       Logger.debug(fn ->
-        "Environment #{environment_id}: Loaded manager #{image} for extension #{name} #{
+        "Environment #{environment_id}: Loaded manager #{image} for stack #{name} #{
           inspect(pid)
         }"
       end)
@@ -293,7 +293,7 @@ defmodule Staxx.Environment.Extension do
   defp default_env(environment_id, name) do
     %{
       "ENVIRONMENT_ID" => environment_id,
-      "EXTENSION_NAME" => name,
+      "STACK_NAME" => name,
       "WEB_API_URL" => "http://#{Testchain.host()}:4000",
       "NATS_URL" => Testchain.nats_url()
     }
@@ -301,9 +301,9 @@ defmodule Staxx.Environment.Extension do
 
   defp notify_status(%State{environment_id: id, name: name}, status),
     do:
-      Notification.notify(id, "extension:status", %{
+      Notification.notify(id, "stack:status", %{
         environment_id: id,
-        extension_name: name,
+        stack_name: name,
         status: status
       })
 end

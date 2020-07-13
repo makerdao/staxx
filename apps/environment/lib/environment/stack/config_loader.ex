@@ -1,12 +1,12 @@
-defmodule Staxx.Environment.Extension.ConfigLoader do
+defmodule Staxx.Environment.Stack.ConfigLoader do
   @moduledoc """
-  Module will load list of extension configs form folder (see: `Application.get_env(:environment, :extensions_dir)`)
+  Module will load list of stack configs form folder (see: `Application.get_env(:environment, :stacks_dir)`)
 
   State for config loader will consist of map in format:
   ```elixir
   %{
-    "extension_name" => %Staxx.Environment.Extension.Config{},
-    "another_extension_name" => %Staxx.Environment.Extension.Config{},
+    "stack_name" => %Staxx.Environment.Stack.Config{},
+    "another_stack_name" => %Staxx.Environment.Stack.Config{},
   }
   ```
   """
@@ -14,10 +14,10 @@ defmodule Staxx.Environment.Extension.ConfigLoader do
 
   require Logger
 
-  alias Staxx.Environment.Extension.Config
+  alias Staxx.Environment.Stack.Config
   alias Staxx.Utils
 
-  @extension_config_filename "extension.json"
+  @stack_config_filename "stack.json"
 
   @doc false
   def start_link(_) do
@@ -28,10 +28,10 @@ defmodule Staxx.Environment.Extension.ConfigLoader do
   def init(:ok) do
     # Check configuration correctness
     if is_nil(config_folder()) do
-      raise "#{__MODULE__}: Extensions config folder was not configured !"
+      raise "#{__MODULE__}: Stacks config folder was not configured !"
     end
 
-    # Validate that extension config folder exist
+    # Validate that stack config folder exist
     unless File.exists?(config_folder()) do
       :ok = Utils.mkdir_p(config_folder())
     end
@@ -40,7 +40,7 @@ defmodule Staxx.Environment.Extension.ConfigLoader do
 
     Logger.debug(fn ->
       """
-      #{__MODULE__}: Loaded list of extension configs
+      #{__MODULE__}: Loaded list of stack configs
       #{inspect(state, pretty: true)}
       """
     end)
@@ -53,12 +53,12 @@ defmodule Staxx.Environment.Extension.ConfigLoader do
     do: {:reply, state, state}
 
   @doc false
-  def handle_call({:get, extension_name}, _from, state),
-    do: {:reply, Map.get(state, extension_name), state}
+  def handle_call({:get, stack_name}, _from, state),
+    do: {:reply, Map.get(state, stack_name), state}
 
   @doc false
-  def handle_call({:has_image, extension_name, image}, _from, state) do
-    case Map.get(state, extension_name) do
+  def handle_call({:has_image, stack_name, image}, _from, state) do
+    case Map.get(state, stack_name) do
       nil ->
         {:reply, false, state}
 
@@ -69,47 +69,47 @@ defmodule Staxx.Environment.Extension.ConfigLoader do
 
   @doc false
   def handle_cast(:reload, _state) do
-    Logger.debug("#{__MODULE__}: Reloaded list of available extensions")
+    Logger.debug("#{__MODULE__}: Reloaded list of available stacks")
     {:noreply, read()}
   end
 
   @doc """
-  Get list of available (registered in system) extensions
+  Get list of available (registered in system) stacks
   """
   @spec get() :: map()
   def get(),
     do: GenServer.call(__MODULE__, :get)
 
   @doc """
-  Get exact extension details
+  Get exact stack details
   """
   @spec get(binary) :: map() | nil
-  def get(extension_name),
-    do: GenServer.call(__MODULE__, {:get, extension_name})
+  def get(stack_name),
+    do: GenServer.call(__MODULE__, {:get, stack_name})
 
   @doc """
-  Check if extension has image in it's config.
+  Check if stack has image in it's config.
   If there is no such docker image in config listed, we couldn't start image
   """
   @spec has_image?(binary, binary) :: boolean
-  def has_image?(extension_name, image),
-    do: GenServer.call(__MODULE__, {:has_image, extension_name, image})
+  def has_image?(stack_name, image),
+    do: GenServer.call(__MODULE__, {:has_image, stack_name, image})
 
   @doc """
-  Reload all extension configurations from disc.
+  Reload all stack configurations from disc.
   """
   @spec reload() :: :ok
   def reload(),
     do: GenServer.cast(__MODULE__, :reload)
 
   @doc """
-  Read list of details from extensions into configured path
+  Read list of details from stacks into configured path
   """
   @spec read() :: map()
   def read() do
     config_folder()
     |> File.ls!()
-    |> Enum.map(&scan_extension_config/1)
+    |> Enum.map(&scan_stack_config/1)
     |> Map.new()
   end
 
@@ -117,10 +117,10 @@ defmodule Staxx.Environment.Extension.ConfigLoader do
   # Private functions
   #
 
-  defp scan_extension_config(dir) do
+  defp scan_stack_config(dir) do
     dir
     |> Path.expand(config_folder())
-    |> Path.join(@extension_config_filename)
+    |> Path.join(@stack_config_filename)
     |> parse_config_file()
   end
 
@@ -136,7 +136,7 @@ defmodule Staxx.Environment.Extension.ConfigLoader do
     {Map.get(config, :name), config}
   end
 
-  # Get folder with extensions configuration
+  # Get folder with stacks configuration
   defp config_folder(),
-    do: Application.get_env(:environment, :extensions_dir)
+    do: Application.get_env(:environment, :stacks_dir)
 end

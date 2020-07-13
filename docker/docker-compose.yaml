@@ -48,7 +48,7 @@ services:
     environment:
       DOCKER_STAXX_NETWORK: docker_staxx
       DOCKER_NATS_NETWORK: docker_staxx
-      EXTENSIONS_DIR: /tmp/extensions
+      STACKS_DIR: /tmp/stacks
       CHAINS_DB_PATH: /tmp/chains
       SNAPSHOTS_DB_PATH: /tmp/snapshots
       HOST: staxx.local
@@ -59,7 +59,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - "/tmp/chains:/tmp/chains"
       - "/tmp/snapshots:/tmp/snapshots"
-      - "/tmp/extensions:/tmp/extensions"
+      - "/tmp/stacks:/tmp/stacks"
     networks:
      - staxx
   testchain-deployment:

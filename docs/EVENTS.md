@@ -21,8 +21,8 @@ But there are several main events you will need to controll environment:
  - `snapshot_reverted` - Snapshot reverted sucessfuly. [More details](#snapshot-reverted)
  - `error` - Error happened in system [More details](#evm-error)
  - `terminated` - EVM terminated [More details](#evm-terminated)
- - `extension:ready` - Extension ready
- - `extension:failed` - Extension failed
+ - `stack:ready` - Stack ready
+ - `stack:failed` - Stack failed
 
 ### EVM Statuses
 
@@ -236,16 +236,16 @@ Snapshot reverted event example:
 }
 ```
 
-### Extension status event
-This event will be fired every time extension changes it's status
+### Stack status event
+This event will be fired every time stack changes it's status
 
 ```js
 {
   id: "15511618343318382659",
-  event: "extension:status",
+  event: "stack:status",
   data: {
     "environment_id": "15511618343318382659",
-    "extension_name": "some_extension_name",
+    "stack_name": "some_stack_name",
     "status": "ready" // "failed", "initializing", "terminate"
   }
 }

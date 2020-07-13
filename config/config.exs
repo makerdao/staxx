@@ -12,7 +12,7 @@ import Config
 #
 # Deployemnt Scope configs
 #
-config :environment, extensions_dir: "/tmp/extensions"
+config :environment, stacks_dir: "/tmp/stacks"
 config :environment, deployment_service_url: "http://localhost:5001/rpc"
 config :environment, deployment_steps_fetch_timeout: 30_000
 # DB path where all list of chain workers will be stored

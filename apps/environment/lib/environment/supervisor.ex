@@ -4,7 +4,7 @@ defmodule Staxx.Environment.Supervisor do
 
   Part of is will be:
    - `testchain` - Exact EVM that will be started for environment
-   - list of `extensions` - set of extension workers that controls different extensions
+   - list of `stacks` - set of stack workers that controls different stacks
   """
   use Supervisor
 
@@ -12,7 +12,7 @@ defmodule Staxx.Environment.Supervisor do
 
   alias Staxx.Environment
   alias Staxx.Environment.Terminator
-  alias Staxx.Environment.ExtensionsSupervisor
+  alias Staxx.Environment.StacksSupervisor
   alias Staxx.Environment.EnvironmentRegistry
 
   @doc false
@@ -28,11 +28,11 @@ defmodule Staxx.Environment.Supervisor do
   @doc """
   Start new supervision tree for newly created environment.
   """
-  def start_link({id, _chain_config_or_id, extensions} = params) do
+  def start_link({id, _chain_config_or_id, stacks} = params) do
     res = Supervisor.start_link(__MODULE__, params, name: via_tuple(id))
 
-    # have to start extensions here. Because need to be sure that testchain
-    # already started, before starting extensions.
+    # have to start stacks here. Because need to be sure that testchain
+    # already started, before starting stacks.
     if {:ok, pid} = res do
       pid
       |> Supervisor.which_children()
@@ -45,17 +45,17 @@ defmodule Staxx.Environment.Supervisor do
           Terminator.monitor(pid)
       end
 
-      start_extensions(id, extensions)
+      start_stacks(id, stacks)
     end
 
     res
   end
 
   @impl true
-  def init({id, chain_config_or_id, _extensions}) do
+  def init({id, chain_config_or_id, _stacks}) do
     children = [
       get_testchain_supervisor_module().child_spec({id, chain_config_or_id}),
-      ExtensionsSupervisor.child_spec(id)
+      StacksSupervisor.child_spec(id)
     ]
 
     opts = [strategy: :rest_for_one, max_restarts: 0]
@@ -70,15 +70,15 @@ defmodule Staxx.Environment.Supervisor do
     do: {:via, Registry, {EnvironmentRegistry, id}}
 
   @doc """
-  Get `ExtensionsSupervisor` instance binded to this environment.
+  Get `StacksSupervisor` instance binded to this environment.
   """
-  @spec get_extension_manager_supervisor(binary) :: pid | nil
-  def get_extension_manager_supervisor(environment_id) do
+  @spec get_stack_manager_supervisor(binary) :: pid | nil
+  def get_stack_manager_supervisor(environment_id) do
     res =
       environment_id
       |> via_tuple()
       |> Supervisor.which_children()
-      |> Enum.find(nil, fn {_, _pid, _, [module]} -> module == ExtensionsSupervisor end)
+      |> Enum.find(nil, fn {_, _pid, _, [module]} -> module == StacksSupervisor end)
 
     case res do
       {_, pid, _, _} ->
@@ -90,18 +90,18 @@ defmodule Staxx.Environment.Supervisor do
   end
 
   @doc """
-  Starts new `Extension` in environment for `extension_name`.
+  Starts new `Stack` in environment for `stack_name`.
   """
-  @spec start_extension(binary, binary) :: DynamicSupervisor.on_start_child()
-  def start_extension(environment_id, extension_name) do
+  @spec start_stack(binary, binary) :: DynamicSupervisor.on_start_child()
+  def start_stack(environment_id, stack_name) do
     case Environment.alive?(environment_id) do
       false ->
         {:error, "No working environment with such id found"}
 
       true ->
         environment_id
-        |> get_extension_manager_supervisor()
-        |> ExtensionsSupervisor.start_manager(environment_id, extension_name)
+        |> get_stack_manager_supervisor()
+        |> StacksSupervisor.start_manager(environment_id, stack_name)
     end
   end
 
@@ -112,11 +112,11 @@ defmodule Staxx.Environment.Supervisor do
   defp get_testchain_supervisor_module(),
     do: Application.get_env(:environment, :testchain_supervisor_module)
 
-  # Start list of extensions
-  defp start_extensions(environment_id, extensions) do
-    extensions
+  # Start list of stacks
+  defp start_stacks(environment_id, stacks) do
+    stacks
     |> Map.keys()
     |> Enum.uniq()
-    |> Enum.map(&start_extension(environment_id, &1))
+    |> Enum.map(&start_stack(environment_id, &1))
   end
 end

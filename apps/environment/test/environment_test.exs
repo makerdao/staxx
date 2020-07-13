@@ -5,10 +5,10 @@ defmodule Staxx.EnvironmentTest do
 
   import Staxx.Environment.ChainFactory
   alias Staxx.Environment
-  alias Staxx.Environment.Extension
+  alias Staxx.Environment.Stack
 
   describe "start/1 :: " do
-    test "fail to start without existing extension config" do
+    test "fail to start without existing stack config" do
       assert {:error, "wrong testchain config"} == Environment.start(%{})
       assert {:error, _} = Environment.start(%{"non-existing" => %{"config" => %{}}})
     end
@@ -36,15 +36,15 @@ defmodule Staxx.EnvironmentTest do
   end
 
   describe "start/3 :: " do
-    test "failes with non allowed extensions" do
-      {:error, _} = Environment.start(build(:not_allowed_extension))
+    test "failes with non allowed stacks" do
+      {:error, _} = Environment.start(build(:not_allowed_stack))
     end
 
     test "start new scope with supervisors" do
       {:ok, id} =
         :chain_valid
         |> build()
-        |> Map.merge(build(:extension_valid))
+        |> Map.merge(build(:stack_valid))
         |> Environment.start()
 
       assert Environment.alive?(id)
@@ -79,17 +79,17 @@ defmodule Staxx.EnvironmentTest do
     end
   end
 
-  describe "start_extension/2 :: " do
+  describe "start_stack/2 :: " do
     test "fails if no scope is running" do
-      {:error, _} = Environment.start_extension(Faker.String.base64(), "test")
+      {:error, _} = Environment.start_stack(Faker.String.base64(), "test")
     end
 
-    test "spawns new Extension for running scope" do
+    test "spawns new Stack for running scope" do
       {:ok, id} = Environment.start(build(:chain_valid))
       assert is_binary(id)
       assert Environment.alive?(id)
 
-      assert {:ok, pid} = Environment.start_extension(id, "test")
+      assert {:ok, pid} = Environment.start_stack(id, "test")
       assert is_pid(pid)
       assert Process.alive?(pid)
 
@@ -99,22 +99,22 @@ defmodule Staxx.EnvironmentTest do
     end
   end
 
-  describe "stop_extension/2 :: " do
-    test "stops running Extension" do
+  describe "stop_stack/2 :: " do
+    test "stops running Stack" do
       {:ok, id} = Environment.start(build(:chain_valid))
       assert is_binary(id)
       assert Environment.alive?(id)
 
-      assert {:ok, pid} = Environment.start_extension(id, "test")
+      assert {:ok, pid} = Environment.start_stack(id, "test")
       assert is_pid(pid)
       assert Process.alive?(pid)
-      assert Extension.alive?(id, "test")
+      assert Stack.alive?(id, "test")
 
-      assert :ok == Environment.stop_extension(id, "test")
+      assert :ok == Environment.stop_stack(id, "test")
 
       :timer.sleep(100)
       refute Process.alive?(pid)
-      refute Extension.alive?(id, "test")
+      refute Stack.alive?(id, "test")
       # still should be alive
       assert Environment.alive?(id)
 
@@ -137,8 +137,8 @@ defmodule Staxx.EnvironmentTest do
     test "starts new container" do
       {:ok, id} = Environment.start(build(:chain_valid))
       assert Environment.alive?(id)
-      assert {:ok, pid} = Environment.start_extension(id, "test")
-      assert Extension.alive?(id, "test")
+      assert {:ok, pid} = Environment.start_stack(id, "test")
+      assert Stack.alive?(id, "test")
 
       container = build(:container_valid)
       {:ok, started} = Environment.start_container(id, "test", container)
@@ -147,7 +147,7 @@ defmodule Staxx.EnvironmentTest do
 
       Environment.stop(id)
       refute Environment.alive?(id)
-      refute Extension.alive?(id, "test")
+      refute Stack.alive?(id, "test")
     end
   end
 
@@ -159,13 +159,13 @@ defmodule Staxx.EnvironmentTest do
     test "provide info about running scope" do
       {:ok, id} = Environment.start(build(:chain_valid))
       assert Environment.alive?(id)
-      assert {:ok, pid} = Environment.start_extension(id, "test")
-      assert Extension.alive?(id, "test")
+      assert {:ok, pid} = Environment.start_stack(id, "test")
+      assert Stack.alive?(id, "test")
 
       container = build(:container_valid)
       {:ok, _} = Environment.start_container(id, "test", container)
 
-      [%{containers: containers, extension_name: "test", status: :initializing}] =
+      [%{containers: containers, stack_name: "test", status: :initializing}] =
         Environment.info(id)
 
       assert is_list(containers)
@@ -176,7 +176,7 @@ defmodule Staxx.EnvironmentTest do
 
       Environment.stop(id)
       refute Environment.alive?(id)
-      refute Extension.alive?(id, "test")
+      refute Stack.alive?(id, "test")
     end
   end
 end

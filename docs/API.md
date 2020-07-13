@@ -25,22 +25,22 @@ There are exported Postman environments available [here](./postman)
 ## Environment API
 
 ### Staxx configuration
-Extension configuration should be placed to `:extensions_dir` configured.
-By default it's configured to `/tmp/extensions`.
+Stack configuration should be placed to `:stacks_dir` configured.
+By default it's configured to `/tmp/stacks`.
 
-Extension configuration consists of 3 files under folder with extension name.
+Stack configuration consists of 3 files under folder with stack name.
 
- - `extension.json` - Main extension configuration
- - `docker-compose.yml` - List of containers extension will start.
- - `icon.png` - Extension icon for QA dashboard UI
+ - `stack.json` - Main stack configuration
+ - `docker-compose.yml` - List of containers stack will start.
+ - `icon.png` - Stack icon for QA dashboard UI
 
-So for example for `vdb` extension you have to place it into `/tmp/extensions/vdb/extension.json`
+So for example for `vdb` stack you have to place it into `/tmp/stacks/vdb/stack.json`
 
-`extension.json` file example:
+`stack.json` file example:
 
 ```js
 {
-  "title": "VulcanizeDB Extension",
+  "title": "VulcanizeDB stack",
   "scope": "global | user | testchain",
   "manager": "testchain-vdb",
   "deps": [
@@ -51,12 +51,12 @@ So for example for `vdb` extension you have to place it into `/tmp/extensions/vd
 
 Property list:
 
- - `title` - Extension title
- - `scope` - Extension scope
- - `manager` - Extension manager service
- - `deps` - Extension dependencies
+ - `title` - stack title
+ - `scope` - stack scope
+ - `manager` - stack manager service
+ - `deps` - stack dependencies
 
-### Starting new extension
+### Starting new stack
 POST `/environment/start` with payload:
 
 ```js
@@ -73,7 +73,7 @@ POST `/environment/start` with payload:
     },
     "deps": [] // For testchain we have no dependencies
   },
-  "vdb": { // <-- Your extension name
+  "vdb": { // <-- Your stack name
     "config": {}, // No config needed to start VDB
     "deps": [  // VDB have to wait till testchain to start
       "testchain"
@@ -138,7 +138,7 @@ curl --request GET \
 ```
 
 ### Environment info
-Will show list of exported resources by extension for environment
+Will show list of exported resources by stack for environment
 GET `/environment/info/{environment_id}`
 
 ```bash
@@ -153,7 +153,7 @@ curl --request GET \
   "errors": [],
   "data": {
     "urls": {
-      "vdb": [ // extension name
+      "vdb": [ // stack name
         "http://localhost:51329" // exported resource
       ]
     }
@@ -162,9 +162,9 @@ curl --request GET \
 ```
 
 ### Notifications
-Send any notification for extension into running environment
+Send any notification for stack into running environment
 
-Route: `POST /environment/extension/notify`
+Route: `POST /environment/stack/notify`
 Request payload:
 
 ```js
@@ -190,7 +190,7 @@ Example:
 
 ```bash
 curl --request POST \
-  --url http://localhost:4000/environment/extension/notify \
+  --url http://localhost:4000/environment/stack/notify \
   --header 'content-type: application/json' \
   --data '{
 	"environment_id": "5424541485621730355",
@@ -199,16 +199,16 @@ curl --request POST \
 }'
 ```
 
-### Extension ready notification
-Send Extension ready event
+### Stack ready notification
+Send stack ready event
 
-Route `POST /environment/extension/notify/ready`
+Route `POST /environment/stack/notify/ready`
 Request payload:
 
 ```js
 {
   "environment_id": "16020459699138145532", // <-- Environment ID
-  "extension_name": "vdb", // <-- Extension name
+  "stack_name": "vdb", // <-- stack name
   "data": {} // <-- details you need to send
 }
 ```
@@ -228,25 +228,25 @@ Example:
 
 ```bash
 curl --request POST \
-  --url http://localhost:4000/environment/extension/notify/ready \
+  --url http://localhost:4000/environment/stack/notify/ready \
   --header 'content-type: application/json' \
   --data '{
 	"environment_id": "16020459699138145532",
-	"extension_name": "vdb",
+	"stack_name": "vdb",
   "data": {}
 }'
 ```
 
-### Extension failed notification
-Send Extension ready event
+### Stack failed notification
+Send stack ready event
 
-Route `POST /environment/extension/notify/failed`
+Route `POST /environment/stack/notify/failed`
 Request payload:
 
 ```js
 {
   "environment_id": "16020459699138145532", // <-- Environment ID
-  "extension_name": "vdb", // <-- Extension name
+  "stack_name": "vdb", // <-- stack name
 	"data": {} // <-- details you need to send
 }
 ```
@@ -266,18 +266,18 @@ Example:
 
 ```bash
 curl --request POST \
-  --url http://localhost:4000/environment/extension/notify/failed \
+  --url http://localhost:4000/environment/stack/notify/failed \
   --header 'content-type: application/json' \
   --data '{
 	"environment_id": "16020459699138145532",
-	"extension_name": "vdb",
+	"stack_name": "vdb",
   "data": {}
 }'
 ```
 
 ### Start Docker Container
-Send command to start new docker container under specified extension.
-All containers will be stopped when you stop extension.
+Send command to start new docker container under specified stack.
+All containers will be stopped when you stop stack.
 
 Route: `POST /docker/start`
 
@@ -285,9 +285,9 @@ Request payload:
 ```js
 {
   "environment_id": "2538928139759187250", // <-- Environment ID (Required)
-  "extension_name": "vdb", // <-- extension name (Required)
+  "stack_name": "vdb", // <-- stack name (Required)
   "image": "postgres", // <-- Docker image needs to be started (Note you have to specify it into docker-compose.yml)
-  "network": "2538928139759187250", // <-- Docker network ID (Optional. Same to Extension ID)
+  "network": "2538928139759187250", // <-- Docker network ID (Optional. Same to stack ID)
   "cmd": "--help", // <-- See Dockerfile CMD for more details (Optional)
   "ports": [5432], // <-- Port list needs to be open for public
   "dev_mode": false, // <-- ONLY FOR TESTING ! will run container without removing it after stop.
@@ -325,7 +325,7 @@ curl --request POST \
   --header 'content-type: application/json' \
   --data '{
 	"environment_id": "2538928139759187250",
-  "extension_name": "vdb",
+  "stack_name": "vdb",
 	"image": "postgres",
 	"network": "2538928139759187250",
 	"ports": [5432],
@@ -353,7 +353,7 @@ curl --request POST \
   --header 'content-type: application/json' \
   --data '{
 	"environment_id": "2538928139759187250",
-  "extension_name": "vdb",
+  "stack_name": "vdb",
 	"image": "postgres",
 	"network": "2538928139759187250",
 	"ports": [5432],
@@ -497,13 +497,13 @@ Response:
 }
 ```
 
-### Reload extensions configuration
-In case of some changes in extension configuration you might need to reload extensions configurations.
-It could be done by calling `GET /environment/extension/reload` route.
+### Reload stacks configuration
+In case of some changes in stack configuration you might need to reload stacks configurations.
+It could be done by calling `GET /environment/stack/reload` route.
 
 ```bash
 curl --request GET \
-  --url http://localhost:4000/environment/extension/reload
+  --url http://localhost:4000/environment/stack/reload
 ```
 It does not have any request details.
 Response:
@@ -517,13 +517,13 @@ Response:
 }
 ```
 
-### Get list of available extensions configs
-For some reason you might need list of available extensions configs.
+### Get list of available stacks configs
+For some reason you might need list of available stacks configs.
 
 Request:
 ```bash
 curl --request GET \
-  --url http://localhost:4000/environment/extension/list_config
+  --url http://localhost:4000/environment/stack/list_config
 ```
 
 Response example:
@@ -534,10 +534,10 @@ Response example:
   "errors": [],
   "data": {
     "helloworld": {
-      "title": "Hello World Extension",
+      "title": "Hello World stack",
       "scope": "global",
       "name": "helloworld",
-      "manager": "makerdao/testchain-extension-helloworld",
+      "manager": "makerdao/testchain-stack-helloworld",
       "deps": [
         "testchain"
       ],
@@ -546,7 +546,7 @@ Response example:
           "ports": [
             3000
           ],
-          "image": "makerdao/testchain-extension-helloworld-display"
+          "image": "makerdao/testchain-stack-helloworld-display"
         }
       }
     }
