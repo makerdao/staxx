@@ -6,7 +6,7 @@ jobs:
       only:
         - master
         - develop
-        - STAX-30-new
+        - environment_to_instance
     environment:
       # PATH: "$HOME/.asdf/bin:$HOME/.asdf/shims:$PATH"
       # MIX_ENV: "test"
