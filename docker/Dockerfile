@@ -30,7 +30,7 @@ RUN apk update && \
 
 # This copies our app mix.exs and mix.lock source code into the build container
 COPY mix.* ./
-COPY apps/environment/mix.* ./apps/environment/
+COPY apps/instance/mix.* ./apps/instance/
 COPY apps/docker/mix.* ./apps/docker/
 COPY apps/event_stream/mix.* ./apps/event_stream/
 COPY apps/json_rpc/mix.* ./apps/json_rpc/

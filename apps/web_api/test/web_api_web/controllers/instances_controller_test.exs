@@ -1,17 +1,17 @@
-defmodule Staxx.WebApiWeb.EnvironmentControllerTest do
+defmodule Staxx.WebApiWeb.InstancesControllerTest do
   @moduledoc """
   Tests for ChainController.
   See apps/store/priv/repo/seeds.exs for information about test data in db.
   """
-  use Staxx.WebApiWeb.EnvironmentControllerCase
+  use Staxx.WebApiWeb.InstancesControllerCase
 
   @moduletag :api
   
-  describe "Environment tests::" do
+  describe "Instances tests::" do
     test "should return list of chains belongs to user", %{conn: conn} do
       assert %{"data" => chains, "errors" => [], "status" => 0} =
                conn
-               |> get(Routes.environment_path(conn, :list))
+               |> get(Routes.instances_path(conn, :list))
                |> json_response(200)
 
       assert length(chains) == 3
@@ -22,7 +22,7 @@ defmodule Staxx.WebApiWeb.EnvironmentControllerTest do
 
       %{"data" => %{"testchain" => %{"id" => chain_id, "node_type" => node_type}}} =
         conn
-        |> get(Routes.environment_path(conn, :info, id))
+        |> get(Routes.instances_path(conn, :info, id))
         |> json_response(200)
 
       assert id == chain_id
@@ -33,7 +33,7 @@ defmodule Staxx.WebApiWeb.EnvironmentControllerTest do
       id = Faker.UUID.v4()
 
       conn
-      |> get(Routes.environment_path(conn, :info, id))
+      |> get(Routes.instances_path(conn, :info, id))
       |> json_response(404)
     end
   end

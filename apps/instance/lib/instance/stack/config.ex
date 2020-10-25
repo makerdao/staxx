@@ -1,4 +1,4 @@
-defmodule Staxx.Environment.Stack.Config do
+defmodule Staxx.Instance.Stack.Config do
   @moduledoc """
   Default stack configuration structure.
   Stack configuration should be stored into `stack_name/stack.json` file.

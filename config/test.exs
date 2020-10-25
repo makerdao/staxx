@@ -18,10 +18,10 @@ config :event_stream, disable_nats: true
 
 config :docker, adapter: Staxx.Docker.Adapter.Mock
 
-config :environment, stacks_dir: "#{__DIR__}/../priv/test/stacks"
+config :instance, stacks_dir: "#{__DIR__}/../priv/test/stacks"
 
-config :environment,
-  testchain_supervisor_module: Staxx.Environment.Test.TestchainSupervisorMock
+config :instance,
+  testchain_supervisor_module: Staxx.Instance.Test.TestchainSupervisorMock
 
 config :store, Staxx.Store.Repo, pool: Ecto.Adapters.SQL.Sandbox
 

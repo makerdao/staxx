@@ -1,4 +1,4 @@
-defmodule Staxx.Environment.Terminator do
+defmodule Staxx.Instance.Terminator do
   @moduledoc """
   Terminator is here for tracking scope health and in case of testchain failure
   it will kill whole scope. But it wouldn't be back...
@@ -7,7 +7,7 @@ defmodule Staxx.Environment.Terminator do
 
   require Logger
 
-  alias Staxx.Environment.DynamicSupervisor, as: EnvironmentsDynamicSupervisor
+  alias Staxx.Instance.DynamicSupervisor, as: InstancesDynamicSupervisor
 
   @doc false
   def start_link(_),
@@ -42,7 +42,7 @@ defmodule Staxx.Environment.Terminator do
         end)
 
       {:shutdown, id} ->
-        EnvironmentsDynamicSupervisor.stop_environment(id)
+        InstancesDynamicSupervisor.stop_instance(id)
         Logger.debug(fn -> "#{__MODULE__}: Hasta la vista, baby #{id}" end)
 
       _ ->

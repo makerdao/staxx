@@ -36,7 +36,7 @@ defmodule Staxx.WebApi.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:environment, in_umbrella: true},
+      {:instance, in_umbrella: true},
       {:event_stream, in_umbrella: true},
       {:store, in_umbrella: true},
       {:testchain, in_umbrella: true},

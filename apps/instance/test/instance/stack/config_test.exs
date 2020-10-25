@@ -1,7 +1,7 @@
-defmodule Staxx.Environment.Stack.ConfigTest do
+defmodule Staxx.Instance.Stack.ConfigTest do
   use ExUnit.Case
 
-  alias Staxx.Environment.Stack.Config
+  alias Staxx.Instance.Stack.Config
 
   test "has_image?/2 should check if image exist" do
     config = %Config{containers: %{vdb: %{image: "test"}}}

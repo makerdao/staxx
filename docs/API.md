@@ -15,15 +15,15 @@ Web API for working with QA Dashboard backend
  - `GET /deployments/steps` - Load list of deployment steps
  - `GET /deployments/commits` - List of available commits
 
-#### Environments
+#### Instances
 
- - `POST /environments/start` - Start new environment.
- - `GET /environments` - List of available environments
- - `GET /environments/:id` - Environment details by environments ID
- - `DELETE /environments/:id` - Remove all environment data from system (only for stopped environment !)
- - `GET /environments/:id/stop` - Stop environment by ID
- - `POST /environments/:id/take_snapshot` - Start taking snapshot (result will be received by WS)
- - `POST /environments/:id/revert_snapshot/:snapshot_id` - Start reverting snapshot (result will be received by WS)
+ - `POST /instances/start` - Start new instance.
+ - `GET /instances` - List of available instances
+ - `GET /instances/:id` - Instance details by instances ID
+ - `DELETE /instances/:id` - Remove all instance data from system (only for stopped instance !)
+ - `GET /instances/:id/stop` - Stop instance by ID
+ - `POST /instances/:id/take_snapshot` - Start taking snapshot (result will be received by WS)
+ - `POST /instances/:id/revert_snapshot/:snapshot_id` - Start reverting snapshot (result will be received by WS)
 
 #### Stacks helper routes
 
@@ -31,9 +31,9 @@ Web API for working with QA Dashboard backend
 
 ## Postman APIs and Envs
 
-There are exported Postman environments available [here](./postman)
+There are exported Postman instances available [here](./postman)
 
-## Environment API
+## Instances API
 
 ### Staxx configuration
 Stack configuration should be placed to `:stacks_dir` configured.
@@ -68,7 +68,7 @@ Property list:
  - `deps` - stack dependencies
 
 ### Starting new stack
-POST `/environments/start` with payload:
+POST `/instances/start` with payload:
 
 ```js
 {
@@ -97,7 +97,7 @@ Example:
 
 ```bash
 curl --request POST \
-  --url http://localhost:4000/environments/start \
+  --url http://localhost:4000/instances/start \
   --header 'content-type: application/json' \
   --data '{
 	"testchain": {
@@ -126,17 +126,17 @@ Response:
   "message": "",
   "errors": [],
   "data": {
-    "id": "5341658974976052158" // Generated environment ID
+    "id": "5341658974976052158" // Generated instance ID
   }
 }
 ```
 
-### Stop environment
-GET `/environments/{environment_id}/stop`
+### Stop instance
+GET `/instances/{instance_id}/stop`
 
 ```bash
 curl --request GET \
-  --url http://localhost:4000/environments/5341658974976052158/stop
+  --url http://localhost:4000/instances/5341658974976052158/stop
 ```
 
 ```json
@@ -148,9 +148,9 @@ curl --request GET \
 }
 ```
 
-### Environment details
-For your environment you might need details of testchain that was started for you.
-Route: `GET /environments/{environment_id}`
+### Instance details
+For your instance you might need details of testchain that was started for you.
+Route: `GET /instances/{instance_id}`
 
 It does not have any request details.
 Response:
@@ -281,12 +281,12 @@ Response:
 }
 ```
 
-### Get list of existing environments
+### Get list of existing instances
 
 Load list of chains existing in system
 
 ```bash
-curl --location --request GET 'http://localhost:4000/environments'
+curl --location --request GET 'http://localhost:4000/instances'
 ```
 
 ```json
@@ -341,14 +341,14 @@ curl --location --request GET 'http://localhost:4000/environments'
 ```
 
 ### Notifications (Debug only)
-Send any notification for stack into running environment
+Send any notification for stack into running instance
 
 Route: `POST /stacks/notify`
 Request payload:
 
 ```js
 {
-  "environment_id": "5424541485621730355", // <-- environment ID
+  "instance_id": "5424541485621730355", // <-- instance ID
   "event": "event", // <-- your event
   "data": {} // <-- Data you want to send
 }
@@ -372,7 +372,7 @@ curl --request POST \
   --url http://localhost:4000/stacks/notify \
   --header 'content-type: application/json' \
   --data '{
-	"environment_id": "5424541485621730355",
+	"instance_id": "5424541485621730355",
 	"event": "vdb_ready",
 	"data": {}
 }'
@@ -386,7 +386,7 @@ Request payload:
 
 ```js
 {
-  "environment_id": "16020459699138145532", // <-- Environment ID
+  "instance_id": "16020459699138145532", // <-- instance ID
   "stack_name": "vdb", // <-- stack name
   "data": {} // <-- details you need to send
 }
@@ -410,7 +410,7 @@ curl --request POST \
   --url http://localhost:4000/stacks/notify/ready \
   --header 'content-type: application/json' \
   --data '{
-	"environment_id": "16020459699138145532",
+	"instance_id": "16020459699138145532",
 	"stack_name": "vdb",
   "data": {}
 }'
@@ -424,7 +424,7 @@ Request payload:
 
 ```js
 {
-  "environment_id": "16020459699138145532", // <-- Environment ID
+  "instance_id": "16020459699138145532", // <-- instance ID
   "stack_name": "vdb", // <-- stack name
 	"data": {} // <-- details you need to send
 }
@@ -448,7 +448,7 @@ curl --request POST \
   --url http://localhost:4000/stacks/notify/failed \
   --header 'content-type: application/json' \
   --data '{
-	"environment_id": "16020459699138145532",
+	"instance_id": "16020459699138145532",
 	"stack_name": "vdb",
   "data": {}
 }'
@@ -463,7 +463,7 @@ Route: `POST /containers/start`
 Request payload:
 ```js
 {
-  "environment_id": "2538928139759187250", // <-- Environment ID (Required)
+  "instance_id": "2538928139759187250", // <-- instance ID (Required)
   "stack_name": "vdb", // <-- stack name (Required)
   "image": "postgres", // <-- Docker image needs to be started (Note you have to specify it into docker-compose.yml)
   "network": "2538928139759187250", // <-- Docker network ID (Optional. Same to stack ID)
@@ -503,7 +503,7 @@ curl --request POST \
   --url http://localhost:4000/containers/start \
   --header 'content-type: application/json' \
   --data '{
-	"environment_id": "2538928139759187250",
+	"instance_id": "2538928139759187250",
   "stack_name": "vdb",
 	"image": "postgres",
 	"network": "2538928139759187250",
@@ -531,7 +531,7 @@ curl --request POST \
   --url http://localhost:4000/containers/start \
   --header 'content-type: application/json' \
   --data '{
-	"environment_id": "2538928139759187250",
+	"instance_id": "2538928139759187250",
   "stack_name": "vdb",
 	"image": "postgres",
 	"network": "2538928139759187250",

@@ -33,13 +33,13 @@ defmodule Staxx.WebApiWeb.Router do
     delete "/:id", SnapshotController, :remove_snapshot
   end
 
-  scope "/environments", Staxx.WebApiWeb do
+  scope "/instances", Staxx.WebApiWeb do
     pipe_through :api
-    get "/", EnvironmentController, :list
-    post "/start", EnvironmentController, :start
-    get "/:id", EnvironmentController, :info
-    delete "/:id", EnvironmentController, :remove
-    get "/:id/stop", EnvironmentController, :stop
+    get "/", InstancesController, :list
+    post "/start", InstancesController, :start
+    get "/:id", InstancesController, :info
+    delete "/:id", InstancesController, :remove
+    get "/:id/stop", InstancesController, :stop
 
     post "/:id/take_snapshot", SnapshotController, :take_snapshot
     post "/:id/revert_snapshot/:snapshot_id", SnapshotController, :revert_snapshot
@@ -51,8 +51,8 @@ defmodule Staxx.WebApiWeb.Router do
     get "/reload_config", StackController, :reload_config
 
     # Debug & helper routes. Not for all use !
-    post "/start/:environment_id", StackController, :start
-    post "/stop/:environment_id", StackController, :stop
+    post "/start/:instance_id", StackController, :start
+    post "/stop/:instance_id", StackController, :stop
     post "/notify", StackController, :notify
     post "/notify/ready", StackController, :notify_ready
     post "/notify/failed", StackController, :notify_failed

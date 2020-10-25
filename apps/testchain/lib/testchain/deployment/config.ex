@@ -26,6 +26,6 @@ defmodule Staxx.Testchain.Deployment.Config do
             rpc_url: "",
             coinbase: "",
             gas_limit: "17000000",
-            git_ref: Application.get_env(:environment, :default_deployment_scripts_git_ref),
+            git_ref: Application.get_env(:instance, :default_deployment_scripts_git_ref),
             git_url: @deployment_scripts_repo_url
 end

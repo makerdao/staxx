@@ -1,19 +1,21 @@
-defmodule Staxx.Environment.Stack do
+defmodule Staxx.Instance.Stack do
   @moduledoc """
   Manages stack lifecircle.
 
-  This process is an owner of all stack containers per environment.
+  This process is an owner of all stack containers per instance.
   """
   use GenServer, restart: :temporary
 
   require Logger
 
   alias Staxx.Testchain
+  alias Staxx.Instance
   alias Staxx.Docker
   alias Staxx.Docker.Container
   alias Staxx.EventStream.Notification
-  alias Staxx.Environment.StackRegistry
-  alias Staxx.Environment.Stack.{ConfigLoader, Config}
+  alias Staxx.Instance.Stack
+  alias Staxx.Instance.StackRegistry
+  alias Staxx.Instance.Stack.{ConfigLoader, Config}
 
   @typedoc """
   Stack status
@@ -29,18 +31,19 @@ defmodule Staxx.Environment.Stack do
     @moduledoc false
 
     @type t :: %__MODULE__{
-            environment_id: binary,
+            instance_id: Instance.id(),
             name: binary,
-            status: Staxx.Environment.Stack.status(),
+            status: Stack.status(),
             container_pids: [pid]
           }
-    defstruct environment_id: "", name: "", status: :initializing, container_pids: []
+    defstruct instance_id: "", name: "", status: :initializing, container_pids: []
   end
 
-  def child_spec(environment_id, name) do
+  @doc false
+  def child_spec(instance_id, name) do
     %{
-      id: "#{environment_id}:#{name}",
-      start: {__MODULE__, :start_link, [{environment_id, name}]},
+      id: "#{instance_id}:#{name}",
+      start: {__MODULE__, :start_link, [{instance_id, name}]},
       restart: :temporary
     }
   end
@@ -48,11 +51,11 @@ defmodule Staxx.Environment.Stack do
   @doc """
   Start new stack supervisor for application
   """
-  @spec start_link({binary, binary}) :: GenServer.on_start()
-  def start_link({environment_id, name}),
+  @spec start_link({Instance.id(), binary}) :: GenServer.on_start()
+  def start_link({instance_id, name}),
     do:
-      GenServer.start_link(__MODULE__, {environment_id, name},
-        name: via_tuple(environment_id, name)
+      GenServer.start_link(__MODULE__, {instance_id, name},
+        name: via_tuple(instance_id, name)
       )
 
   # TODO: start manager container
@@ -61,10 +64,10 @@ defmodule Staxx.Environment.Stack do
   # add functions for starting additional containers
   #
   @impl true
-  def init({environment_id, name}) do
+  def init({instance_id, name}) do
     Logger.debug(fn ->
       """
-      Environment ID: #{environment_id}
+      Instance ID: #{instance_id}
       Starting new stack: #{name}
       """
     end)
@@ -74,7 +77,7 @@ defmodule Staxx.Environment.Stack do
     res =
       name
       |> ConfigLoader.get()
-      |> do_init(environment_id, name)
+      |> do_init(instance_id, name)
 
     case res do
       {:ok, state} ->
@@ -87,14 +90,14 @@ defmodule Staxx.Environment.Stack do
   end
 
   @impl true
-  def handle_cast(:stop, %State{environment_id: id, name: name} = state) do
-    Logger.debug(fn -> "Environment #{id}: Terminating Stack #{name}" end)
+  def handle_cast(:stop, %State{instance_id: id, name: name} = state) do
+    Logger.debug(fn -> "Instance #{id}: Terminating Stack #{name}" end)
     {:stop, :normal, state}
   end
 
   @impl true
-  def handle_cast({:set_status, status}, %State{environment_id: id, name: name} = state) do
-    Logger.debug(fn -> "Environment #{id}: Stack #{name} changed status to #{status}" end)
+  def handle_cast({:set_status, status}, %State{instance_id: id, name: name} = state) do
+    Logger.debug(fn -> "Instance #{id}: Stack #{name} changed status to #{status}" end)
     # Send notification about stack status event
     notify_status(state, status)
 
@@ -105,13 +108,13 @@ defmodule Staxx.Environment.Stack do
   def handle_call(
         {:start_container, container},
         _from,
-        %State{environment_id: id, name: name, container_pids: container_pids} = state
+        %State{instance_id: id, name: name, container_pids: container_pids} = state
       ) do
     case do_start_container(container, name) do
       {:ok, pid} ->
         Logger.debug(fn ->
           """
-          Environment #{id}: Starting new container for stack #{name}:
+          Instance #{id}: Starting new container for stack #{name}:
           #{inspect(container, pretty: true)}
           """
         end)
@@ -120,7 +123,7 @@ defmodule Staxx.Environment.Stack do
 
       {:error, err} ->
         Logger.error(fn ->
-          "Environment #{id}: Error starting container for stack #{name}: #{inspect(err)}"
+          "Instance #{id}: Error starting container for stack #{name}: #{inspect(err)}"
         end)
 
         {:reply, {:error, err}, state}
@@ -157,9 +160,9 @@ defmodule Staxx.Environment.Stack do
   end
 
   @impl true
-  def terminate(_reason, %State{environment_id: id, name: name} = state) do
+  def terminate(_reason, %State{instance_id: id, name: name} = state) do
     Logger.debug(fn ->
-      "Environment #{id}: Terminating stack #{name} and it's manager process"
+      "Instance #{id}: Terminating stack #{name} and it's manager process"
     end)
 
     notify_status(state, :terminate)
@@ -169,14 +172,14 @@ defmodule Staxx.Environment.Stack do
   @doc """
   Start new container for running stack
   """
-  @spec start_container(binary, binary, Container.t()) :: {:ok, pid} | {:error, term}
-  def start_container(environment_id, name, %Container{} = container) do
+  @spec start_container(Instance.id(), binary, Container.t()) :: {:ok, pid} | {:error, term}
+  def start_container(instance_id, name, %Container{} = container) do
     merged_env =
       container
       |> Map.get(:env, %{})
-      |> Map.merge(default_env(environment_id, name))
+      |> Map.merge(default_env(instance_id, name))
 
-    environment_id
+    instance_id
     |> via_tuple(name)
     |> GenServer.call({:start_container, %Container{container | env: merged_env}})
   end
@@ -184,9 +187,9 @@ defmodule Staxx.Environment.Stack do
   @doc """
   Check is stack is running for given scope id & stack name
   """
-  @spec alive?(binary, binary) :: boolean
-  def alive?(environment_id, name) do
-    environment_id
+  @spec alive?(Instance.id(), binary) :: boolean
+  def alive?(instance_id, name) do
+    instance_id
     |> via_tuple(name)
     |> GenServer.whereis()
     |> case do
@@ -199,38 +202,38 @@ defmodule Staxx.Environment.Stack do
   end
 
   @doc """
-  Set new status
+  Set new instance status.
   """
-  @spec set_status(binary, binary, status()) :: :ok | {:error, term}
-  def set_status(environment_id, name, status) when is_atom(status) do
-    environment_id
+  @spec set_status(Instance.id(), binary, status()) :: :ok | {:error, term}
+  def set_status(instance_id, name, status) when is_atom(status) do
+    instance_id
     |> via_tuple(name)
     |> GenServer.cast({:set_status, status})
   end
 
   @doc """
-  Get information about stack by pid
+  Get information about stack by `pid`.
   """
   @spec info(pid) :: info()
   def info(pid) when is_pid(pid),
     do: GenServer.call(pid, :info)
 
   @doc """
-  Get information about stack by id/name pair
+  Get information about stack by id/name pair.
   """
-  @spec info(binary, binary) :: list
-  def info(environment_id, name) do
-    environment_id
+  @spec info(Instance.id(), binary) :: list
+  def info(instance_id, name) do
+    instance_id
     |> via_tuple(name)
     |> GenServer.call(:info)
   end
 
   @doc """
-  Send stop comnmand to stack service
+  Send stop command to stack service.
   """
-  @spec stop(binary, binary) :: :ok
-  def stop(environment_id, name) do
-    environment_id
+  @spec stop(Instance.id(), binary) :: :ok
+  def stop(instance_id, name) do
+    instance_id
     |> via_tuple(name)
     |> GenServer.cast(:stop)
   end
@@ -238,33 +241,33 @@ defmodule Staxx.Environment.Stack do
   @doc """
   Generate naming via tuple for stack supervisor
   """
-  @spec via_tuple(binary, binary) :: {:via, Registry, {StackRegistry, binary}}
-  def via_tuple(environment_id, name),
-    do: {:via, Registry, {StackRegistry, "#{environment_id}:#{name}"}}
+  @spec via_tuple(Instance.id(), binary) :: {:via, Registry, {StackRegistry, binary}}
+  def via_tuple(instance_id, name),
+    do: {:via, Registry, {StackRegistry, "#{instance_id}:#{name}"}}
 
   #
   # Private functions
   #
-  defp do_init(%Config{manager: nil}, environment_id, name) do
+  defp do_init(%Config{manager: nil}, instance_id, name) do
     Logger.debug(fn ->
-      "Environment #{environment_id}: No manager container for stack #{name}"
+      "Instance #{instance_id}: No manager container for stack #{name}"
     end)
 
-    {:ok, %State{environment_id: environment_id, name: name, container_pids: []}}
+    {:ok, %State{instance_id: instance_id, name: name, container_pids: []}}
   end
 
-  defp do_init(%Config{manager: image}, environment_id, name) do
-    with container <- manager_config(environment_id, name, image),
+  defp do_init(%Config{manager: image}, instance_id, name) do
+    with container <- manager_config(instance_id, name, image),
          {:ok, pid} <- do_start_container(container, name) do
       Logger.debug(fn ->
-        "Environment #{environment_id}: Loaded manager #{image} for stack #{name} #{inspect(pid)}"
+        "Instance #{instance_id}: Loaded manager #{image} for stack #{name} #{inspect(pid)}"
       end)
 
-      {:ok, %State{environment_id: environment_id, name: name, container_pids: [pid]}}
+      {:ok, %State{instance_id: instance_id, name: name, container_pids: [pid]}}
     else
       err ->
         Logger.debug(fn ->
-          "Environment #{environment_id}: Something went wrong on starting manager: #{
+          "Instance #{instance_id}: Something went wrong on starting manager: #{
             inspect(err)
           }"
         end)
@@ -287,29 +290,29 @@ defmodule Staxx.Environment.Stack do
   end
 
   # Generate new `%Container{}` for manager service
-  defp manager_config(environment_id, name, image) do
+  defp manager_config(instance_id, name, image) do
     %Container{
       image: image,
       name: "",
       network: Docker.get_nats_network(),
       ports: [],
-      env: default_env(environment_id, name)
+      env: default_env(instance_id, name)
     }
   end
 
-  defp default_env(environment_id, name) do
+  defp default_env(instance_id, name) do
     %{
-      "ENVIRONMENT_ID" => environment_id,
+      "INSTANCE_ID" => instance_id,
       "STACK_NAME" => name,
       "WEB_API_URL" => "http://#{Testchain.host()}:4000",
       "NATS_URL" => Testchain.nats_url()
     }
   end
 
-  defp notify_status(%State{environment_id: id, name: name}, status),
+  defp notify_status(%State{instance_id: id, name: name}, status),
     do:
       Notification.notify(id, "stack:status", %{
-        environment_id: id,
+        instance_id: id,
         stack_name: name,
         status: status
       })

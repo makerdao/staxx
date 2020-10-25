@@ -5,10 +5,10 @@ defmodule Staxx.WebApiWeb.StackController do
 
   action_fallback(Staxx.WebApiWeb.FallbackController)
 
-  alias Staxx.Environment
+  alias Staxx.Instance
   alias Staxx.EventStream.Notification
-  alias Staxx.Environment.Stack
-  alias Staxx.Environment.Stack.ConfigLoader
+  alias Staxx.Instance.Stack
+  alias Staxx.Instance.Stack.ConfigLoader
 
   alias Staxx.WebApiWeb.SuccessView
 
@@ -24,7 +24,7 @@ defmodule Staxx.WebApiWeb.StackController do
 
   # Force to reload config
   def reload_config(conn, _) do
-    with :ok <- Environment.reload_config() do
+    with :ok <- Instance.reload_config() do
       conn
       |> put_status(200)
       |> put_view(SuccessView)
@@ -33,10 +33,10 @@ defmodule Staxx.WebApiWeb.StackController do
   end
 
   def start(conn, %{
-        "environment_id" => environment_id,
+        "instance_id" => instance_id,
         "stack_name" => stack_name
       }) do
-    with {:ok, _} <- Environment.start_stack(environment_id, stack_name) do
+    with {:ok, _} <- Instance.start_stack(instance_id, stack_name) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)
@@ -45,10 +45,10 @@ defmodule Staxx.WebApiWeb.StackController do
   end
 
   def stop(conn, %{
-        "environment_id" => environment_id,
+        "instance_id" => instance_id,
         "stack_name" => stack_name
       }) do
-    with :ok <- Environment.stop_stack(environment_id, stack_name) do
+    with :ok <- Instance.stop_stack(instance_id, stack_name) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)
@@ -58,12 +58,12 @@ defmodule Staxx.WebApiWeb.StackController do
 
   # Send notification about stack
   def notify(conn, %{
-        "environment_id" => environment_id,
+        "instance_id" => instance_id,
         "event" => event,
         "data" => data
       }) do
-    with true <- Environment.alive?(environment_id),
-         :ok <- Notification.notify(environment_id, event, data) do
+    with true <- Instance.alive?(instance_id),
+         :ok <- Notification.notify(instance_id, event, data) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)
@@ -72,8 +72,8 @@ defmodule Staxx.WebApiWeb.StackController do
   end
 
   # Send stack ready notification
-  def notify_ready(conn, %{"environment_id" => environment_id, "stack_name" => stack_name}) do
-    with :ok <- Stack.set_status(environment_id, stack_name, :ready) do
+  def notify_ready(conn, %{"instance_id" => instance_id, "stack_name" => stack_name}) do
+    with :ok <- Stack.set_status(instance_id, stack_name, :ready) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)
@@ -82,8 +82,8 @@ defmodule Staxx.WebApiWeb.StackController do
   end
 
   # Send stack failed notification
-  def notify_failed(conn, %{"environment_id" => environment_id, "stack_name" => stack_name}) do
-    with :ok <- Stack.set_status(environment_id, stack_name, :failed) do
+  def notify_failed(conn, %{"instance_id" => instance_id, "stack_name" => stack_name}) do
+    with :ok <- Stack.set_status(instance_id, stack_name, :failed) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)

@@ -1,7 +1,7 @@
 defmodule Staxx.WebApiWeb.JSONSchemasTest do
   use ExUnit.Case
 
-  alias Staxx.Environment
+  alias Staxx.Instance
   alias Staxx.WebApiWeb.Schemas.TestchainSchema
 
   @moduletag :api
@@ -19,7 +19,7 @@ defmodule Staxx.WebApiWeb.JSONSchemasTest do
 
     test "There are testchain data in property" do
       data = %{
-        Environment.testchain_key() => %{
+        Instance.testchain_key() => %{
           "id" => Faker.String.base64(),
           "title" => Faker.Name.name()
         }
@@ -30,7 +30,7 @@ defmodule Staxx.WebApiWeb.JSONSchemasTest do
 
     test "Empty testchain data in property" do
       data = %{
-        Environment.testchain_key() => %{}
+        Instance.testchain_key() => %{}
       }
 
       assert :ok == TestchainSchema.validate_with_payload(data)

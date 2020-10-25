@@ -12,20 +12,20 @@ import Config
 #
 # Deployemnt Scope configs
 #
-config :environment, stacks_dir: "/tmp/stacks"
-config :environment, deployment_service_url: "http://localhost:5001/rpc"
-config :environment, deployment_steps_fetch_timeout: 30_000
+config :instance, stacks_dir: "/tmp/stacks"
+config :instance, deployment_service_url: "http://localhost:5001/rpc"
+config :instance, deployment_steps_fetch_timeout: 30_000
 # DB path where all list of chain workers will be stored
-config :environment, dets_db_path: "/tmp/chains"
+config :instance, dets_db_path: "/tmp/chains"
 # deployment timeout
-config :environment, deployment_timeout: 1_800_000
-config :environment, action_timeout: 600_000
-config :environment, deployment_worker_image: "makerdao/testchain-deployment-worker:dev"
+config :instance, deployment_timeout: 1_800_000
+config :instance, action_timeout: 600_000
+config :instance, deployment_worker_image: "makerdao/testchain-deployment-worker:dev"
 
 #
-# Environment adapters
+# Instance adapters
 #
-config :environment, testchain_supervisor_module: Staxx.Testchain.Supervisor
+config :instance, testchain_supervisor_module: Staxx.Testchain.Supervisor
 
 #
 # Docker configs

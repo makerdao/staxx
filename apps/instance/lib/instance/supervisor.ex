@@ -1,24 +1,24 @@
-defmodule Staxx.Environment.Supervisor do
+defmodule Staxx.Instance.Supervisor do
   @moduledoc """
-  Supervises everything inside Environment.
+  Supervises everything inside runing Instance.
 
   Part of is will be:
-   - `testchain` - Exact EVM that will be started for environment
+   - `testchain` - Exact EVM that will be started for instance
    - list of `stacks` - set of stack workers that controls different stacks
   """
   use Supervisor
 
   require Logger
 
-  alias Staxx.Environment
-  alias Staxx.Environment.Terminator
-  alias Staxx.Environment.StacksSupervisor
-  alias Staxx.Environment.EnvironmentRegistry
+  alias Staxx.Instance
+  alias Staxx.Instance.Terminator
+  alias Staxx.Instance.StacksSupervisor
+  alias Staxx.Instance.InstanceRegistry
 
   @doc false
   def child_spec({id, _, _} = params) do
     %{
-      id: "environment_supervisor_#{id}",
+      id: "instances_supervisor_#{id}",
       start: {__MODULE__, :start_link, [params]},
       restart: :temporary,
       type: :supervisor
@@ -26,7 +26,7 @@ defmodule Staxx.Environment.Supervisor do
   end
 
   @doc """
-  Start new supervision tree for newly created environment.
+  Start new supervision tree for newly created Instance.
   """
   def start_link({id, _chain_config_or_id, stacks} = params) do
     res = Supervisor.start_link(__MODULE__, params, name: via_tuple(id))
@@ -65,17 +65,17 @@ defmodule Staxx.Environment.Supervisor do
   @doc """
   Generate naming via tuple for supervisor
   """
-  @spec via_tuple(binary) :: {:via, Registry, {EnvironmentRegistry, binary}}
+  @spec via_tuple(binary) :: {:via, Registry, {InstanceRegistry, binary}}
   def via_tuple(id),
-    do: {:via, Registry, {EnvironmentRegistry, id}}
+    do: {:via, Registry, {InstanceRegistry, id}}
 
   @doc """
-  Get `StacksSupervisor` instance binded to this environment.
+  Get `StacksSupervisor` pid binded to given `instance_id`.
   """
-  @spec get_stack_manager_supervisor(binary) :: pid | nil
-  def get_stack_manager_supervisor(environment_id) do
+  @spec get_stack_manager_supervisor(Instance.id()) :: pid | nil
+  def get_stack_manager_supervisor(instance_id) do
     res =
-      environment_id
+      instance_id
       |> via_tuple()
       |> Supervisor.which_children()
       |> Enum.find(nil, fn {_, _pid, _, [module]} -> module == StacksSupervisor end)
@@ -90,18 +90,18 @@ defmodule Staxx.Environment.Supervisor do
   end
 
   @doc """
-  Starts new `Stack` in environment for `stack_name`.
+  Starts new `Stack` process with `stack_name` in running instance with `instance_id`.
   """
-  @spec start_stack(binary, binary) :: DynamicSupervisor.on_start_child()
-  def start_stack(environment_id, stack_name) do
-    case Environment.alive?(environment_id) do
+  @spec start_stack(Instance.id(), binary) :: DynamicSupervisor.on_start_child()
+  def start_stack(instance_id, stack_name) do
+    case Instance.alive?(instance_id) do
       false ->
-        {:error, "No working environment with such id found"}
+        {:error, "No working instance with id [#{instance_id}] found"}
 
       true ->
-        environment_id
+        instance_id
         |> get_stack_manager_supervisor()
-        |> StacksSupervisor.start_manager(environment_id, stack_name)
+        |> StacksSupervisor.start_manager(instance_id, stack_name)
     end
   end
 
@@ -110,13 +110,13 @@ defmodule Staxx.Environment.Supervisor do
   #######################################
 
   defp get_testchain_supervisor_module(),
-    do: Application.get_env(:environment, :testchain_supervisor_module)
+    do: Application.get_env(:instance, :testchain_supervisor_module)
 
   # Start list of stacks
-  defp start_stacks(environment_id, stacks) do
+  defp start_stacks(instance_id, stacks) do
     stacks
     |> Map.keys()
     |> Enum.uniq()
-    |> Enum.map(&start_stack(environment_id, &1))
+    |> Enum.map(&start_stack(instance_id, &1))
   end
 end

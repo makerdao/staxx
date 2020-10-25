@@ -6,15 +6,15 @@
 ## Prerequisite Installations
 - [Docker](https://docs.docker.com/get-docker/)
 - [Docker Compose](https://docs.docker.com/compose/)
-  - The docker compose service manages all the docker images needed for the setup and use of the testchain environment.
+  - The docker compose service manages all the docker images needed for the setup and use of the testchain.
 
 
 ## Naming convention
 
  - `Staxx` - Main project name.
- - `Environment` - Your testing environment containing `Testchain` and other `Stacks`.
- - `Testchain` - Ethereum Virtual Machine (EVM) that will be seted up for your `Environment`.
- - `Stack` - Plugin (set of docker images) provides additional functionality and running near `Testchain`, controlled by your `Environment`.
+ - `Instance` - Your testing environment containing `Testchain` and other `Stacks`.
+ - `Testchain` - Ethereum Virtual Machine (EVM) that will be seted up for your `Instance`.
+ - `Stack` - Plugin (set of docker images) provides additional functionality and running near `Testchain`, controlled by your `Instance`.
 
 ## Installation
 
@@ -38,7 +38,7 @@ For **Linux** follow this: https://docs.docker.com/install/
     1. To do so, run `make upgrade-dev` (Command will stop running containers, remove them and remove old docker images)
 
 
-Next, the following command ensures you do not have any lingering chains left over from a past deployment  - `make clear-dev` (This step **only** applies to developers who have run the testchain environment before).
+Next, the following command ensures you do not have any lingering chains left over from a past deployment  - `make clear-dev` (This step **only** applies to developers who have run the instance before).
 
 ## Getting the testchain up and running:
 4. Add this lines to your `/etc/hosts` file (you might need to use `sudo` to edit file): 
@@ -173,7 +173,7 @@ For now we support only `vdb` stack available
 
 **Example:** Testchain Vulcanize DB Stack Service
 
-**Note:** If you are using `docker-compose` for starting QA Dashboard from https://github.com/makerdao/staxx, you will have to put the 3 above files from stack_config into the `/tmp/stacks/vdb` folder on your local machine before starting the local environment.The following three files will be:
+**Note:** If you are using `docker-compose` for starting QA Dashboard from https://github.com/makerdao/staxx, you will have to put the 3 above files from stack_config into the `/tmp/stacks/vdb` folder on your local machine before starting the local instance.The following three files will be:
 
 1. Docker-compose.yml
 2. Icon.png

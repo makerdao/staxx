@@ -3,7 +3,7 @@ defmodule Staxx.WebApiWeb.SnapshotControllerTest do
   Tests for ChainController.
   See apps/store/priv/repo/seeds.exs for information about test data in db.
   """
-  use Staxx.WebApiWeb.EnvironmentControllerCase
+  use Staxx.WebApiWeb.InstancesControllerCase
 
   @moduletag :api
 
