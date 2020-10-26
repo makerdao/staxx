@@ -1,7 +1,7 @@
 defmodule Staxx.WebApiWeb.ApiChannelTest do
   use Staxx.WebApiWeb.ChannelCase
-  alias Staxx.WebApiWeb.UserSocket
-  alias Staxx.WebApiWeb.ApiChannel
+  alias Staxx.WebApiWeb.V1.UserSocket
+  alias Staxx.WebApiWeb.V1.ApiChannel
 
   @moduletag :api
   @moduletag :api_channel

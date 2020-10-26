@@ -1,16 +1,16 @@
-defmodule Staxx.WebApiWeb.InstancesController do
+defmodule Staxx.WebApiWeb.Api.V1.InstancesController do
   use Staxx.WebApiWeb, :controller
 
   require Logger
 
-  action_fallback(Staxx.WebApiWeb.FallbackController)
+  action_fallback Staxx.WebApiWeb.Api.V1.FallbackController
 
   alias Staxx.Instance
   alias Staxx.Store.Models.User, as: UserRecord
   alias Staxx.WebApiWeb.Schemas.TestchainSchema
 
-  alias Staxx.WebApiWeb.SuccessView
-  alias Staxx.WebApiWeb.ErrorView
+  alias Staxx.WebApiWeb.Api.V1.SuccessView
+  alias Staxx.WebApiWeb.Api.V1.ErrorView
 
   def start(conn, %{"testchain" => _} = params) do
     Logger.debug(fn -> "#{__MODULE__}: New instance is starting" end)

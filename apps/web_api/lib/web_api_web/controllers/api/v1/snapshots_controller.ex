@@ -1,12 +1,12 @@
-defmodule Staxx.WebApiWeb.SnapshotController do
+defmodule Staxx.WebApiWeb.Api.V1.SnapshotController do
   use Staxx.WebApiWeb, :controller
 
-  action_fallback Staxx.WebApiWeb.FallbackController
+  action_fallback Staxx.WebApiWeb.Api.V1.FallbackController
 
   alias Staxx.Testchain
   alias Staxx.Testchain.SnapshotManager
-  alias Staxx.WebApiWeb.SuccessView
-  alias Staxx.WebApiWeb.ErrorView
+  alias Staxx.WebApiWeb.Api.V1.SuccessView
+  alias Staxx.WebApiWeb.Api.V1.ErrorView
   alias Staxx.WebApiWeb.Schemas.TestchainSchema
 
   # content type of snapshot that will be uploaded

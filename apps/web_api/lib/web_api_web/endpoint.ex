@@ -1,7 +1,7 @@
 defmodule Staxx.WebApiWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :web_api
 
-  socket "/socket", Staxx.WebApiWeb.UserSocket,
+  socket "/socket/v1", Staxx.WebApiWeb.V1.UserSocket,
     websocket: true,
     longpoll: false
 

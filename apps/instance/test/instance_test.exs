@@ -27,8 +27,7 @@ defmodule Staxx.InstanceTest do
       assert Instance.alive?(id)
       Instance.stop(id)
 
-      {:ok, id} =
-        Instance.start(%{Instance.testchain_key() => %{"config" => %{"id" => id}}})
+      {:ok, id} = Instance.start(%{Instance.testchain_key() => %{"config" => %{"id" => id}}})
 
       assert Instance.alive?(id)
       Instance.stop(id)
