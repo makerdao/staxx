@@ -10,12 +10,12 @@ config :docker, staxx_network: System.get_env("DOCKER_STAXX_NETWORK", "")
 # If `IN_CONTAINER` is set - that wil be resolved to `true`
 config :docker, in_container?: System.get_env("IN_CONTAINER", "") != ""
 
-config :environment, deployment_service_url: System.fetch_env!("DEPLOYMENT_SERVICE_URL")
-config :environment, deployment_steps_fetch_timeout: 30_000
-config :environment, dets_db_path: System.fetch_env!("CHAINS_DB_PATH")
-config :environment, stacks_dir: System.get_env("STACKS_DIR", "/opt/stacks")
+config :instance, deployment_service_url: System.fetch_env!("DEPLOYMENT_SERVICE_URL")
+config :instance, deployment_steps_fetch_timeout: 30_000
+config :instance, dets_db_path: System.fetch_env!("CHAINS_DB_PATH")
+config :instance, stacks_dir: System.get_env("STACKS_DIR", "/opt/stacks")
 
-config :environment,
+config :instance,
   deployment_worker_image:
     System.get_env("DEPLOYMENT_WORKER_IMAGE", "makerdao/testchain-deployment-worker:dev")
 

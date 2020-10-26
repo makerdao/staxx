@@ -1,12 +1,12 @@
-defmodule Staxx.Environment.Stack.ConfigLoaderTest do
+defmodule Staxx.Instance.Stack.ConfigLoaderTest do
   use ExUnit.Case
 
   @moduledoc """
   Please see file `priv/test/stacks/test/stack.json` for list of available names/containers
   """
 
-  alias Staxx.Environment.Stack.Config
-  alias Staxx.Environment.Stack.ConfigLoader
+  alias Staxx.Instance.Stack.Config
+  alias Staxx.Instance.Stack.ConfigLoader
 
   @stack_name "test"
   @allowed_container "some/container"

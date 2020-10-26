@@ -18,7 +18,7 @@ defmodule Staxx.MixProject do
         include_executables_for: [:unix],
         applications: [
           runtime_tools: :permanent,
-          environment: :permanent,
+          instance: :permanent,
           docker: :permanent,
           event_stream: :permanent,
           json_rpc: :permanent,

@@ -8,7 +8,7 @@ defmodule Staxx.WebApiWeb.ApiChannel do
   require Logger
 
   alias Staxx.Testchain
-  alias Staxx.Environment
+  alias Staxx.Instance
   alias Staxx.Testchain.SnapshotManager
   alias Staxx.Store.Models.Chain, as: ChainRecord
   alias Staxx.WebApiWeb.Schemas.TestchainSchema
@@ -72,7 +72,7 @@ defmodule Staxx.WebApiWeb.ApiChannel do
 
   defp validate_and_start_chain(payload, socket) do
     with :ok <- TestchainSchema.validate_with_payload(payload),
-         {:ok, id} <- Environment.start(payload) do
+         {:ok, id} <- Instance.start(payload) do
       {:reply, {:ok, %{id: id}}, socket}
     else
       {:error, err} ->

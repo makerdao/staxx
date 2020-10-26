@@ -1,4 +1,4 @@
-defmodule Staxx.WebApiWeb.EnvironmentControllerCase do
+defmodule Staxx.WebApiWeb.InstancesControllerCase do
   @moduledoc """
   This module defines the test case to be used by
   tests that require setting up a connection.

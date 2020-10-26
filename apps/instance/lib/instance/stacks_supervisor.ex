@@ -1,10 +1,10 @@
-defmodule Staxx.Environment.StacksSupervisor do
+defmodule Staxx.Instance.StacksSupervisor do
   @moduledoc """
-  Supervises `Stack`s for environment.
+  Supervises list `Stack`s for running Staxx Instance.
   """
   use DynamicSupervisor
 
-  alias Staxx.Environment.Stack
+  alias Staxx.Instance.Stack
 
   @doc false
   def child_spec(id) do
@@ -19,9 +19,9 @@ defmodule Staxx.Environment.StacksSupervisor do
   @doc """
   Start a new supervisor for manage `Stack`s.
   """
-  @spec start_link(binary) :: Supervisor.on_start()
-  def start_link(environment_id),
-    do: DynamicSupervisor.start_link(__MODULE__, environment_id)
+  @spec start_link(Instance.id()) :: Supervisor.on_start()
+  def start_link(instance_id),
+    do: DynamicSupervisor.start_link(__MODULE__, instance_id)
 
   @impl true
   def init(_init_arg),
@@ -30,12 +30,12 @@ defmodule Staxx.Environment.StacksSupervisor do
   @doc """
   Start new supervised `Stack` pid under given supervidor.
   """
-  @spec start_manager(pid, binary, binary) :: DynamicSupervisor.on_start_child()
+  @spec start_manager(pid, Instance.id(), binary) :: DynamicSupervisor.on_start_child()
   def start_manager(nil, _, _),
     do: {:error, :no_supervisor_given}
 
-  def start_manager(supervisor_pid, environment_id, stack_name) do
+  def start_manager(supervisor_pid, instance_id, stack_name) do
     supervisor_pid
-    |> DynamicSupervisor.start_child(Stack.child_spec(environment_id, stack_name))
+    |> DynamicSupervisor.start_child(Stack.child_spec(instance_id, stack_name))
   end
 end

@@ -251,7 +251,7 @@ defmodule Staxx.Docker.Container do
 
     # because EVM handles `{:EXIT, pid, reason}` we have to catch it here
     # otherwise EVM will decide that container failed and something wrong
-    # and as result will terminate whole supervision tree for environment
+    # and as result will terminate whole supervision tree for instance
     receive do
       {:EXIT, _pid, {:shutdown, :temporary}} ->
         :ok

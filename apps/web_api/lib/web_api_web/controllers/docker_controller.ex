@@ -9,17 +9,17 @@ defmodule Staxx.WebApiWeb.DockerController do
   alias Staxx.WebApiWeb.ErrorView
   alias Staxx.Docker
   alias Staxx.Docker.Container
-  alias Staxx.Environment
+  alias Staxx.Instance
   alias Staxx.WebApiWeb.Schemas.DockerSchema
 
-  def start(conn, %{"environment_id" => id, "stack_name" => stack_name} = params) do
+  def start(conn, %{"instance_id" => id, "stack_name" => stack_name} = params) do
     # We wouldn't let users to control `rm` flag for container
     # Otherwise we will have a log of dead containers in our system
 
     with :ok <- DockerSchema.validate(params),
          container <- Container.create_container(params, id),
-         {:ok, container} <- Environment.start_container(id, stack_name, container) do
-      Logger.debug("Environment #{id}: Starting new docker container #{inspect(container)}")
+         {:ok, container} <- Instance.start_container(id, stack_name, container) do
+      Logger.debug("Instance #{id}: Starting new docker container #{inspect(container)}")
 
       conn
       |> put_status(200)

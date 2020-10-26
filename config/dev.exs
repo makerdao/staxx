@@ -1,6 +1,6 @@
 import Config
 
-config :environment, stacks_dir: "/tmp/stacks"
+config :instance, stacks_dir: "/tmp/stacks"
 
 # For development, we disable any cache and enable
 # debugging and code reloading.

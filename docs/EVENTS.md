@@ -1,17 +1,17 @@
 # Testchain events
 
-When you work with testchain/environment you will receive set of event from system.
+When you work with testchain/instance you will receive set of event from system.
 All events has similar format:
 
 ```js
 {
-  "id": "2538928139759187250", // <-- Environment/chain ID
-  "event": "ready", // <-- Environment/chain event name
+  "id": "2538928139759187250", // <-- Instance/chain ID
+  "event": "ready", // <-- Instance/chain event name
   "data": {} // <-- Event details
 }
 ```
 
-But there are several main events you will need to controll environment:
+But there are several main events you will need to controll instance:
 
  - `status_changed` - Testchain (EVM) changed it's status [More info](#evm-statuses)
  - `started` - EVM Started event. **EVM not ready yet !** [More details](#evm-started)
@@ -102,7 +102,7 @@ For some errors EVM will be terminated (like errors on EVM start/initialization)
 Error event example:
 ```js
 {
-  id: "15511618343318382659", // <- Environment/Testchain ID
+  id: "15511618343318382659", // <- Instance/Testchain ID
   event: "error",
   data: {
      "message": "Some error message from system..."
@@ -182,7 +182,7 @@ You have to wait for [ready status](#evm-statuses)
 Deployment failed event example:
 ```js
 {
-  id: "15511618343318382659", // <- Environment/Testchain ID
+  id: "15511618343318382659", // <- Instance/Testchain ID
   event: "deployment_failed",
   data: {
      "error": "tones of logs from scripts..."
@@ -201,7 +201,7 @@ Snapshot taken event example:
 
 ```js
 {
-  id: "15511618343318382659", // <- Environment/Testchain ID
+  id: "15511618343318382659", // <- Instance/Testchain ID
   event: "snapshot_taken",
   data: {
       chain: "ganache" // <- EVM type
@@ -224,7 +224,7 @@ Snapshot reverted event example:
 
 ```js
 {
-  id: "15511618343318382659", // <- Environment/Testchain ID
+  id: "15511618343318382659", // <- Instance/Testchain ID
   event: "snapshot_reverted",
   data: { // <- Reverted snapshot details
       chain: "ganache" // <- EVM type
@@ -244,7 +244,7 @@ This event will be fired every time stack changes it's status
   id: "15511618343318382659",
   event: "stack:status",
   data: {
-    "environment_id": "15511618343318382659",
+    "instance_id": "15511618343318382659",
     "stack_name": "some_stack_name",
     "status": "ready" // "failed", "initializing", "terminate"
   }

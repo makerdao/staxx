@@ -1,11 +1,11 @@
-defmodule Staxx.WebApiWeb.EnvironmentController do
+defmodule Staxx.WebApiWeb.InstancesController do
   use Staxx.WebApiWeb, :controller
 
   require Logger
 
   action_fallback(Staxx.WebApiWeb.FallbackController)
 
-  alias Staxx.Environment
+  alias Staxx.Instance
   alias Staxx.Store.Models.User, as: UserRecord
   alias Staxx.WebApiWeb.Schemas.TestchainSchema
 
@@ -13,10 +13,10 @@ defmodule Staxx.WebApiWeb.EnvironmentController do
   alias Staxx.WebApiWeb.ErrorView
 
   def start(conn, %{"testchain" => _} = params) do
-    Logger.debug(fn -> "#{__MODULE__}: New environment is starting" end)
+    Logger.debug(fn -> "#{__MODULE__}: New instance is starting" end)
 
     with :ok <- TestchainSchema.validate_with_payload(params),
-         {:ok, id} <- Environment.start(params, get_user_email(conn)) do
+         {:ok, id} <- Instance.start(params, get_user_email(conn)) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)
@@ -25,9 +25,9 @@ defmodule Staxx.WebApiWeb.EnvironmentController do
   end
 
   def stop(conn, %{"id" => id}) do
-    Logger.debug(fn -> "#{__MODULE__}: Stopping environment #{id}" end)
+    Logger.debug(fn -> "#{__MODULE__}: Stopping instance #{id}" end)
 
-    with :ok <- Environment.stop(id) do
+    with :ok <- Instance.stop(id) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)
@@ -36,9 +36,9 @@ defmodule Staxx.WebApiWeb.EnvironmentController do
   end
 
   def info(conn, %{"id" => id}) do
-    Logger.debug(fn -> "#{__MODULE__}: Loading environment #{id} details" end)
+    Logger.debug(fn -> "#{__MODULE__}: Loading instance #{id} details" end)
 
-    with data when is_map(data) <- Environment.info(id) do
+    with data when is_map(data) <- Instance.info(id) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)
@@ -53,13 +53,13 @@ defmodule Staxx.WebApiWeb.EnvironmentController do
   end
 
   def list(conn, _) do
-    Logger.debug(fn -> "#{__MODULE__}: Loading environments list" end)
+    Logger.debug(fn -> "#{__MODULE__}: Loading instances list" end)
 
     list =
       conn
       |> get_user_email()
       |> UserRecord.get_user_id()
-      |> Environment.list()
+      |> Instance.list()
 
     conn
     |> put_status(200)
@@ -68,9 +68,9 @@ defmodule Staxx.WebApiWeb.EnvironmentController do
   end
 
   def remove(conn, %{"id" => id}) do
-    Logger.debug(fn -> "#{__MODULE__}: Removing environment #{id}" end)
+    Logger.debug(fn -> "#{__MODULE__}: Removing instance #{id}" end)
 
-    with :ok <- Environment.remove(id) do
+    with :ok <- Instance.remove(id) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)

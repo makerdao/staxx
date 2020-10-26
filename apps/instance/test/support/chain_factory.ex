@@ -1,12 +1,12 @@
-defmodule Staxx.Environment.ChainFactory do
+defmodule Staxx.Instance.ChainFactory do
   use ExMachina
 
-  alias Staxx.Environment
+  alias Staxx.Instance
   alias Staxx.Docker.Container
 
   def chain_valid_factory do
     %{
-      Environment.testchain_key() => %{
+      Instance.testchain_key() => %{
         "config" => %{
           "type" => "geth",
           "accounts" => 1,
@@ -25,7 +25,7 @@ defmodule Staxx.Environment.ChainFactory do
     %{
       "test" => %{
         "config" => %{},
-        "deps" => [Environment.testchain_key()]
+        "deps" => [Instance.testchain_key()]
       }
     }
   end
@@ -34,7 +34,7 @@ defmodule Staxx.Environment.ChainFactory do
     %{
       "some_other" => %{
         "config" => %{},
-        "deps" => [Environment.testchain_key()]
+        "deps" => [Instance.testchain_key()]
       }
     }
   end

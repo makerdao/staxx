@@ -1,4 +1,4 @@
-defmodule Staxx.Environment.Test.TestchainSupervisorMock do
+defmodule Staxx.Instance.Test.TestchainSupervisorMock do
   @moduledoc """
   Mock Testchain supervisor that will start but wouldn't start actual EVM or containers
   """

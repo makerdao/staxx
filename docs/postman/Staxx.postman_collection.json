@@ -22,7 +22,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"environment_id\": \"{{environment_id}}\",\n\t\"stack_name\": \"{{stack_name}}\",\n\t\"image\": \"postgres\",\n\t\"ports\": [5432],\n\t\"dev_mode\": true,\n\t\"env\": {\n\t\t\"POSTGRES_PASSWORD\": \"postgres\"\n\t}\n}",
+							"raw": "{\n\t\"instance_id\": \"{{instance_id}}\",\n\t\"stack_name\": \"{{stack_name}}\",\n\t\"image\": \"postgres\",\n\t\"ports\": [5432],\n\t\"dev_mode\": true,\n\t\"env\": {\n\t\t\"POSTGRES_PASSWORD\": \"postgres\"\n\t}\n}",
 							"options": {
 								"raw": {}
 							}
@@ -63,38 +63,38 @@
 			"protocolProfileBehavior": {}
 		},
 		{
-			"name": "Environments",
+			"name": "Instances",
 			"item": [
 				{
-					"name": "Get all environments",
+					"name": "Get all instances",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/environments",
+							"raw": "{{STAXX_URL}}/instances",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"environments"
+								"instances"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "Get environment details",
+					"name": "Get instance details",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/environments/{{environment_id}}",
+							"raw": "{{STAXX_URL}}/instances/{{instance_id}}",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"environments",
-								"{{environment_id}}"
+								"instances",
+								"{{instance_id}}"
 							]
 						}
 					},
@@ -106,12 +106,12 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/environments/stacks/list_config",
+							"raw": "{{STAXX_URL}}/instances/stacks/list_config",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"environments",
+								"instances",
 								"stacks",
 								"list_config"
 							]
@@ -125,12 +125,12 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/environment/stack/reload_config",
+							"raw": "{{STAXX_URL}}/instance/stack/reload_config",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"environment",
+								"instance",
 								"stack",
 								"reload_config"
 							]
@@ -139,18 +139,18 @@
 					"response": []
 				},
 				{
-					"name": "Stop environment",
+					"name": "Stop instance",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/environments/{{environment_id}}/stop",
+							"raw": "{{STAXX_URL}}/instances/{{instance_id}}/stop",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"environments",
-								"{{environment_id}}",
+								"instances",
+								"{{instance_id}}",
 								"stop"
 							]
 						}
@@ -158,7 +158,7 @@
 					"response": []
 				},
 				{
-					"name": "Start new Environment With Deployment",
+					"name": "Start new instance With Deployment",
 					"event": [
 						{
 							"listen": "test",
@@ -176,7 +176,7 @@
 									"    pm.expect(jsonData.data).to.have.own.property(\"id\");",
 									"    pm.expect(jsonData.data.id).to.not.be.empty;",
 									"    ",
-									"    pm.environment.set(\"environment_id\", jsonData.data.id); ",
+									"    pm.instance.set(\"instance_id\", jsonData.data.id); ",
 									"});"
 								],
 								"type": "text/javascript"
@@ -206,12 +206,12 @@
 							}
 						},
 						"url": {
-							"raw": "{{STAXX_URL}}/environment/start",
+							"raw": "{{STAXX_URL}}/instance/start",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"environment",
+								"instance",
 								"start"
 							]
 						}
@@ -219,7 +219,7 @@
 					"response": []
 				},
 				{
-					"name": "Start Empty environment",
+					"name": "Start Empty instance",
 					"event": [
 						{
 							"listen": "test",
@@ -237,7 +237,7 @@
 									"    pm.expect(jsonData.data).to.have.own.property(\"id\");",
 									"    pm.expect(jsonData.data.id).to.not.be.empty;",
 									"    ",
-									"    pm.environment.set(\"environment_id\", jsonData.data.id); ",
+									"    pm.instance.set(\"instance_id\", jsonData.data.id); ",
 									"});"
 								],
 								"type": "text/javascript"
@@ -267,12 +267,12 @@
 							}
 						},
 						"url": {
-							"raw": "{{STAXX_URL}}/environments/start",
+							"raw": "{{STAXX_URL}}/instances/start",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"environments",
+								"instances",
 								"start"
 							],
 							"query": [
@@ -287,7 +287,7 @@
 					"response": []
 				},
 				{
-					"name": "Start Empty environment From Snapshot",
+					"name": "Start Empty instance From Snapshot",
 					"event": [
 						{
 							"listen": "test",
@@ -305,7 +305,7 @@
 									"    pm.expect(jsonData.data).to.have.own.property(\"id\");",
 									"    pm.expect(jsonData.data.id).to.not.be.empty;",
 									"    ",
-									"    pm.environment.set(\"environment_id\", jsonData.data.id); ",
+									"    pm.instance.set(\"instance_id\", jsonData.data.id); ",
 									"});"
 								],
 								"type": "text/javascript"
@@ -336,12 +336,12 @@
 							}
 						},
 						"url": {
-							"raw": "{{STAXX_URL}}/environment/start",
+							"raw": "{{STAXX_URL}}/instance/start",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"environment",
+								"instance",
 								"start"
 							]
 						}
@@ -349,7 +349,7 @@
 					"response": []
 				},
 				{
-					"name": "Start existing environment",
+					"name": "Start existing instance",
 					"event": [
 						{
 							"listen": "test",
@@ -376,18 +376,18 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"testchain\": {\n\t\t\"config\": {\n\t\t\t\"id\": \"{{environment_id}}\"\n\t\t},\n\t\t\"deps\": []\n\t}\n}",
+							"raw": "{\n\t\"testchain\": {\n\t\t\"config\": {\n\t\t\t\"id\": \"{{instance_id}}\"\n\t\t},\n\t\t\"deps\": []\n\t}\n}",
 							"options": {
 								"raw": {}
 							}
 						},
 						"url": {
-							"raw": "{{STAXX_URL}}/environment/start",
+							"raw": "{{STAXX_URL}}/instance/start",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"environment",
+								"instance",
 								"start"
 							]
 						}
@@ -395,18 +395,18 @@
 					"response": []
 				},
 				{
-					"name": "Delete environment",
+					"name": "Delete instance",
 					"request": {
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/environments/{{environment_id}}",
+							"raw": "{{STAXX_URL}}/instances/{{instance_id}}",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"environments",
-								"{{environment_id}}"
+								"instances",
+								"{{instance_id}}"
 							]
 						}
 					},
@@ -433,13 +433,13 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/environments/{{environment_id}}/take_snapshot",
+							"raw": "{{STAXX_URL}}/instances/{{instance_id}}/take_snapshot",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"environments",
-								"{{environment_id}}",
+								"instances",
+								"{{instance_id}}",
 								"take_snapshot"
 							]
 						}
@@ -452,13 +452,13 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/environments/{{environment_id}}/revert_snapshot/{{snapshot_id}}",
+							"raw": "{{STAXX_URL}}/instances/{{instance_id}}/revert_snapshot/{{snapshot_id}}",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"environments",
-								"{{environment_id}}",
+								"instances",
+								"{{instance_id}}",
 								"revert_snapshot",
 								"{{snapshot_id}}"
 							]

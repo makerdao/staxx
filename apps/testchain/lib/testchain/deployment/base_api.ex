@@ -96,7 +96,7 @@ defmodule Staxx.Testchain.Deployment.BaseApi do
   def random_id(), do: @random_max |> :rand.uniform() |> to_string()
 
   # Get deployment service url
-  defp url(), do: Application.get_env(:environment, :deployment_service_url)
+  defp url(), do: Application.get_env(:instance, :deployment_service_url)
 
   # Pick only needed information
   defp fetch_body({:ok, %HTTPoison.Response{body: %{"type" => "error", "result" => res}}}) do
