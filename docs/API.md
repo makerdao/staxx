@@ -1,8 +1,11 @@
-# WEB API
+# WEB API V1
 
 **Better take a look into Postman collection**
 
 Web API for working with QA Dashboard backend
+
+**NOTE!**
+All this routes are available under `/api/v1` prefix.
 
 #### Snapshots
 
@@ -32,8 +35,6 @@ Web API for working with QA Dashboard backend
 ## Postman APIs and Envs
 
 There are exported Postman instances available [here](./postman)
-
-## Instances API
 
 ### Staxx configuration
 Stack configuration should be placed to `:stacks_dir` configured.
@@ -67,7 +68,12 @@ Property list:
  - `manager` - stack manager service
  - `deps` - stack dependencies
 
+## Instances API
+
+List of instances API
+
 ### Starting new stack
+
 POST `/instances/start` with payload:
 
 ```js

@@ -1,7 +1,8 @@
 {
 	"info": {
 		"_postman_id": "41159943-922c-4d51-b8c7-2cd2ee74236d",
-		"name": "Staxx",
+		"name": "Staxx API V1",
+		"description": "Staxx API V1\n\n## Response format\n\n```json\n{\n    \"data\": [],\n    \"errors\": [],\n    \"message\": \"\",\n    \"status\": 0\n}\n```",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -22,17 +23,19 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"instance_id\": \"{{instance_id}}\",\n\t\"stack_name\": \"{{stack_name}}\",\n\t\"image\": \"postgres\",\n\t\"ports\": [5432],\n\t\"dev_mode\": true,\n\t\"env\": {\n\t\t\"POSTGRES_PASSWORD\": \"postgres\"\n\t}\n}",
+							"raw": "{\n\t\"environment_id\": \"{{environment_id}}\",\n\t\"stack_name\": \"{{stack_name}}\",\n\t\"image\": \"postgres\",\n\t\"ports\": [5432],\n\t\"dev_mode\": true,\n\t\"env\": {\n\t\t\"POSTGRES_PASSWORD\": \"postgres\"\n\t}\n}",
 							"options": {
 								"raw": {}
 							}
 						},
 						"url": {
-							"raw": "{{STAXX_URL}}/containers/start",
+							"raw": "{{STAXX_URL}}/api/v1/containers/start",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
+								"api",
+								"v1",
 								"containers",
 								"start"
 							]
@@ -46,11 +49,13 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/containers/{{container_id}}/stop",
+							"raw": "{{STAXX_URL}}/api/v1/containers/{{container_id}}/stop",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
+								"api",
+								"v1",
 								"containers",
 								"{{container_id}}",
 								"stop"
@@ -71,16 +76,42 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/instances",
+							"raw": "{{STAXX_URL}}/api/v1/instances",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
+								"api",
+								"v1",
 								"instances"
 							]
-						}
+						},
+						"description": "Get list of available instances."
 					},
-					"response": []
+					"response": [
+						{
+							"name": "Get all instances",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{STAXX_URL}}/api/v1/environments",
+									"host": [
+										"{{STAXX_URL}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"environments"
+									]
+								}
+							},
+							"_postman_previewlanguage": null,
+							"header": null,
+							"cookie": [],
+							"body": null
+						}
+					]
 				},
 				{
 					"name": "Get instance details",
@@ -88,17 +119,71 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/instances/{{instance_id}}",
+							"raw": "{{STAXX_URL}}/api/v1/instances/{{instance_id}}",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
+								"api",
+								"v1",
 								"instances",
 								"{{instance_id}}"
 							]
-						}
+						},
+						"description": "Get instance details by given ID"
 					},
-					"response": []
+					"response": [
+						{
+							"name": "Get instance details for instance '410363210222112275'",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{STAXX_URL}}/api/v1/instances/{{instance_id}}",
+									"host": [
+										"{{STAXX_URL}}"
+									],
+									"path": [
+										"api",
+										"v1",
+										"instances",
+										"{{instance_id}}"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "cache-control",
+									"value": "max-age=0, private, must-revalidate"
+								},
+								{
+									"key": "content-length",
+									"value": "842"
+								},
+								{
+									"key": "content-type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "date",
+									"value": "Mon, 26 Oct 2020 14:11:38 GMT"
+								},
+								{
+									"key": "server",
+									"value": "Cowboy"
+								},
+								{
+									"key": "x-request-id",
+									"value": "FkGQNPDJoGBhY9UAAB4E"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"data\": {\n        \"testchain\": {\n            \"id\": \"410363210222112275\",\n            \"title\": \"410363210222112275\",\n            \"node_type\": \"geth\",\n            \"status\": \"ready\",\n            \"config\": {\n                \"accounts\": 1,\n                \"block_mine_time\": 0,\n                \"clean_on_stop\": true,\n                \"db_path\": \"/tmp/chains/410363210222112275\",\n                \"deploy_ref\": \"refs/tags/staxx-testrunner\",\n                \"deploy_step_id\": 0,\n                \"description\": \"\",\n                \"gas_limit\": 9000000000000,\n                \"id\": \"410363210222112275\",\n                \"network_id\": 999,\n                \"snapshot_id\": null,\n                \"type\": \"geth\"\n            },\n            \"details\": {\n                \"accounts\": [\n                    {\n                        \"address\": \"0xce8d2a529ba998eb661690226eb1097c6f94c4ab\",\n                        \"balance\": 1e+23,\n                        \"priv_key\": \"a0d1d1ebf2283c23f4adf71e891a4d991300f684a16147cadea4ded3b4386dd6\"\n                    }\n                ],\n                \"coinbase\": \"0xce8d2a529ba998eb661690226eb1097c6f94c4ab\",\n                \"gas_limit\": 9000000000000,\n                \"id\": \"410363210222112275\",\n                \"network_id\": 999,\n                \"rpc_url\": \"http://localhost:53549\",\n                \"ws_url\": \"ws://localhost:59526\"\n            },\n            \"deployment\": {}\n        }\n    },\n    \"errors\": [],\n    \"message\": \"\",\n    \"status\": 0\n}"
+						}
+					]
 				},
 				{
 					"name": "List stack configs",
@@ -106,32 +191,35 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/instances/stacks/list_config",
+							"raw": "{{STAXX_URL}}/api/v1/stacks/list_config",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"instances",
+								"api",
+								"v1",
 								"stacks",
 								"list_config"
 							]
-						}
+						},
+						"description": "List all available stacks configurations."
 					},
 					"response": []
 				},
 				{
-					"name": "Reload all stack configs",
+					"name": "Reload all stacks configs",
 					"request": {
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/instance/stack/reload_config",
+							"raw": "{{STAXX_URL}}/api/v1/stacks/reload_config",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"instance",
-								"stack",
+								"api",
+								"v1",
+								"stacks",
 								"reload_config"
 							]
 						}
@@ -144,11 +232,13 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/instances/{{instance_id}}/stop",
+							"raw": "{{STAXX_URL}}/api/v1/instances/{{instance_id}}/stop",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
+								"api",
+								"v1",
 								"instances",
 								"{{instance_id}}",
 								"stop"
@@ -158,7 +248,7 @@
 					"response": []
 				},
 				{
-					"name": "Start new instance With Deployment",
+					"name": "Start new Instance With Deployment",
 					"event": [
 						{
 							"listen": "test",
@@ -176,7 +266,7 @@
 									"    pm.expect(jsonData.data).to.have.own.property(\"id\");",
 									"    pm.expect(jsonData.data.id).to.not.be.empty;",
 									"    ",
-									"    pm.instance.set(\"instance_id\", jsonData.data.id); ",
+									"    pm.environment.set(\"instance_id\", jsonData.data.id); ",
 									"});"
 								],
 								"type": "text/javascript"
@@ -206,12 +296,14 @@
 							}
 						},
 						"url": {
-							"raw": "{{STAXX_URL}}/instance/start",
+							"raw": "{{STAXX_URL}}/api/v1/instances/start",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"instance",
+								"api",
+								"v1",
+								"instances",
 								"start"
 							]
 						}
@@ -219,7 +311,7 @@
 					"response": []
 				},
 				{
-					"name": "Start Empty instance",
+					"name": "Start new Empty Instance",
 					"event": [
 						{
 							"listen": "test",
@@ -236,8 +328,8 @@
 									"    pm.expect(jsonData).to.have.own.property(\"data\");",
 									"    pm.expect(jsonData.data).to.have.own.property(\"id\");",
 									"    pm.expect(jsonData.data.id).to.not.be.empty;",
-									"    ",
-									"    pm.instance.set(\"instance_id\", jsonData.data.id); ",
+									"",
+									"    pm.environment.set(\"instance_id\", jsonData.data.id); ",
 									"});"
 								],
 								"type": "text/javascript"
@@ -261,17 +353,19 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"testchain\": {\n        \"config\": {\n            \"type\": \"{{evm}}\",\n            \"accounts\": 1,\n            \"block_mine_time\": 0,\n            \"clean_on_stop\": true,\n            \"snapshot_id\": null,\n            \"deploy_ref\": \"refs/tags/staxx-testrunner\",\n            \"deploy_step_id\": 0\n        },\n        \"deps\": []\n    }\n}",
+							"raw": "{\n    \"testchain\": {\n        \"config\": {\n            \"type\": \"{{evm}}\",\n            \"accounts\": 1,\n            \"block_mine_time\": 0,\n            \"clean_on_stop\": false,\n            \"snapshot_id\": null,\n            \"deploy_ref\": \"refs/tags/staxx-testrunner\",\n            \"deploy_step_id\": 0\n        },\n        \"deps\": []\n    }\n}",
 							"options": {
 								"raw": {}
 							}
 						},
 						"url": {
-							"raw": "{{STAXX_URL}}/instances/start",
+							"raw": "{{STAXX_URL}}/api/v1/instances/start",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
+								"api",
+								"v1",
 								"instances",
 								"start"
 							],
@@ -287,7 +381,7 @@
 					"response": []
 				},
 				{
-					"name": "Start Empty instance From Snapshot",
+					"name": "Start new Empty Instance From Snapshot",
 					"event": [
 						{
 							"listen": "test",
@@ -305,7 +399,7 @@
 									"    pm.expect(jsonData.data).to.have.own.property(\"id\");",
 									"    pm.expect(jsonData.data.id).to.not.be.empty;",
 									"    ",
-									"    pm.instance.set(\"instance_id\", jsonData.data.id); ",
+									"    pm.environment.set(\"instance_id\", jsonData.data.id); ",
 									"});"
 								],
 								"type": "text/javascript"
@@ -336,12 +430,14 @@
 							}
 						},
 						"url": {
-							"raw": "{{STAXX_URL}}/instance/start",
+							"raw": "{{STAXX_URL}}/api/v1/instances/start",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"instance",
+								"api",
+								"v1",
+								"instances",
 								"start"
 							]
 						}
@@ -349,7 +445,7 @@
 					"response": []
 				},
 				{
-					"name": "Start existing instance",
+					"name": "Start existing Instance",
 					"event": [
 						{
 							"listen": "test",
@@ -382,12 +478,14 @@
 							}
 						},
 						"url": {
-							"raw": "{{STAXX_URL}}/instance/start",
+							"raw": "{{STAXX_URL}}/api/v1/instances/start",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"instance",
+								"api",
+								"v1",
+								"instances",
 								"start"
 							]
 						}
@@ -395,16 +493,18 @@
 					"response": []
 				},
 				{
-					"name": "Delete instance",
+					"name": "Delete stopped instance",
 					"request": {
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/instances/{{instance_id}}",
+							"raw": "{{STAXX_URL}}/api/v1/instances/{{instance_id}}",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
+								"api",
+								"v1",
 								"instances",
 								"{{instance_id}}"
 							]
@@ -413,7 +513,7 @@
 					"response": []
 				},
 				{
-					"name": "Take Snapshot",
+					"name": "Take Snapshot from running Instance",
 					"event": [
 						{
 							"listen": "test",
@@ -433,11 +533,13 @@
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/instances/{{instance_id}}/take_snapshot",
+							"raw": "{{STAXX_URL}}/api/v1/instances/{{instance_id}}/take_snapshot",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
+								"api",
+								"v1",
 								"instances",
 								"{{instance_id}}",
 								"take_snapshot"
@@ -447,16 +549,18 @@
 					"response": []
 				},
 				{
-					"name": "Revert Snapshot",
+					"name": "Revert Snapshot on running Instance",
 					"request": {
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/instances/{{instance_id}}/revert_snapshot/{{snapshot_id}}",
+							"raw": "{{STAXX_URL}}/api/v1/instances/{{instance_id}}/revert_snapshot/{{snapshot_id}}",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
+								"api",
+								"v1",
 								"instances",
 								"{{instance_id}}",
 								"revert_snapshot",
@@ -478,11 +582,13 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/snapshots/{{evm}}",
+							"raw": "{{STAXX_URL}}/api/v1/snapshots/{{evm}}",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
+								"api",
+								"v1",
 								"snapshots",
 								"{{evm}}"
 							]
@@ -496,12 +602,14 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/snapshot/{{snapshot_id}}",
+							"raw": "{{STAXX_URL}}/api/v1/snapshots/{{snapshot_id}}",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
-								"snapshot",
+								"api",
+								"v1",
+								"snapshots",
 								"{{snapshot_id}}"
 							]
 						}
@@ -514,11 +622,13 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{STAXX_URL}}/snapshots/{{snapshot_id}}/download",
+							"raw": "{{STAXX_URL}}/api/v1/snapshots/{{snapshot_id}}/download",
 							"host": [
 								"{{STAXX_URL}}"
 							],
 							"path": [
+								"api",
+								"v1",
 								"snapshots",
 								"{{snapshot_id}}",
 								"download"
@@ -577,6 +687,28 @@
 				}
 			},
 			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "ccd2a860-8b9d-4496-8f12-165b09761129",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "ecb19f27-5fea-4b5b-90ba-c852126e11ab",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
 		}
 	],
 	"protocolProfileBehavior": {}

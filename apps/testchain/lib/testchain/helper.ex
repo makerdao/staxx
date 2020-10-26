@@ -391,6 +391,10 @@ defmodule Staxx.Testchain.Helper do
          res <- :erlang.binary_to_term(content, [:safe]) do
       {:ok, res}
     else
+      false ->
+        Logger.error(fn -> "Failed to read file #{file}: no file exist" end)
+        {:error, "failed to load data from #{file}"}
+        
       err ->
         Logger.error(fn -> "Failed to read file #{file}: #{inspect(err)}" end)
         {:error, "failed to load data from #{file}"}
