@@ -1,4 +1,4 @@
-defmodule Staxx.WebApiWeb.ApiChannel do
+defmodule Staxx.WebApiWeb.V1.ApiChannel do
   @moduledoc """
   Default channel for API manipulation
   """

@@ -1,4 +1,4 @@
-defmodule Staxx.WebApiWeb.ErrorView do
+defmodule Staxx.WebApiWeb.Api.V1.ErrorView do
   use Staxx.WebApiWeb, :view
 
   # If you want to customize a particular status code

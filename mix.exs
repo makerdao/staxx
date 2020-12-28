@@ -43,7 +43,8 @@ defmodule Staxx.MixProject do
         "ecto.migrate",
         "run #{__DIR__}/apps/store/priv/repo/seeds.exs"
       ],
-      test: ["drop_db", "setup_db", "test"]
+      test: ["drop_db", "setup_db", "test"],
+      reset: ["deps.get", "drop_db", "setup_db"]
     ]
   end
 

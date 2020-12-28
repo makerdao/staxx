@@ -1,11 +1,11 @@
-defmodule Staxx.WebApiWeb.DeploymentController do
+defmodule Staxx.WebApiWeb.Api.V1.DeploymentController do
   use Staxx.WebApiWeb, :controller
 
-  action_fallback Staxx.WebApiWeb.FallbackController
+  action_fallback Staxx.WebApiWeb.Api.V1.FallbackController
 
   alias Staxx.Testchain.Deployment.StepsFetcher
   alias Staxx.Testchain.Deployment.BaseApi
-  alias Staxx.WebApiWeb.SuccessView
+  alias Staxx.WebApiWeb.Api.V1.SuccessView
 
   def steps(conn, _) do
     case StepsFetcher.all() do

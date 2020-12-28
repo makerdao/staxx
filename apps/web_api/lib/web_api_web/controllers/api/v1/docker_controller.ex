@@ -1,12 +1,12 @@
-defmodule Staxx.WebApiWeb.DockerController do
+defmodule Staxx.WebApiWeb.Api.V1.DockerController do
   use Staxx.WebApiWeb, :controller
 
   require Logger
 
-  action_fallback Staxx.WebApiWeb.FallbackController
+  action_fallback Staxx.WebApiWeb.Api.V1.FallbackController
 
-  alias Staxx.WebApiWeb.SuccessView
-  alias Staxx.WebApiWeb.ErrorView
+  alias Staxx.WebApiWeb.Api.V1.SuccessView
+  alias Staxx.WebApiWeb.Api.V1.ErrorView
   alias Staxx.Docker
   alias Staxx.Docker.Container
   alias Staxx.Instance
