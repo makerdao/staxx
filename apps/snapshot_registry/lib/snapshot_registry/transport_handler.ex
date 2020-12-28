@@ -34,9 +34,9 @@ defmodule Staxx.SnapshotRegistry.TransportHandler do
     {:ok, state}
   end
 
-  @doc """
-  Receiving and verification authorization token.
-  """
+  #
+  # Receiving and verification authorization token.
+  #
   @impl true
   def handle_call({:tcp_server, {:auth, token}}, _from, state) do
     Logger.info("Check authorization token #{inspect(token)}")
@@ -44,10 +44,10 @@ defmodule Staxx.SnapshotRegistry.TransportHandler do
     {:reply, true, state}
   end
 
-  @doc """
-  Receiving transfer completed event
-  Move temporary file to base snapshots directory and create record in DB with description information
-  """
+  #
+  # Receiving transfer completed event
+  # Move temporary file to base snapshots directory and create record in DB with description information
+  #
   @impl true
   def handle_info(
         {:tcp_server,
@@ -78,9 +78,9 @@ defmodule Staxx.SnapshotRegistry.TransportHandler do
     {:noreply, state}
   end
 
-  @doc """
-  Receiving transfer failed event.
-  """
+  #
+  # Receiving transfer failed event.
+  #
   @impl true
   def handle_info({:tcp_server, {:transfer_failed, _token, reason}}, state) do
     Logger.error("Handle transfer failed with reason: #{inspect(reason)}")
