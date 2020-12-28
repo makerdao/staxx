@@ -4,7 +4,7 @@ defmodule Staxx.WebApiWeb.UserFactory do
   def user_factory do
     %{
       "email" => Faker.Internet.email(),
-      "name" => Faker.Name.name()
+      "name" => Faker.Person.name()
     }
   end
 end

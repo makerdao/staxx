@@ -26,8 +26,8 @@ defmodule Staxx.Metrix.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:telemetry_poller, "~> 0.4"},
-      {:telemetry_metrics_prometheus, "~> 0.3.1"}
+      {:telemetry_poller, "~> 0.5"},
+      {:telemetry_metrics_prometheus, "~> 0.6"}
     ]
   end
 end

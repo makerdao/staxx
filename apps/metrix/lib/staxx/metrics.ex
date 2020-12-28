@@ -36,10 +36,12 @@ defmodule Staxx.Metrix do
       ),
       distribution("http.responses.duration",
         event_name: "staxx.http.stop",
-        buckets: [100, 200, 300],
         tags: [:status],
         tag_values: &http_reponse_tags/1,
-        unit: {:native, :millisecond}
+        unit: {:native, :millisecond},
+        reporter_options: [
+          buckets: [100, 200, 300]
+        ]
       )
     ]
   end

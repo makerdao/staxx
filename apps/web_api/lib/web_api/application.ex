@@ -9,6 +9,7 @@ defmodule Staxx.WebApi.Application do
     # List all child processes to be supervised
     children = [
       # Start the endpoint when the application starts
+      {Phoenix.PubSub, [name: Staxx.WebApi.PubSub, adapter: Phoenix.PubSub.PG2]},
       Staxx.WebApiWeb.Endpoint,
       Staxx.WebApi.ChainMessageHandler,
       Staxx.WebApiWeb.JSONSchemaCache
