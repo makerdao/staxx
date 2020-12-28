@@ -10,15 +10,23 @@ defmodule Staxx.WebApiWeb.Router do
     match :*, "/version", IndexController, :version
   end
 
+  # Backward compatability
+  # TODO: Remove after updating all dependencies.
+  # Currently required for deployment services.
+  scope "/", Staxx.WebApiWeb.Api.V1 do
+    pipe_through :api
+
+    post "/rpc", RpcController, :handle
+  end
+
   scope "/api", Staxx.WebApiWeb do
     pipe_through :api
 
     scope "/v1", Api.V1 do
-
       scope "/" do
-        post "/rpc", RpcController, :call
+        post "/rpc", RpcController, :handle
       end
-      
+
       scope "/deployments" do
         get "/steps", DeploymentController, :steps
         # This is tmp route for testing only !

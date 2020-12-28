@@ -394,7 +394,7 @@ defmodule Staxx.Testchain.Helper do
       false ->
         Logger.error(fn -> "Failed to read file #{file}: no file exist" end)
         {:error, "failed to load data from #{file}"}
-        
+
       err ->
         Logger.error(fn -> "Failed to read file #{file}: #{inspect(err)}" end)
         {:error, "failed to load data from #{file}"}

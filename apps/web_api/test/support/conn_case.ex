@@ -21,7 +21,7 @@ defmodule Staxx.WebApiWeb.ConnCase do
       import Plug.Conn
       import Phoenix.ConnTest
       import Staxx.WebApiWeb.UserFactory
-      
+
       alias Staxx.WebApiWeb.Router.Helpers, as: Routes
 
       # The default endpoint for testing
