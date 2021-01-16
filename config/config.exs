@@ -159,6 +159,9 @@ config :testchain, snapshot_base_path: "/tmp/snapshots"
 # Default deployment scripts git ref
 config :testchain, default_deployment_scripts_git_ref: "refs/tags/staxx-testrunner"
 
+# Default geth account password file location.
+config :testchain, account_password_file: "/app/account_password"
+
 # Default location of account password file.
 # For dev env it will be in related to project root. In Docker it will be replaced with
 # file from `rel/config/config.exs`

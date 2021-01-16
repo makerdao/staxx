@@ -43,7 +43,8 @@ defmodule Staxx.Testchain.MixProject do
       {:ksha3, "~> 1.0.0", git: "https://github.com/onyxrev/ksha3.git", branch: "master"},
       {:ethereum_wallet, github: "onyxrev/ethereum_wallet_elixir"},
       {:jason, "~> 1.1"},
-      {:faker, "~> 0.11", only: :test}
+      {:faker, "~> 0.11", only: :test},
+      {:progress_bar, "~> 2.0", only: [:dev, :test]}
     ]
   end
 end
