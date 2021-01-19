@@ -1,6 +1,6 @@
 defmodule Staxx.Testchain.Deployment.Worker do
   @moduledoc """
-  Wroker that will controll deployment process flow.
+  Wroker controls deployment process flow.
   It will spawn new deployment worker (docker container) with all reaquired info
   and will handle deployment results.
 
@@ -188,7 +188,12 @@ defmodule Staxx.Testchain.Deployment.Worker do
         "REPO_REF" => git_ref,
         "SCENARIO_NR" => step_id,
         "TCD_GATEWAY" => "host=#{Testchain.host()}",
-        "TCD_NATS" => "servers=#{Testchain.nats_url()}"
+        "TCD_NATS" => "servers=#{Testchain.nats_url()}",
+        # Duplicating chain env variables for newer version of deployment worker
+        "ETH_RPC_URL" => rpc_url,
+        "ETH_FROM" => coinbase,
+        "ETH_RPC_ACCOUNTS" => "yes",
+        "ETH_GAS" => gas_limit
       }
     }
   end
@@ -214,6 +219,7 @@ defmodule Staxx.Testchain.Deployment.Worker do
   end
 
   # Combine deployment ENV vars for chain
+  # Deprecated. Here only for backwards compatability with old deploy worker.
   defp chain_env(rpc_url, coinbase, gas_limit) do
     %{
       "ETH_RPC_URL" => rpc_url,

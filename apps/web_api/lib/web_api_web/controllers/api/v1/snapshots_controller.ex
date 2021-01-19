@@ -14,8 +14,7 @@ defmodule Staxx.WebApiWeb.Api.V1.SnapshotController do
 
   # Take snapshot command
   def take_snapshot(conn, %{"id" => id} = params) do
-    with :ok <- TestchainSchema.validate(params),
-         :ok <- Testchain.take_snapshot(id, Map.get(params, "description", "")) do
+    with :ok <- Testchain.take_snapshot(id, Map.get(params, "description", "")) do
       conn
       |> put_status(200)
       |> put_view(SuccessView)

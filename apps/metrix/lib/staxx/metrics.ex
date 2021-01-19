@@ -63,7 +63,6 @@ defmodule Staxx.Metrix do
 
   # Get status code
   defp http_reponse_tags(%{conn: conn}) do
-    # IO.inspect(conn)
     %{status: conn.status}
   end
 end

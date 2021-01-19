@@ -353,6 +353,11 @@ defmodule Staxx.Docker.Adapter.DockerD do
   end
 
   defp exec(command) when is_binary(command) do
+    Logger.debug("""
+    Running new Docker command: 
+    #{command}
+    """)
+    
     command
     |> String.to_charlist()
     |> :os.cmd()
