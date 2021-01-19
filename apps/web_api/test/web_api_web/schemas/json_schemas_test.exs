@@ -11,7 +11,7 @@ defmodule Staxx.WebApiWeb.JSONSchemasTest do
     test "There are properties described in schema" do
       data = %{
         "id" => Faker.String.base64(),
-        "title" => Faker.Name.name()
+        "title" => Faker.Person.name()
       }
 
       assert :ok == TestchainSchema.validate(data)
@@ -21,7 +21,7 @@ defmodule Staxx.WebApiWeb.JSONSchemasTest do
       data = %{
         Instance.testchain_key() => %{
           "id" => Faker.String.base64(),
-          "title" => Faker.Name.name()
+          "title" => Faker.Person.name()
         }
       }
 

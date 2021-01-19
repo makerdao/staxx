@@ -1,13 +1,13 @@
-defmodule Staxx.WebApiWeb.UserController do
+defmodule Staxx.WebApiWeb.Api.V1.UserController do
   use Staxx.WebApiWeb, :controller
 
   require Logger
   alias Staxx.Store.Models.User
 
-  alias Staxx.WebApiWeb.SuccessView
+  alias Staxx.WebApiWeb.Api.V1.SuccessView
   alias Staxx.WebApiWeb.Schemas.UserSchema
 
-  action_fallback Staxx.WebApiWeb.FallbackController
+  action_fallback Staxx.WebApiWeb.Api.V1.FallbackController
 
   @doc """
   List of all users in system

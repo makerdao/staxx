@@ -33,7 +33,7 @@ defmodule Staxx.Store.MixProject do
   defp deps do
     [
       {:event_stream, in_umbrella: true},
-      {:ecto_sql, "~> 3.2"},
+      {:ecto_sql, "~> 3.5"},
       {:postgrex, ">= 0.0.0"},
       {:faker, "~> 0.11", only: :test}
     ]

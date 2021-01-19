@@ -27,8 +27,7 @@ defmodule Staxx.InstanceTest do
       assert Instance.alive?(id)
       Instance.stop(id)
 
-      {:ok, id} =
-        Instance.start(%{Instance.testchain_key() => %{"config" => %{"id" => id}}})
+      {:ok, id} = Instance.start(%{Instance.testchain_key() => %{"config" => %{"id" => id}}})
 
       assert Instance.alive?(id)
       Instance.stop(id)
@@ -137,7 +136,7 @@ defmodule Staxx.InstanceTest do
     test "starts new container" do
       {:ok, id} = Instance.start(build(:chain_valid))
       assert Instance.alive?(id)
-      assert {:ok, pid} = Instance.start_stack(id, "test")
+      assert {:ok, _pid} = Instance.start_stack(id, "test")
       assert Stack.alive?(id, "test")
 
       container = build(:container_valid)
@@ -159,7 +158,7 @@ defmodule Staxx.InstanceTest do
     test "provide info about running instance" do
       {:ok, id} = Instance.start(build(:chain_valid))
       assert Instance.alive?(id)
-      assert {:ok, pid} = Instance.start_stack(id, "test")
+      assert {:ok, _pid} = Instance.start_stack(id, "test")
       assert Stack.alive?(id, "test")
 
       container = build(:container_valid)

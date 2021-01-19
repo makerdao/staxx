@@ -25,7 +25,6 @@ defmodule Staxx.Transport.TransportTest do
     port = context[:port]
     args = %{receiver_pid: self(), tmp_dir: "/tmp/transfered_files", transport_port: port}
     {:ok, server_pid} = Server.start_link(args)
-    IO.inspect(server_pid, label: "server")
     Process.sleep(100)
 
     {:ok, pid1} = Client.start_link(receiver_pid: self())

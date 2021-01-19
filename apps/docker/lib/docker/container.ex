@@ -64,6 +64,7 @@ defmodule Staxx.Docker.Container do
     do: GenServer.start_link(__MODULE__, container, name: via_tuple(name))
 
   @doc false
+  @impl true
   def init(%__MODULE__{} = container) do
     # Collecting telemetry
     :telemetry.execute(
@@ -98,11 +99,12 @@ defmodule Staxx.Docker.Container do
     }
   end
 
-  @doc """
-  Starts already existing container.
-  Will call `Staxx.Docker.start/1` function.
-  On docker level it will use `docker start name` command for starting.
-  """
+  #
+  # Starts already existing container.
+  # Will call `Staxx.Docker.start/1` function.
+  # On docker level it will use `docker start name` command for starting.
+  #
+  @impl true
   def handle_continue(:start_container, %__MODULE__{existing: true, name: name} = container) do
     case Docker.start(name) do
       :ok ->
@@ -125,10 +127,11 @@ defmodule Staxx.Docker.Container do
     end
   end
 
-  @doc """
-  Starts new container using `Staxx.Docker.run/1` function.
-  On low level it will use `docker run ****` command.
-  """
+  #
+  # Starts new container using `Staxx.Docker.run/1` function.
+  # On low level it will use `docker run ****` command.
+  #
+  @impl true
   def handle_continue(:start_container, %__MODULE__{existing: false} = container) do
     case Docker.run(container) do
       {:ok, %__MODULE__{id: id} = started_container} ->
@@ -152,6 +155,7 @@ defmodule Staxx.Docker.Container do
   end
 
   @doc false
+  @impl true
   def terminate(reason, %__MODULE__{id: id} = state) do
     Logger.debug(fn ->
       """
@@ -196,6 +200,7 @@ defmodule Staxx.Docker.Container do
   end
 
   @doc false
+  @impl true
   def handle_cast({:die, exit_code}, %__MODULE__{id: id} = state) do
     Logger.debug(fn ->
       "Container died #{id} with exit code #{exit_code}.\n #{inspect(state, pretty: true)}"
@@ -205,6 +210,7 @@ defmodule Staxx.Docker.Container do
   end
 
   @doc false
+  @impl true
   def handle_call(:info, _from, state),
     do: {:reply, state, state}
 

@@ -1,9 +1,9 @@
-defmodule Staxx.WebApiWeb.UserSocket do
+defmodule Staxx.WebApiWeb.V1.UserSocket do
   use Phoenix.Socket, log: :debug
 
   ## Channels
-  channel "*", Staxx.WebApiWeb.ApiChannel
-  channel "chain:*", Staxx.WebApiWeb.ChainChannel
+  channel "*", Staxx.WebApiWeb.V1.ApiChannel
+  channel "chain:*", Staxx.WebApiWeb.V1.ChainChannel
 
   # Socket params are passed from the client and can
   # be used to verify and authenticate a user. After

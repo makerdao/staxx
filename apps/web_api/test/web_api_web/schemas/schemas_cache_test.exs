@@ -17,7 +17,7 @@ defmodule Staxx.WebApiWeb.SchemasCacheTest do
     test "Cache should keep schema after first validate" do
       data = %{
         "id" => Faker.String.base64(),
-        "title" => Faker.Name.name()
+        "title" => Faker.Person.name()
       }
 
       schema_name = TestchainSchema.json_schema_name()

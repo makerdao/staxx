@@ -6,7 +6,7 @@ defmodule Staxx.WebApiWeb.InstancesControllerTest do
   use Staxx.WebApiWeb.InstancesControllerCase
 
   @moduletag :api
-  
+
   describe "Instances tests::" do
     test "should return list of chains belongs to user", %{conn: conn} do
       assert %{"data" => chains, "errors" => [], "status" => 0} =

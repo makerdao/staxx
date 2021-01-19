@@ -1,16 +1,16 @@
-defmodule Staxx.WebApiWeb.StackController do
+defmodule Staxx.WebApiWeb.Api.V1.StackController do
   use Staxx.WebApiWeb, :controller
 
   require Logger
 
-  action_fallback(Staxx.WebApiWeb.FallbackController)
+  action_fallback Staxx.WebApiWeb.Api.V1.FallbackController
 
   alias Staxx.Instance
   alias Staxx.EventStream.Notification
   alias Staxx.Instance.Stack
   alias Staxx.Instance.Stack.ConfigLoader
 
-  alias Staxx.WebApiWeb.SuccessView
+  alias Staxx.WebApiWeb.Api.V1.SuccessView
 
   # List of available stack configs
   def list_config(conn, _params) do

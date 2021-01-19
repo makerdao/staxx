@@ -95,8 +95,8 @@ config :telemetry_poller, :default,
 config :web_api, Staxx.WebApiWeb.Endpoint,
   url: [host: "localhost"],
   secret_key_base: "JVM+w2YiFWxOCzzCpZFhyDTygERfvFXEWMqAThkzfBnRqcsw/mskVPOJ9hCP8pcu",
-  render_errors: [view: Staxx.WebApiWeb.ErrorView, accepts: ~w(json)],
-  pubsub: [name: Staxx.WebApi.PubSub, adapter: Phoenix.PubSub.PG2]
+  render_errors: [view: Staxx.WebApiWeb.Api.V1.ErrorView, accepts: ~w(json)],
+  pubsub_server: Staxx.WebApi.PubSub
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
@@ -158,6 +158,9 @@ config :testchain, snapshot_base_path: "/tmp/snapshots"
 
 # Default deployment scripts git ref
 config :testchain, default_deployment_scripts_git_ref: "refs/tags/staxx-testrunner"
+
+# Default geth account password file location.
+config :testchain, account_password_file: "/app/account_password"
 
 # Default location of account password file.
 # For dev env it will be in related to project root. In Docker it will be replaced with

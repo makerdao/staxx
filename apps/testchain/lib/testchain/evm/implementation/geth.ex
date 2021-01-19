@@ -26,7 +26,7 @@ defmodule Staxx.Testchain.EVM.Implementation.Geth do
   """
   @spec password_file() :: binary
   def password_file(),
-    do: "/app/account_password"
+    do: Application.get_env(:testchain, :account_password_file, "/app/account_password")
 
   @impl EVM
   def start(%Config{id: id, db_path: db_path} = config) do

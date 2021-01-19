@@ -1,4 +1,4 @@
-defmodule Staxx.WebApiWeb.ChainChannel do
+defmodule Staxx.WebApiWeb.V1.ChainChannel do
   @moduledoc """
   Controlling functions for specified chains
   """

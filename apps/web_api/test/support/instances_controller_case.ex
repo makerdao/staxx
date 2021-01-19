@@ -18,7 +18,8 @@ defmodule Staxx.WebApiWeb.InstancesControllerCase do
   using do
     quote do
       # Import conveniences for testing with connections
-      use Phoenix.ConnTest
+      import Plug.Conn
+      import Phoenix.ConnTest
 
       alias Staxx.WebApiWeb.Router.Helpers, as: Routes
 
@@ -39,7 +40,7 @@ defmodule Staxx.WebApiWeb.InstancesControllerCase do
         email: Application.get_env(:web_api, :test_user_email, "test@test.com"),
         admin: true,
         active: true,
-        name: Faker.Name.name()
+        name: Faker.Person.name()
       })
 
     # Remove all chains
@@ -49,19 +50,19 @@ defmodule Staxx.WebApiWeb.InstancesControllerCase do
     [
       %{
         id: "1234567890",
-        title: Faker.Name.name(),
+        title: Faker.Person.name(),
         node_type: "geth",
         user_id: user.id
       },
       %{
         id: Faker.UUID.v4(),
-        title: Faker.Name.name(),
+        title: Faker.Person.name(),
         node_type: "geth",
         user_id: user.id
       },
       %{
         id: Faker.UUID.v4(),
-        title: Faker.Name.name(),
+        title: Faker.Person.name(),
         node_type: "geth",
         user_id: user.id
       }

@@ -1,4 +1,4 @@
-defmodule Staxx.WebApiWeb.ApiChannel do
+defmodule Staxx.WebApiWeb.V1.ApiChannel do
   @moduledoc """
   Default channel for API manipulation
   """
@@ -15,23 +15,23 @@ defmodule Staxx.WebApiWeb.ApiChannel do
 
   def join(_, _, socket), do: {:ok, %{message: "Welcome to ExTestchain !"}, socket}
 
-  @doc """
-  Start existing chain
-  """
+  #
+  # Start existing chain
+  #
   def handle_in("start_existing", payload, socket) do
     validate_and_start_chain(payload, socket)
   end
 
-  @doc """
-  Start new chain handler
-  """
+  #
+  # Start new chain handler
+  #
   def handle_in("start", payload, socket) do
     validate_and_start_chain(payload, socket)
   end
 
-  @doc """
-  Get list of snapshots for given chain type
-  """
+  #
+  # Get list of snapshots for given chain type
+  #
   def handle_in("list_snapshots", %{"chain" => chain}, socket) do
     list =
       chain

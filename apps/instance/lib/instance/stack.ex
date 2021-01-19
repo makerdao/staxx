@@ -25,7 +25,8 @@ defmodule Staxx.Instance.Stack do
   @typedoc """
   Stack information format.
   """
-  @type info :: {binary, %{status: status(), stack_name: binary, containers: [Container.t()]}} | nil
+  @type info ::
+          {binary, %{status: status(), stack_name: binary, containers: [Container.t()]}} | nil
 
   defmodule State do
     @moduledoc false
@@ -53,10 +54,7 @@ defmodule Staxx.Instance.Stack do
   """
   @spec start_link({Instance.id(), binary}) :: GenServer.on_start()
   def start_link({instance_id, name}),
-    do:
-      GenServer.start_link(__MODULE__, {instance_id, name},
-        name: via_tuple(instance_id, name)
-      )
+    do: GenServer.start_link(__MODULE__, {instance_id, name}, name: via_tuple(instance_id, name))
 
   # TODO: start manager container
   # get stack config
@@ -267,9 +265,7 @@ defmodule Staxx.Instance.Stack do
     else
       err ->
         Logger.debug(fn ->
-          "Instance #{instance_id}: Something went wrong on starting manager: #{
-            inspect(err)
-          }"
+          "Instance #{instance_id}: Something went wrong on starting manager: #{inspect(err)}"
         end)
 
         {:error, :failed_to_start}
