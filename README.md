@@ -89,7 +89,7 @@ testchain-deployment.local  | time="2019-04-11T08:07:38Z" level=debug msg="Reque
 Your testchain is now up and running! You are now able to start using services, such as interacting with the [testchain dashboard](https://github.com/makerdao/testchain-dashboard).
 
 
-## Full List of Testchain Commands (Docker Compose):  
+## Full List of Testchain Commands (Docker Up):  
 
 - `make run-dev`
     - This command will start the QA portal in docker images and will then set it to  `localhost:4001` for the UI view and `localhost:4000` for the WS/Web API.
